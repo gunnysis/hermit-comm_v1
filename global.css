@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .card-happy {
+    @apply bg-white rounded-3xl p-4 shadow-lg border border-cream-200;
+  }
+  
+  .btn-happy {
+    @apply bg-gradient-to-r from-happy-400 to-coral-400 rounded-full px-6 py-3 shadow-lg;
+  }
+  
+  .input-happy {
+    @apply bg-cream-50 border-2 border-cream-200 rounded-2xl px-4 py-3;
+  }
+}
