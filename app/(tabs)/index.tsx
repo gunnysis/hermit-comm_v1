@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Container } from '../../components/common/Container';
 import { PostList } from '../../components/posts/PostList';
@@ -8,20 +8,38 @@ import { Post } from '../../types';
 import { useAPI } from '../../hooks/useAPI';
 import { useRealtimePosts } from '../../hooks/useRealtimePosts';
 
+type SortOrder = 'latest' | 'popular';
+
 export default function HomeScreen() {
+  const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  const { loading, error, refetch } = useAPI(
-    async () => {
-      const result = await api.getPosts(20, 0);
-      setPosts(result);
-      setOffset(20);
-      setHasMore(result.length === 20);
-      return result;
-    }
+  const fetchPosts = useCallback(
+    async (limit: number, fromOffset: number) => {
+      return api.getPosts(limit, fromOffset, sortOrder);
+    },
+    [sortOrder]
   );
+
+  const fetcher = useCallback(async () => {
+    const result = await fetchPosts(20, 0);
+    setPosts(result);
+    setOffset(20);
+    setHasMore(result.length === 20);
+    return result;
+  }, [fetchPosts]);
+
+  const { loading, error, refetch } = useAPI(fetcher);
+  const prevSortRef = useRef<SortOrder>(sortOrder);
+
+  useEffect(() => {
+    if (prevSortRef.current !== sortOrder) {
+      prevSortRef.current = sortOrder;
+      refetch();
+    }
+  }, [sortOrder, refetch]);
 
   // 실시간 게시글 업데이트 구독
   useRealtimePosts({
@@ -45,20 +63,20 @@ export default function HomeScreen() {
 
   const handleRefresh = useCallback(async () => {
     try {
-      const result = await api.getPosts(20, 0);
+      const result = await fetchPosts(20, 0);
       setPosts(result);
       setOffset(20);
       setHasMore(result.length === 20);
     } catch (error) {
       console.error('[HomeScreen] 새로고침 실패:', error);
     }
-  }, []);
+  }, [fetchPosts]);
 
   const handleLoadMore = useCallback(async () => {
     if (!hasMore || loading) return;
 
     try {
-      const result = await api.getPosts(20, offset);
+      const result = await fetchPosts(20, offset);
       if (result.length < 20) {
         setHasMore(false);
       }
@@ -71,7 +89,7 @@ export default function HomeScreen() {
     } catch (e) {
       console.error('게시글 로드 실패:', e);
     }
-  }, [offset, hasMore, loading]);
+  }, [offset, hasMore, loading, fetchPosts]);
 
   return (
     <Container>
@@ -88,6 +106,32 @@ export default function HomeScreen() {
         <Text className="text-sm text-gray-600 mt-2">
           따뜻한 이야기가 있는 곳
         </Text>
+        <View className="flex-row mt-3 gap-2">
+          <Pressable
+            onPress={() => setSortOrder('latest')}
+            className={`flex-1 py-2 rounded-xl ${sortOrder === 'latest' ? 'bg-happy-400' : 'bg-white border border-cream-200'}`}
+            accessibilityLabel="최신순 정렬"
+            accessibilityRole="button"
+          >
+            <Text
+              className={`text-center font-semibold ${sortOrder === 'latest' ? 'text-white' : 'text-gray-600'}`}
+            >
+              최신순
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSortOrder('popular')}
+            className={`flex-1 py-2 rounded-xl ${sortOrder === 'popular' ? 'bg-happy-400' : 'bg-white border border-cream-200'}`}
+            accessibilityLabel="인기순 정렬"
+            accessibilityRole="button"
+          >
+            <Text
+              className={`text-center font-semibold ${sortOrder === 'popular' ? 'text-white' : 'text-gray-600'}`}
+            >
+              인기순
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <PostList

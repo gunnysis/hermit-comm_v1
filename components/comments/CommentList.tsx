@@ -6,10 +6,11 @@ import { CommentItem } from './CommentItem';
 interface CommentListProps {
   comments: Comment[];
   onDelete?: (id: number) => void;
-  currentUserId?: string;  // 현재 사용자의 UUID
+  onEdit?: (id: number, content: string) => Promise<void>;
+  currentUserId?: string;
 }
 
-export function CommentList({ comments, onDelete, currentUserId }: CommentListProps) {
+export function CommentList({ comments, onDelete, onEdit, currentUserId }: CommentListProps) {
   if (comments.length === 0) {
     return (
       <View className="p-8 items-center">
@@ -28,7 +29,8 @@ export function CommentList({ comments, onDelete, currentUserId }: CommentListPr
           key={comment.id}
           comment={comment}
           onDelete={onDelete}
-          canDelete={currentUserId === comment.author_id}
+          onEdit={onEdit}
+          canEdit={currentUserId === comment.author_id}
         />
       ))}
     </View>

@@ -1,117 +1,101 @@
--- 은둔마을 커뮤니티: 익명 인증 및 RLS 정책 강화
--- Supabase SQL Editor에서 실행하세요
+-- =============================================================================
+-- 002_add_auth_and_rls.sql — 익명 인증 + author_id 기반 RLS
+-- author_id 추가, 기존 데이터 backfill, 정책 교체
+-- =============================================================================
 
--- ===== 1. 스키마 변경: author_id 컬럼 추가 =====
+-- -----------------------------------------------------------------------------
+-- 1. author_id 컬럼 추가 (nullable)
+-- -----------------------------------------------------------------------------
 
--- posts 테이블에 author_id 추가
-alter table posts add column if not exists author_id uuid references auth.users(id);
+ALTER TABLE posts
+  ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES auth.users(id);
 
--- comments 테이블에 author_id 추가
-alter table comments add column if not exists author_id uuid references auth.users(id);
+ALTER TABLE comments
+  ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES auth.users(id);
 
--- 기존 데이터가 있다면 더미 UUID로 설정 (선택사항)
--- 주의: 실제 사용 시 적절한 UUID로 교체하거나 데이터를 삭제하세요
--- update posts set author_id = '00000000-0000-0000-0000-000000000000'::uuid where author_id is null;
--- update comments set author_id = '00000000-0000-0000-0000-000000000000'::uuid where author_id is null;
+-- -----------------------------------------------------------------------------
+-- 2. 기존 행 backfill 후 NOT NULL 적용
+-- (기존 행은 placeholder UUID로 설정; 필요 시 대시보드에서 수정/삭제)
+-- -----------------------------------------------------------------------------
 
--- author_id를 필수 컬럼으로 설정
--- 주의: 기존 데이터가 있다면 위의 update 문을 먼저 실행하세요
-alter table posts alter column author_id set not null;
-alter table comments alter column author_id set not null;
+DO $$
+DECLARE
+  placeholder UUID := '00000000-0000-0000-0000-000000000000';
+BEGIN
+  UPDATE posts   SET author_id = placeholder WHERE author_id IS NULL;
+  UPDATE comments SET author_id = placeholder WHERE author_id IS NULL;
+END $$;
 
--- 성능 최적화를 위한 인덱스 추가
-create index if not exists idx_posts_author_id on posts(author_id);
-create index if not exists idx_comments_author_id on comments(author_id);
+ALTER TABLE posts   ALTER COLUMN author_id SET NOT NULL;
+ALTER TABLE comments ALTER COLUMN author_id SET NOT NULL;
 
--- ===== 2. 기존 RLS 정책 삭제 =====
+-- -----------------------------------------------------------------------------
+-- 3. 인덱스
+-- -----------------------------------------------------------------------------
 
--- posts 테이블 기존 정책 삭제
-drop policy if exists "Anyone can read posts" on posts;
-drop policy if exists "Anyone can create posts" on posts;
-drop policy if exists "Anyone can delete posts" on posts;
-drop policy if exists "Everyone can read posts" on posts;
-drop policy if exists "Authenticated users can create posts" on posts;
-drop policy if exists "Users can delete own posts" on posts;
+CREATE INDEX IF NOT EXISTS idx_posts_author_id   ON posts(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments(author_id);
 
--- comments 테이블 기존 정책 삭제
-drop policy if exists "Anyone can read comments" on comments;
-drop policy if exists "Anyone can create comments" on comments;
-drop policy if exists "Anyone can delete comments" on comments;
-drop policy if exists "Everyone can read comments" on comments;
-drop policy if exists "Authenticated users can create comments" on comments;
-drop policy if exists "Users can delete own comments" on comments;
+-- -----------------------------------------------------------------------------
+-- 4. 기존 RLS 정책 제거 (idempotent)
+-- -----------------------------------------------------------------------------
 
--- reactions 테이블 기존 정책 삭제
-drop policy if exists "Anyone can read reactions" on reactions;
-drop policy if exists "Anyone can insert reactions" on reactions;
-drop policy if exists "Anyone can update reactions" on reactions;
-drop policy if exists "Everyone can read reactions" on reactions;
-drop policy if exists "Authenticated users can create reactions" on reactions;
-drop policy if exists "Authenticated users can update reactions" on reactions;
+-- posts
+DROP POLICY IF EXISTS "Anyone can read posts"    ON posts;
+DROP POLICY IF EXISTS "Anyone can create posts" ON posts;
+DROP POLICY IF EXISTS "Anyone can delete posts" ON posts;
+DROP POLICY IF EXISTS "Everyone can read posts" ON posts;
+DROP POLICY IF EXISTS "Authenticated users can create posts" ON posts;
+DROP POLICY IF EXISTS "Users can delete own posts" ON posts;
 
--- ===== 3. 새로운 RLS 정책 생성 =====
+-- comments
+DROP POLICY IF EXISTS "Anyone can read comments"    ON comments;
+DROP POLICY IF EXISTS "Anyone can create comments" ON comments;
+DROP POLICY IF EXISTS "Anyone can delete comments" ON comments;
+DROP POLICY IF EXISTS "Everyone can read comments" ON comments;
+DROP POLICY IF EXISTS "Authenticated users can create comments" ON comments;
+DROP POLICY IF EXISTS "Users can delete own comments" ON comments;
 
--- ----- POSTS 테이블 정책 -----
+-- reactions
+DROP POLICY IF EXISTS "Anyone can read reactions"    ON reactions;
+DROP POLICY IF EXISTS "Anyone can insert reactions" ON reactions;
+DROP POLICY IF EXISTS "Anyone can update reactions" ON reactions;
+DROP POLICY IF EXISTS "Everyone can read reactions" ON reactions;
+DROP POLICY IF EXISTS "Authenticated users can create reactions" ON reactions;
+DROP POLICY IF EXISTS "Authenticated users can update reactions" ON reactions;
 
--- 읽기: 누구나 가능 (공개 커뮤니티)
-create policy "Everyone can read posts"
-  on posts for select
-  using (true);
+-- -----------------------------------------------------------------------------
+-- 5. 새 RLS 정책 (auth.uid() 기반)
+-- -----------------------------------------------------------------------------
 
--- 생성: 인증된 사용자만 가능 (익명 사용자 포함)
--- author_id는 자동으로 현재 사용자의 UUID로 설정됨
-create policy "Authenticated users can create posts"
-  on posts for insert
-  with check (auth.uid() = author_id);
+-- posts: 읽기 전체, 생성/삭제는 본인만
+CREATE POLICY "Everyone can read posts"
+  ON posts FOR SELECT USING (true);
 
--- 삭제: 작성자 본인만 가능
-create policy "Users can delete own posts"
-  on posts for delete
-  using (auth.uid() = author_id);
+CREATE POLICY "Authenticated users can create posts"
+  ON posts FOR INSERT WITH CHECK (auth.uid() = author_id);
 
--- ----- COMMENTS 테이블 정책 -----
+CREATE POLICY "Users can delete own posts"
+  ON posts FOR DELETE USING (auth.uid() = author_id);
 
--- 읽기: 누구나 가능
-create policy "Everyone can read comments"
-  on comments for select
-  using (true);
+-- comments: 동일
+CREATE POLICY "Everyone can read comments"
+  ON comments FOR SELECT USING (true);
 
--- 생성: 인증된 사용자만 가능
-create policy "Authenticated users can create comments"
-  on comments for insert
-  with check (auth.uid() = author_id);
+CREATE POLICY "Authenticated users can create comments"
+  ON comments FOR INSERT WITH CHECK (auth.uid() = author_id);
 
--- 삭제: 작성자 본인만 가능
-create policy "Users can delete own comments"
-  on comments for delete
-  using (auth.uid() = author_id);
+CREATE POLICY "Users can delete own comments"
+  ON comments FOR DELETE USING (auth.uid() = author_id);
 
--- ----- REACTIONS 테이블 정책 -----
+-- reactions: 읽기 전체, 추가/수정은 인증 사용자
+CREATE POLICY "Everyone can read reactions"
+  ON reactions FOR SELECT USING (true);
 
--- 반응은 익명으로 유지 (삭제 불가)
-create policy "Everyone can read reactions"
-  on reactions for select
-  using (true);
+CREATE POLICY "Authenticated users can create reactions"
+  ON reactions FOR INSERT
+  WITH CHECK (auth.role() IN ('authenticated', 'anon'));
 
--- 인증된 사용자는 반응 추가 가능
-create policy "Authenticated users can create reactions"
-  on reactions for insert
-  with check (auth.role() = 'authenticated' or auth.role() = 'anon');
-
--- 인증된 사용자는 반응 수정 가능 (count 증가)
-create policy "Authenticated users can update reactions"
-  on reactions for update
-  using (auth.role() = 'authenticated' or auth.role() = 'anon');
-
--- ===== 4. 완료 메시지 =====
-
--- 마이그레이션이 성공적으로 완료되었습니다!
--- 
--- 다음 단계:
--- 1. Database → Replication에서 Realtime이 여전히 활성화되어 있는지 확인
--- 2. 앱 코드를 업데이트하여 익명 인증을 사용하도록 설정
--- 3. 앱을 재시작하고 테스트
---
--- 테스트 방법:
--- - 새 게시글 작성 시 author_id가 자동으로 설정되는지 확인
--- - 자신의 게시글은 삭제 가능하지만 다른 사람의 게시글은 삭제 불가능한지 확인
+CREATE POLICY "Authenticated users can update reactions"
+  ON reactions FOR UPDATE
+  USING (auth.role() IN ('authenticated', 'anon'));

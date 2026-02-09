@@ -7,6 +7,8 @@ export interface Post {
   author: string;  // 닉네임 (사용자 입력)
   author_id: string;  // UUID (서버 자동 설정)
   created_at: string;
+  /** 목록 조회 시 댓글 수 (선택) */
+  comment_count?: number;
 }
 
 export interface Comment {
@@ -39,12 +41,24 @@ export interface CreateReactionRequest {
   reaction_type: string;
 }
 
+export interface UpdatePostRequest {
+  title?: string;
+  content?: string;
+  author?: string;
+}
+
+export interface UpdateCommentRequest {
+  content: string;
+}
+
 // 응답 타입
 export type GetPostsResponse = Post[];
 export type GetPostResponse = Post;
 export type CreatePostResponse = Post;
+export type UpdatePostResponse = Post;
 export type GetCommentsResponse = Comment[];
 export type CreateCommentResponse = Comment;
+export type UpdateCommentResponse = Comment;
 export type GetReactionsResponse = Reaction[];
 export type CreateReactionResponse = Reaction;
 

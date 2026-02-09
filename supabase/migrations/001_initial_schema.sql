@@ -1,91 +1,63 @@
--- 은둔마을 커뮤니티 초기 스키마
--- Supabase SQL Editor에서 실행하세요
+-- =============================================================================
+-- 001_initial_schema.sql — 은둔마을 초기 스키마
+-- 테이블 생성, 인덱스, RLS 활성화 및 초기 정책(전체 허용)
+-- =============================================================================
 
--- 1. posts 테이블 생성
-create table if not exists posts (
-  id bigserial primary key,
-  title text not null,
-  content text not null,
-  author text not null,
-  created_at timestamptz default now()
+-- -----------------------------------------------------------------------------
+-- 테이블
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS posts (
+  id         BIGSERIAL PRIMARY KEY,
+  title      TEXT NOT NULL,
+  content    TEXT NOT NULL,
+  author     TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. comments 테이블 생성
-create table if not exists comments (
-  id bigserial primary key,
-  post_id bigint not null references posts(id) on delete cascade,
-  content text not null,
-  author text not null,
-  created_at timestamptz default now()
+CREATE TABLE IF NOT EXISTS comments (
+  id         BIGSERIAL PRIMARY KEY,
+  post_id    BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  content    TEXT NOT NULL,
+  author     TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. reactions 테이블 생성 (집계 저장 방식)
-create table if not exists reactions (
-  id bigserial primary key,
-  post_id bigint not null references posts(id) on delete cascade,
-  reaction_type text not null,
-  count int default 0,
-  unique(post_id, reaction_type)
+CREATE TABLE IF NOT EXISTS reactions (
+  id            BIGSERIAL PRIMARY KEY,
+  post_id       BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  reaction_type TEXT NOT NULL,
+  count         INT DEFAULT 0,
+  UNIQUE (post_id, reaction_type)
 );
 
--- 4. 인덱스 생성 (성능 최적화)
-create index if not exists idx_comments_post_id on comments(post_id);
-create index if not exists idx_reactions_post_id on reactions(post_id);
-create index if not exists idx_posts_created_at on posts(created_at desc);
+-- -----------------------------------------------------------------------------
+-- 인덱스
+-- -----------------------------------------------------------------------------
 
--- 5. RLS (Row Level Security) 활성화
-alter table posts enable row level security;
-alter table comments enable row level security;
-alter table reactions enable row level security;
+CREATE INDEX IF NOT EXISTS idx_posts_created_at   ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id   ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_post_id  ON reactions(post_id);
 
--- 6. RLS 정책 생성 (익명 사용자 전체 권한)
--- posts 테이블 정책
-create policy "Anyone can read posts" 
-  on posts for select 
-  using (true);
+-- -----------------------------------------------------------------------------
+-- RLS 활성화 및 정책 (초기: 모두 허용)
+-- -----------------------------------------------------------------------------
 
-create policy "Anyone can create posts" 
-  on posts for insert 
-  with check (true);
+ALTER TABLE posts    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reactions ENABLE ROW LEVEL SECURITY;
 
-create policy "Anyone can delete posts" 
-  on posts for delete 
-  using (true);
+-- posts
+CREATE POLICY "Anyone can read posts"    ON posts FOR SELECT USING (true);
+CREATE POLICY "Anyone can create posts"  ON posts FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can delete posts"  ON posts FOR DELETE USING (true);
 
--- comments 테이블 정책
-create policy "Anyone can read comments" 
-  on comments for select 
-  using (true);
+-- comments
+CREATE POLICY "Anyone can read comments"    ON comments FOR SELECT USING (true);
+CREATE POLICY "Anyone can create comments"  ON comments FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can delete comments"  ON comments FOR DELETE USING (true);
 
-create policy "Anyone can create comments" 
-  on comments for insert 
-  with check (true);
-
-create policy "Anyone can delete comments" 
-  on comments for delete 
-  using (true);
-
--- reactions 테이블 정책
-create policy "Anyone can read reactions" 
-  on reactions for select 
-  using (true);
-
-create policy "Anyone can insert reactions" 
-  on reactions for insert 
-  with check (true);
-
-create policy "Anyone can update reactions" 
-  on reactions for update 
-  using (true);
-
--- 7. Realtime 활성화 (발행)
--- Supabase 대시보드에서 Database → Replication으로 가서
--- 다음 테이블들의 Realtime을 활성화하세요:
--- - posts
--- - comments  
--- - reactions
-
--- 8. 샘플 데이터 (선택사항)
--- insert into posts (title, content, author) values
---   ('첫 번째 게시글', '은둔마을에 오신 것을 환영합니다!', '관리자'),
---   ('Supabase 전환 완료', '이제 실시간 업데이트가 가능합니다.', '개발자');
+-- reactions
+CREATE POLICY "Anyone can read reactions"    ON reactions FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert reactions" ON reactions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update reactions" ON reactions FOR UPDATE USING (true);

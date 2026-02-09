@@ -6,11 +6,15 @@ import type {
   CreatePostRequest,
   CreateCommentRequest,
   CreateReactionRequest,
+  UpdatePostRequest,
+  UpdateCommentRequest,
   GetPostsResponse,
   GetPostResponse,
   CreatePostResponse,
+  UpdatePostResponse,
   GetCommentsResponse,
   CreateCommentResponse,
+  UpdateCommentResponse,
   GetReactionsResponse,
   CreateReactionResponse,
 } from '../types';
@@ -38,23 +42,51 @@ class APIError extends Error {
 
 // Supabase 기반 API 클라이언트
 export const api = {
-  // 게시글 목록 조회
-  getPosts: async (limit: number = 20, offset: number = 0): Promise<GetPostsResponse> => {
-    console.log('[Supabase] 게시글 목록 조회:', { limit, offset });
-    
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false })
+  // 게시글 목록 조회 (정렬: latest | popular, 댓글 수 포함)
+  getPosts: async (
+    limit: number = 20,
+    offset: number = 0,
+    sortOrder: 'latest' | 'popular' = 'latest'
+  ): Promise<GetPostsResponse> => {
+    console.log('[Supabase] 게시글 목록 조회:', { limit, offset, sortOrder });
+
+    const table = sortOrder === 'popular' ? 'posts_with_like_count' : 'posts';
+    const orderCol = sortOrder === 'popular' ? 'like_count' : 'created_at';
+    const ascending = sortOrder === 'popular' ? false : false;
+
+    const query = supabase
+      .from(table)
+      .select(sortOrder === 'latest' ? '*, comments(count)' : '*')
+      .order(orderCol, { ascending })
       .range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('[Supabase] 에러:', error);
       throw new APIError(500, error.message);
     }
 
-    console.log('[Supabase] 게시글 개수:', data?.length);
-    return (data || []) as Post[];
+    const rows = (data || []) as (Post & {
+      comments?: { count: number }[] | number;
+      like_count?: number;
+      comment_count?: number;
+    })[];
+    const posts: Post[] = rows.map((row) => {
+      const { comments: commentCount, like_count: _lc, comment_count: viewCommentCount, ...rest } = row;
+      const comment_count =
+        viewCommentCount !== undefined
+          ? viewCommentCount
+          : Array.isArray(commentCount)
+            ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
+            : typeof commentCount === 'number'
+              ? commentCount
+              : undefined;
+      return { ...rest, comment_count } as Post;
+    });
+
+    console.log('[Supabase] 게시글 개수:', posts.length);
+    return posts;
   },
 
   // 게시글 단건 조회
@@ -134,6 +166,33 @@ export const api = {
     console.log('[Supabase] 게시글 삭제 완료');
   },
 
+  // 게시글 수정
+  updatePost: async (
+    id: number,
+    body: UpdatePostRequest
+  ): Promise<UpdatePostResponse> => {
+    console.log('[Supabase] 게시글 수정:', id, body);
+
+    const { data, error } = await supabase
+      .from('posts')
+      .update(body)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase] 에러:', error);
+      throw new APIError(
+        error.code === '42501' ? 403 : 500,
+        '게시글 수정에 실패했습니다.',
+        error.code,
+        error
+      );
+    }
+
+    return data as Post;
+  },
+
   // 댓글 목록 조회
   getComments: async (
     postId: number,
@@ -190,6 +249,33 @@ export const api = {
     }
 
     console.log('[Supabase] 댓글 생성 완료:', data.id);
+    return data as Comment;
+  },
+
+  // 댓글 수정
+  updateComment: async (
+    id: number,
+    body: UpdateCommentRequest
+  ): Promise<UpdateCommentResponse> => {
+    console.log('[Supabase] 댓글 수정:', id);
+
+    const { data, error } = await supabase
+      .from('comments')
+      .update({ content: body.content })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase] 에러:', error);
+      throw new APIError(
+        error.code === '42501' ? 403 : 500,
+        '댓글 수정에 실패했습니다.',
+        error.code,
+        error
+      );
+    }
+
     return data as Comment;
   },
 

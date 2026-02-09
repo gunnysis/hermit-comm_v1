@@ -106,6 +106,20 @@ export default function PostDetailScreen() {
     }
   };
 
+  // 댓글 수정
+  const handleEditComment = async (commentId: number, content: string) => {
+    try {
+      await api.updateComment(commentId, { content });
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, content } : c))
+      );
+    } catch (error) {
+      Alert.alert('오류', '댓글 수정에 실패했습니다.');
+      console.error('댓글 수정 실패:', error);
+      throw error;
+    }
+  };
+
   // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     Alert.alert(
@@ -209,11 +223,18 @@ export default function PostDetailScreen() {
             </Text>
           </Pressable>
           {canDeletePost && (
-            <Pressable onPress={handleDeletePost} className="p-2 active:opacity-70">
-              <Text className="text-base text-coral-500 font-semibold">
-                삭제
-              </Text>
-            </Pressable>
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => router.push(`/post/edit/${id}`)}
+                className="p-2 active:opacity-70"
+                accessibilityLabel="게시글 수정"
+              >
+                <Text className="text-base text-happy-700 font-semibold">수정</Text>
+              </Pressable>
+              <Pressable onPress={handleDeletePost} className="p-2 active:opacity-70">
+                <Text className="text-base text-coral-500 font-semibold">삭제</Text>
+              </Pressable>
+            </View>
           )}
         </View>
 
@@ -258,6 +279,7 @@ export default function PostDetailScreen() {
               <CommentList
                 comments={comments}
                 onDelete={handleDeleteComment}
+                onEdit={handleEditComment}
                 currentUserId={user?.id}
               />
             )}

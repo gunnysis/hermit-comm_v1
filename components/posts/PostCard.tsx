@@ -21,11 +21,20 @@ export const PostCard = React.memo(({ post }: PostCardProps) => {
             {post.content}
           </Text>
           
-          <View className="flex-row justify-between items-center">
-            <View className="bg-happy-100 px-3 py-1.5 rounded-full">
-              <Text className="text-sm font-semibold text-happy-700">
-                {post.author}
-              </Text>
+          <View className="flex-row justify-between items-center flex-wrap gap-2">
+            <View className="flex-row items-center gap-2">
+              <View className="bg-happy-100 px-3 py-1.5 rounded-full">
+                <Text className="text-sm font-semibold text-happy-700">
+                  {post.author}
+                </Text>
+              </View>
+              {post.comment_count !== undefined && (
+                <View className="bg-mint-100 px-2.5 py-1 rounded-full">
+                  <Text className="text-xs font-medium text-mint-700">
+                    댓글 {post.comment_count}개
+                  </Text>
+                </View>
+              )}
             </View>
             <Text className="text-xs text-gray-400">
               {formatDate(post.created_at)}
