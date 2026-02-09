@@ -39,8 +39,7 @@
       },
       "cache": {
         "disabled": false
-      },
-      "channel": "preview"
+      }
     },
     "production": {
       "developmentClient": false,
@@ -61,8 +60,7 @@
       },
       "cache": {
         "disabled": false
-      },
-      "channel": "production"
+      }
     }
   },
   "submit": {

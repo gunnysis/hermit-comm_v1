@@ -12,6 +12,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Container } from '../../components/common/Container';
 import { Loading } from '../../components/common/Loading';
 import { ErrorView } from '../../components/common/ErrorView';
@@ -34,6 +35,7 @@ export default function PostDetailScreen() {
   const router = useRouter();
   const { author: savedAuthor } = useAuthor();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -234,7 +236,8 @@ export default function PostDetailScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
       >
         {/* 헤더 */}
         <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-lavender-100 border-b border-cream-200 shadow-sm">
@@ -284,7 +287,11 @@ export default function PostDetailScreen() {
           </View>
         </View>
 
-        <ScrollView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 12 }}
+        >
           {/* 게시글 내용 */}
           <View className="p-4 border-b border-cream-200 bg-white">
             <Text className="text-2xl font-bold text-gray-800 mb-3">
@@ -332,7 +339,7 @@ export default function PostDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* 댓글 작성 */}
+        {/* 댓글 작성 - 하단 고정 입력 바 (키보드와 겹치지 않도록 KeyboardAvoidingView 안에 배치) */}
         <View className="flex-row items-end gap-2 px-4 py-3 bg-white border-t border-cream-200 shadow-lg">
           <View className="flex-1">
             <Input

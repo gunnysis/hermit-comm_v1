@@ -7,6 +7,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Container } from '../../components/common/Container';
@@ -23,6 +24,7 @@ import {
 export default function CreateScreen() {
   const router = useRouter();
   const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
+  const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -92,11 +94,13 @@ export default function CreateScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}
       >
         <ScrollView
           className="flex-1"
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 16 }}
         >
           {/* 행복한 헤더 */}
           <View className="bg-peach-100 px-4 pt-12 pb-6 border-b border-cream-200">
@@ -111,7 +115,7 @@ export default function CreateScreen() {
             </Text>
           </View>
 
-          <View className="p-4">
+          <View className="p-4 pb-2">
             <Input
               label="제목"
               value={title}
@@ -142,17 +146,20 @@ export default function CreateScreen() {
               error={errors.author}
               maxLength={50}
             />
-
-            <Button
-              title="작성하기 🎨"
-              onPress={handleSubmit}
-              loading={loading}
-              disabled={loading}
-              accessibilityLabel="게시글 작성하기"
-              accessibilityHint="입력한 제목과 내용으로 게시글을 등록합니다"
-            />
           </View>
         </ScrollView>
+
+        {/* 하단 고정 작성 버튼 - 키보드 위로 안전하게 올라오도록 처리 */}
+        <View className="px-4 pb-4 pt-2 bg-cream-50 border-t border-cream-200">
+          <Button
+            title="작성하기 🎨"
+            onPress={handleSubmit}
+            loading={loading}
+            disabled={loading}
+            accessibilityLabel="게시글 작성하기"
+            accessibilityHint="입력한 제목과 내용으로 게시글을 등록합니다"
+          />
+        </View>
       </KeyboardAvoidingView>
     </Container>
   );

@@ -64,9 +64,32 @@ export function useRealtimePosts({
               if (!mounted) return;
               console.log('[Realtime] 게시글 삭제:', payload.old);
               try {
+                // #region agent log
+                fetch('http://127.0.0.1:7246/ingest/7ef6b468-3ff5-4039-b59e-18195ef1e24c',{
+                  method:'POST',
+                  headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({
+                    location:'hooks/useRealtimePosts.ts:63',
+                    message:'DELETE payload.old 검사',
+                    data:{
+                      old: payload.old,
+                      keys: payload && typeof payload.old === 'object' ? Object.keys(payload.old as any) : null
+                    },
+                    hypothesisId:'A',
+                    runId:'realtime-delete',
+                    timestamp:Date.now()
+                  })
+                }).catch(()=>{});
+                // #endregion
+
                 if (onDelete && payload.old) {
                   if (isPost(payload.old)) {
                     onDelete(payload.old.id);
+                  } else if (
+                    typeof (payload.old as any).id === 'number'
+                  ) {
+                    // 필드가 id만 있는 경우도 삭제 처리 대상
+                    onDelete((payload.old as any).id);
                   } else {
                     console.error('[Realtime] 잘못된 Post 데이터:', payload.old);
                   }
