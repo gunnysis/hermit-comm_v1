@@ -67,7 +67,7 @@ export const api = {
       throw new APIError(500, error.message);
     }
 
-    const rows = (data || []) as (Post & {
+    const rows = (data || []) as unknown as (Post & {
       comments?: { count: number }[] | number;
       like_count?: number;
       comment_count?: number;
@@ -86,6 +86,42 @@ export const api = {
     });
 
     console.log('[Supabase] 게시글 개수:', posts.length);
+    return posts;
+  },
+
+  // 게시글 검색 (제목·내용 ilike)
+  searchPosts: async (
+    query: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<GetPostsResponse> => {
+    const q = query.trim();
+    if (!q) return [];
+
+    const escaped = q.replace(/'/g, "''");
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, comments(count)')
+      .or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('[Supabase] 검색 에러:', error);
+      throw new APIError(500, error.message);
+    }
+
+    const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
+    const posts: Post[] = rows.map((row) => {
+      const { comments: commentCount, ...rest } = row;
+      const comment_count =
+        Array.isArray(commentCount)
+          ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
+          : typeof commentCount === 'number'
+            ? commentCount
+            : undefined;
+      return { ...rest, comment_count } as Post;
+    });
     return posts;
   },
 

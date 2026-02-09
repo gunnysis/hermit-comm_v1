@@ -88,6 +88,8 @@ export const CommentItem = React.memo(({ comment, onDelete, onEdit, canEdit }: C
                   onPress={() => setIsEditing(true)}
                   className="active:opacity-70"
                   accessibilityLabel="댓글 수정"
+                  accessibilityHint="이 댓글을 수정합니다"
+                  accessibilityRole="button"
                 >
                   <Text className="text-sm text-happy-700 font-semibold">수정</Text>
                 </Pressable>
@@ -96,6 +98,9 @@ export const CommentItem = React.memo(({ comment, onDelete, onEdit, canEdit }: C
                 <Pressable
                   onPress={() => onDelete(comment.id)}
                   className="active:opacity-70"
+                  accessibilityLabel="댓글 삭제"
+                  accessibilityHint="이 댓글을 삭제합니다"
+                  accessibilityRole="button"
                 >
                   <Text className="text-sm text-coral-500 font-semibold">삭제</Text>
                 </Pressable>

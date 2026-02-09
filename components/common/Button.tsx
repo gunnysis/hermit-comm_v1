@@ -8,6 +8,8 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export function Button({
@@ -17,6 +19,8 @@ export function Button({
   size = 'md',
   loading = false,
   disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
@@ -48,6 +52,9 @@ export function Button({
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityRole="button"
+      accessibilityHint={accessibilityHint}
       className={`
         ${variantClasses[variant]}
         ${sizeClasses[size]}

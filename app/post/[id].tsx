@@ -7,22 +7,25 @@ import {
   Platform,
   Alert,
   Pressable,
+  Share,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { Container } from '../../components/common/Container';
 import { Loading } from '../../components/common/Loading';
 import { ErrorView } from '../../components/common/ErrorView';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { CommentList } from '../../components/comments/CommentList';
-import { LikeButton } from '../../components/reactions/LikeButton';
+import { ReactionBar } from '../../components/reactions/ReactionBar';
 import { api } from '../../lib/api';
 import { useAPI } from '../../hooks/useAPI';
 import { useAuthor } from '../../hooks/useAuthor';
 import { useAuth } from '../../hooks/useAuth';
 import { useRealtimeComments } from '../../hooks/useRealtimeComments';
-import { Comment } from '../../types';
+import { useRealtimeReactions } from '../../hooks/useRealtimeReactions';
+import { Comment, Reaction } from '../../types';
 import { formatDate } from '../../utils/format';
 import { validateCommentContent } from '../../utils/validate';
 
@@ -33,10 +36,10 @@ export default function PostDetailScreen() {
   const { user } = useAuth();
 
   const [comments, setComments] = useState<Comment[]>([]);
-  const [likeCount, setLikeCount] = useState(0);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
+  const [reactionLoading, setReactionLoading] = useState(false);
 
   // 게시글 조회
   const { data: post, loading: postLoading, error: postError, refetch: refetchPost } = useAPI(
@@ -56,8 +59,7 @@ export default function PostDetailScreen() {
   const { refetch: refetchReactions } = useAPI(
     async () => {
       const result = await api.getReactions(Number(id));
-      const likeReaction = result.find((r) => r.reaction_type === 'like');
-      setLikeCount(likeReaction?.count || 0);
+      setReactions(result);
       return result;
     }
   );
@@ -66,15 +68,19 @@ export default function PostDetailScreen() {
   useRealtimeComments({
     postId: Number(id),
     onInsert: useCallback((newComment: Comment) => {
-      // 이미 있으면 추가하지 않음 (중복 key 방지)
       setComments((prev) =>
         prev.some((c) => c.id === newComment.id) ? prev : [...prev, newComment]
       );
     }, []),
     onDelete: useCallback((commentId: number) => {
-      // 삭제된 댓글을 목록에서 제거
       setComments((prev) => prev.filter((comment) => comment.id !== commentId));
     }, []),
+  });
+
+  // 반응 실시간 동기화
+  useRealtimeReactions({
+    postId: Number(id),
+    onReactionsChange: refetchReactions,
   });
 
   // 댓글 작성
@@ -144,19 +150,34 @@ export default function PostDetailScreen() {
     );
   };
 
-  // 좋아요
-  const handleLike = async () => {
+  // 반응 추가
+  const handleReaction = async (reactionType: string) => {
     try {
-      setLikeLoading(true);
-      await api.createReaction(Number(id), { reaction_type: 'like' });
+      setReactionLoading(true);
+      await api.createReaction(Number(id), { reaction_type: reactionType });
       await refetchReactions();
     } catch (error) {
-      Alert.alert('오류', '좋아요 처리에 실패했습니다.');
-      console.error('좋아요 실패:', error);
+      Alert.alert('오류', '반응 추가에 실패했습니다.');
+      console.error('반응 실패:', error);
     } finally {
-      setLikeLoading(false);
+      setReactionLoading(false);
     }
   };
+
+  // 공유 (딥링크 URL)
+  const handleShare = useCallback(async () => {
+    if (!post) return;
+    const url = Linking.createURL(`/post/${id}`);
+    try {
+      await Share.share({
+        url,
+        title: post.title,
+        message: `${post.title}\n${url}`,
+      });
+    } catch (e) {
+      // 사용자가 공유 취소 시 무시
+    }
+  }, [post, id]);
 
   // 게시글 삭제
   const handleDeletePost = () => {
@@ -217,25 +238,50 @@ export default function PostDetailScreen() {
       >
         {/* 헤더 */}
         <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-lavender-100 border-b border-cream-200 shadow-sm">
-          <Pressable onPress={() => router.back()} className="p-2 active:opacity-70">
+          <Pressable
+            onPress={() => router.back()}
+            className="p-2 active:opacity-70"
+            accessibilityLabel="뒤로 가기"
+            accessibilityHint="이전 화면으로 돌아갑니다"
+            accessibilityRole="button"
+          >
             <Text className="text-base text-happy-700 font-semibold">
               ← 뒤로
             </Text>
           </Pressable>
-          {canDeletePost && (
-            <View className="flex-row gap-2">
+          <View className="flex-row gap-2 items-center">
+            <Pressable
+              onPress={handleShare}
+              className="p-2 active:opacity-70"
+              accessibilityLabel="공유"
+              accessibilityHint="이 게시글 링크를 공유합니다"
+              accessibilityRole="button"
+            >
+              <Text className="text-base text-happy-700 font-semibold">공유</Text>
+            </Pressable>
+            {canDeletePost && (
+              <>
               <Pressable
                 onPress={() => router.push(`/post/edit/${id}`)}
                 className="p-2 active:opacity-70"
                 accessibilityLabel="게시글 수정"
+                accessibilityHint="이 게시글을 수정합니다"
+                accessibilityRole="button"
               >
                 <Text className="text-base text-happy-700 font-semibold">수정</Text>
               </Pressable>
-              <Pressable onPress={handleDeletePost} className="p-2 active:opacity-70">
+              <Pressable
+                onPress={handleDeletePost}
+                className="p-2 active:opacity-70"
+                accessibilityLabel="게시글 삭제"
+                accessibilityHint="이 게시글을 삭제합니다"
+                accessibilityRole="button"
+              >
                 <Text className="text-base text-coral-500 font-semibold">삭제</Text>
               </Pressable>
-            </View>
-          )}
+              </>
+            )}
+          </View>
         </View>
 
         <ScrollView className="flex-1">
@@ -258,12 +304,12 @@ export default function PostDetailScreen() {
               {post.content}
             </Text>
 
-            {/* 좋아요 버튼 */}
+            {/* 반응 (좋아요/하트/웃음) */}
             <View className="items-start">
-              <LikeButton
-                count={likeCount}
-                onPress={handleLike}
-                loading={likeLoading}
+              <ReactionBar
+                reactions={reactions}
+                onReaction={handleReaction}
+                loading={reactionLoading}
               />
             </View>
           </View>
@@ -296,6 +342,8 @@ export default function PostDetailScreen() {
               multiline
               maxLength={1000}
               className="max-h-24 mb-0"
+              accessibilityLabel="댓글 입력"
+              accessibilityHint="댓글을 입력한 뒤 작성 버튼을 누르세요"
             />
           </View>
           <Button
@@ -304,6 +352,8 @@ export default function PostDetailScreen() {
             loading={commentLoading}
             disabled={commentLoading || !commentContent.trim()}
             size="sm"
+            accessibilityLabel="댓글 작성"
+            accessibilityHint="입력한 댓글을 등록합니다"
           />
         </View>
       </KeyboardAvoidingView>

@@ -64,8 +64,16 @@ module.exports = ({ config }) => {
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
         package: currentEnv.package,
-        // versionCode는 eas.json에서 appVersionSource: "remote"를 사용하므로 제거됨
         permissions: [],
+        intentFilters: [
+          {
+            action: 'VIEW',
+            data: [
+              { scheme: currentEnv.scheme, pathPrefix: '/post' },
+            ],
+            category: ['BROWSABLE', 'DEFAULT'],
+          },
+        ],
       },
       web: {
         bundler: 'metro',

@@ -4,9 +4,10 @@ import { TextInput, View, Text, TextInputProps } from 'react-native';
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
+  accessibilityHint?: string;
 }
 
-export function Input({ label, error, className, ...props }: InputProps) {
+export function Input({ label, error, className, accessibilityHint, ...props }: InputProps) {
   return (
     <View className="mb-4">
       {label && (
@@ -21,6 +22,8 @@ export function Input({ label, error, className, ...props }: InputProps) {
           ${className || ''}
         `}
         placeholderTextColor="#9CA3AF"
+        accessibilityLabel={label}
+        accessibilityHint={accessibilityHint}
         {...props}
       />
       {error && (

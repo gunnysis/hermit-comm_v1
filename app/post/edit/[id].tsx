@@ -113,7 +113,13 @@ export default function EditPostScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-lavender-100 border-b border-cream-200">
-          <Pressable onPress={() => router.back()} className="p-2 active:opacity-70">
+          <Pressable
+            onPress={() => router.back()}
+            className="p-2 active:opacity-70"
+            accessibilityLabel="취소"
+            accessibilityHint="수정을 취소하고 이전 화면으로 돌아갑니다"
+            accessibilityRole="button"
+          >
             <Text className="text-base text-happy-700 font-semibold">← 취소</Text>
           </Pressable>
           <Text className="text-lg font-bold text-gray-800">게시글 수정</Text>
@@ -154,6 +160,8 @@ export default function EditPostScreen() {
               onPress={handleSubmit}
               loading={loading}
               disabled={loading}
+              accessibilityLabel="게시글 저장"
+              accessibilityHint="수정한 내용을 저장합니다"
             />
           </View>
         </ScrollView>

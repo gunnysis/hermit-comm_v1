@@ -148,6 +148,8 @@ export default function CreateScreen() {
               onPress={handleSubmit}
               loading={loading}
               disabled={loading}
+              accessibilityLabel="게시글 작성하기"
+              accessibilityHint="입력한 제목과 내용으로 게시글을 등록합니다"
             />
           </View>
         </ScrollView>
