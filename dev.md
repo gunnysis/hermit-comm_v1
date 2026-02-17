@@ -74,3 +74,6 @@ git checkout -b [브랜치명]
 - **Metro/번들 오류**: `npx expo start --clear`
 - **의존성 충돌**: 위 "캐시 / 의존성" 절차 후 `npm install`
 - **Supabase 연결 실패**: `.env`의 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` 확인
+- **스플래시/아이콘 변경 후 화면에 안 나올 때**: 스플래시·앱 아이콘은 **prebuild 시점**에 네이티브 에셋으로 생성됩니다. `app.config.js`와 `assets/`만 바꿨다면 **새로 빌드**해야 반영됩니다.
+  - 로컬에서 네이티브 폴더 쓸 때: `npx expo prebuild --clean` 후 `npx expo run:android` 또는 `run:ios`로 재빌드·재설치.
+  - EAS Build만 쓸 때: 스플래시/아이콘 수정 후 **새 프로필로 한 번 더 빌드** (예: `eas build --profile preview --platform android`)하고, 나온 APK/IPA를 다시 설치하면 새 스플래시가 적용됩니다.

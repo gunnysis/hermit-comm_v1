@@ -18,42 +18,7 @@
 - 🔄 **실시간 업데이트** (Supabase Realtime)
 - 📱 크로스 플랫폼 (iOS, Android)
 
-## 시작하기
 
-### 1. 패키지 설치
-
-```bash
-npm install
-```
-
-### 2. Supabase 설정
-
-자세한 내용은 [`docs/supabase_setup.md`](docs/supabase_setup.md)를 참조하세요.
-
-간략한 단계:
-
-1. [Supabase 대시보드](https://supabase.com/dashboard)에서 새 프로젝트 생성
-2. `supabase/migrations/001_initial_schema.sql` 실행
-3. Database → Replication에서 Realtime 활성화
-4. 프로젝트 루트에 `.env` 파일 생성:
-
-```bash
-EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xxxxxxxxxx
-```
-
-### 3. 앱 실행
-
-```bash
-# 개발 서버 시작
-npx expo start
-
-# Android
-npx expo start --android
-
-# iOS
-npx expo start --ios
-```
 
 ## 프로젝트 구조
 
@@ -66,6 +31,7 @@ gns-hermit-comm/
 │   ├── post/
 │   │   └── [id].tsx       # 게시글 상세
 │   └── _layout.tsx        # 루트 레이아웃
+├── .maestro/            # E2E 테스트 시나리오 (Maestro)
 ├── components/            # 재사용 가능한 컴포넌트
 │   ├── common/           # 공통 컴포넌트
 │   ├── posts/            # 게시글 관련
@@ -101,75 +67,7 @@ gns-hermit-comm/
 - `EXPO_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`: Supabase Publishable Key
 
-## 개발 가이드
 
-### 새로운 테이블 추가
 
-1. `supabase/migrations/` 폴더에 새 SQL 파일 생성
-2. Supabase SQL Editor에서 실행
-3. `lib/supabase.ts`의 `Database` 타입에 테이블 정의 추가
-4. `lib/api.ts`에 API 함수 추가
 
-### 새로운 화면 추가
 
-1. `app/` 폴더에 새 파일 생성 (예: `app/settings.tsx`)
-2. Expo Router가 자동으로 라우트 생성
-3. `router.push('/settings')`로 네비게이션
-
-### 린트 및 타입 체크
-
-```bash
-# TypeScript 타입 체크
-npx tsc --noEmit
-```
-
-## 배포
-
-### EAS Build
-
-```bash
-# EAS CLI 설치
-npm install -g eas-cli
-
-# 로그인
-eas login
-
-# Android 빌드
-eas build --platform android
-
-# iOS 빌드
-eas build --platform ios
-```
-
-## 문제 해결
-
-### Metro 캐시 문제
-
-```bash
-npx expo start --clear
-```
-
-### 의존성 충돌
-
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Supabase 연결 문제
-
-- `.env` 파일의 URL과 API 키 확인
-- Supabase 대시보드에서 프로젝트 상태 확인
-- `docs/supabase_setup.md` 참조
-
-## 라이선스
-
-MIT
-
-## 기여
-
-이슈와 PR은 언제나 환영합니다!
-
----
-
-**Made with ❤️ for peaceful communities**

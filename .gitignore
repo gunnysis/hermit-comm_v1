@@ -19,6 +19,9 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.apk
+*.aab
+*.ipa
 
 # Metro
 .metro-health-check*
@@ -27,10 +30,16 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
 *.pem
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # local env files
 .env
@@ -38,6 +47,9 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# testing
+coverage/
 
 # generated native folders
 /ios

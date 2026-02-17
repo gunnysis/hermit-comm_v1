@@ -14,7 +14,20 @@ const Pressable = ({ children, onPress, ...props }) =>
 const ScrollView = ({ children, ...props }) => React.createElement('ScrollView', props, children);
 const TextInput = (props) => React.createElement('TextInput', props);
 const ActivityIndicator = (props) => React.createElement('ActivityIndicator', props);
-const FlatList = (props) => React.createElement('FlatList', props);
+const FlatList = ({ data = [], renderItem, keyExtractor, ListHeaderComponent, ListFooterComponent, ...props }) => {
+  const Header = typeof ListHeaderComponent === 'function' ? React.createElement(ListHeaderComponent) : ListHeaderComponent;
+  const Footer = typeof ListFooterComponent === 'function' ? React.createElement(ListFooterComponent) : ListFooterComponent;
+  return React.createElement(
+    View,
+    { ...props, testID: 'flat-list' },
+    Header,
+    data.slice(0, 20).map((item, index) => {
+      const key = keyExtractor ? keyExtractor(item, index) : item?.id ?? index;
+      return React.createElement(View, { key }, renderItem ? renderItem({ item, index }) : null);
+    }),
+    Footer
+  );
+};
 const RefreshControl = (props) => React.createElement('RefreshControl', props);
 const KeyboardAvoidingView = ({ children, ...props }) =>
   React.createElement('KeyboardAvoidingView', props, children);
@@ -34,5 +47,15 @@ module.exports = {
     create: (styles) => styles,
     flatten: (style) => (Array.isArray(style) ? Object.assign({}, ...style) : style || {}),
   },
-  Platform: { OS: 'android' },
+  Platform: {
+    OS: 'android',
+    select: (config) => (config.android !== undefined ? config.android : config.default),
+  },
+  Easing: {
+    linear: () => {},
+    ease: () => {},
+    in: (e) => e,
+    out: (e) => e,
+    inOut: (e) => e,
+  },
 };

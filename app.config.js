@@ -2,6 +2,9 @@
  * Expo App Configuration
  * 환경별로 bundleIdentifier, package, appName을 자동으로 설정합니다.
  */
+const path = require('path');
+const fs = require('fs');
+
 module.exports = ({ config }) => {
   // EAS Build Profile 또는 APP_ENV 환경 변수로 환경 감지
   const buildProfile = process.env.EAS_BUILD_PROFILE || process.env.APP_ENV || 'development';
@@ -37,7 +40,7 @@ module.exports = ({ config }) => {
       ...config.expo,
       name: currentEnv.name,
       slug: 'gns-hermit-comm',
-      version: '1.0.0',
+      version: '1.0.4',
       orientation: 'portrait',
       icon: './assets/icon.png',
       scheme: currentEnv.scheme,
@@ -46,11 +49,31 @@ module.exports = ({ config }) => {
       runtimeVersion: {
         policy: 'appVersion',
       },
-      splash: {
-        image: './assets/splash-icon.png',
-        resizeMode: 'contain',
-        backgroundColor: '#FFF8E7', // 따뜻한 크림색 (행복한 느낌)
-      },
+      splash: (() => {
+        // #region agent log
+        const splashImage = './assets/splash-icon.png';
+        const resolved = path.resolve(__dirname, splashImage);
+        const exists = fs.existsSync(resolved);
+        try {
+          fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'app.config.js',
+              message: 'splash config evaluated',
+              hypothesisId: 'C',
+              data: { splashImage, resolved, exists, cwd: process.cwd() },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {});
+        } catch (_) {}
+        // #endregion
+        return {
+          image: splashImage,
+          resizeMode: 'contain',
+          backgroundColor: '#FFF8E7', // 따뜻한 크림색 (행복한 느낌)
+        };
+      })(),
       ios: {
         supportsTablet: true,
         bundleIdentifier: currentEnv.bundleIdentifier,
@@ -90,6 +113,7 @@ module.exports = ({ config }) => {
       ...(buildProfile !== 'development' && {
         updates: {
           url: 'https://u.expo.dev/bc4199dd-30ad-42bb-ba1c-4e6fce0eecdd',
+          checkAutomatically: 'ON_LOAD',
         },
       }),
       extra: {
@@ -100,8 +124,8 @@ module.exports = ({ config }) => {
         // 현재 환경 정보를 앱에서도 사용 가능하도록
         appEnv: buildProfile,
         // Supabase 설정
-        supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://ygyfxdpxkpubidwaenzq.supabase.co',
-        supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_gTb4t7VlouKir9O4MlZKKA_J9JL50nj',
+        supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+        supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       },
     },
   };
