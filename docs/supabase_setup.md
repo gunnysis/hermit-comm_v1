@@ -209,7 +209,64 @@ delete from posts where id = 1;
 - **디바이스 변경 시**: 새로운 익명 UUID가 생성되므로 기존 게시글은 다른 사용자의 글이 됩니다
 - **프로덕션 환경**: 필요시 이메일/소셜 로그인으로 전환 가능 (코드 변경 최소화)
 
-## 8. 비용 관리
+## 8. 익명 게시판 스키마 및 마이그레이션
+
+### 8.1 신규 테이블 및 컬럼
+
+익명 그룹 게시판 기능을 위해 다음 마이그레이션이 추가되었습니다.
+
+- `supabase/migrations/004_anonymous_board_schema.sql`
+  - `boards` 테이블
+    - `name`, `description`, `visibility`, `anon_mode`, `created_at`, `updated_at`
+  - `groups`, `group_members` 테이블 (향후 비공개 그룹 기능용 틀)
+  - `posts`, `comments` 확장
+    - `board_id`, `group_id`
+    - `is_anonymous` (기본값 `true`)
+    - `display_name` (기본값 `'익명'`)
+- `supabase/migrations/005_board_enums_and_indexes.sql`
+  - TEXT 컬럼에 대한 CHECK 제약 추가:
+    - `boards.visibility` ∈ (`'public'`, `'private'`)
+    - `boards.anon_mode` ∈ (`'always_anon'`, `'allow_choice'`, `'require_name'`)
+    - `groups.join_mode` ∈ (`'invite_only'`, `'request_approve'`, `'code_join'`)
+    - `group_members.role` ∈ (`'owner'`, `'member'`, `'moderator'`)
+    - `group_members.status` ∈ (`'pending'`, `'approved'`, `'rejected'`)
+  - 인덱스:
+    - `idx_posts_board_created_at` (`posts(board_id, created_at DESC)`)
+
+### 8.2 적용 순서
+
+1. 기존 001–003 마이그레이션이 적용된 상태에서,
+2. `supabase/migrations/004_anonymous_board_schema.sql` 실행
+3. 이어서 `supabase/migrations/005_board_enums_and_indexes.sql` 실행
+
+Supabase CLI를 사용하는 경우, 프로젝트 루트에서:
+
+```bash
+supabase db reset        # 개발 환경 초기화 (주의: 데이터 초기화)
+# 또는
+supabase db migrate up   # 신규 마이그레이션만 순차 적용
+```
+
+### 8.3 기본 게시판 레코드 생성 예시
+
+앱이 기대하는 기본 익명 게시판(`id = 1`)을 만들려면 SQL Editor에서 다음을 실행합니다:
+
+```sql
+insert into boards (name, description, visibility, anon_mode)
+values (
+  '기본 게시판',
+  '은둔청년이 부담 없이 이야기를 나누는 익명 커뮤니티',
+  'public',
+  'always_anon'
+);
+```
+
+이후 작성되는 게시글/댓글(`board_id = 1`)은 `is_anonymous`/`display_name` 컬럼을 통해
+클라이언트의 익명 정책(`anon_mode`)과 랜덤 별칭 로직에 따라 표시됩니다.
+
+---
+
+## 9. 비용 관리
 
 ### 무료 티어 한도
 

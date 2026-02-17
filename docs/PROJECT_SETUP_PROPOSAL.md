@@ -105,3 +105,55 @@ export const usePosts = (groupId: number) => {
 - **preview**: 내부 QA용, 프로덕션 API 연결.
 - **production**: 스토어 배포용.
 
+---
+
+## 7. 커뮤니티 / 익명 게시판 설계 개요
+
+### 7.1 도메인 개념
+
+- **boards**
+  - 게시판 메타 정보: `name`, `description`, `visibility(public/private)`, `anon_mode`.
+  - 예: `id=1` 을 기본 익명 커뮤니티 보드로 사용.
+- **posts / comments**
+  - 공통 컬럼에 다음 필드를 추가해 익명/게시판 기능을 구현:
+    - `board_id` / `group_id`
+    - `is_anonymous` (boolean)
+    - `display_name` (UI에 노출되는 이름: 닉네임 또는 랜덤 별칭)
+- **groups / group_members**
+  - 추후 소규모 비공개 그룹용으로 사용하도록 설계만 되어 있고, 현재는 `board_id` 중심으로 동작.
+
+### 7.2 익명성 정책 (`boards.anon_mode`)
+
+- `always_anon`
+  - 항상 익명 표시. UI에는 익명 토글이 없고, `display_name`은 랜덤 별칭으로 생성.
+- `allow_choice`
+  - 작성자가 \"이번 글에 닉네임 공개\" 토글을 통해 선택.
+  - 토글 OFF → 랜덤 별칭, 토글 ON → 입력한 닉네임.
+- `require_name`
+  - 항상 닉네임 표시. 익명 선택 불가(현재 기본 게시판에서는 사용하지 않지만 확장용).
+
+### 7.3 클라이언트 구조
+
+- 주요 파일
+  - `src/features/community/api/communityApi.ts`
+    - `getBoards`, `getBoardPosts(boardId, options)`, `createBoardPost(...)` 등 게시판 전용 API.
+  - `src/features/community/hooks/useBoards.ts`
+    - `boards` 목록을 TanStack Query로 캐싱.
+  - `src/features/community/hooks/useBoardPosts.ts`
+    - `useBoardPosts(boardId, sortOrder)`로 게시판별 글 목록 조회.
+  - `src/shared/lib/anonymous.ts`
+    - 익명/닉네임 정책을 적용해 `is_anonymous`, `display_name`을 결정.
+    - `generateAlias(seed)`를 통해 랜덤 별칭(예: \"따뜻한 고래 3\") 생성.
+
+### 7.4 UX 요약
+
+- **글 작성 (`src/app/(tabs)/create.tsx`)**
+  - 작성자 필드: \"닉네임 (선택)\" 으로, 비워도 글 작성 가능.
+  - 게시판의 `anon_mode`에 따라:
+    - `always_anon`: \"항상 익명으로 표시됩니다\" 안내 문구만 노출.
+    - `allow_choice`: \"이번 글에 내 닉네임을 함께 표시하기\" 토글 제공.
+  - 최종 `display_name`은 `resolveDisplayName`을 통해 결정되어 Supabase에 저장.
+- **글/목록 헤더**
+  - `boards.description`을 홈 탭(`(tabs)/index.tsx`)과 글 작성 화면 상단에 노출해,
+    - 각 게시판의 목적/분위기를 사용자에게 자연스럽게 전달.
+

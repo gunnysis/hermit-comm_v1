@@ -162,10 +162,13 @@ export const api = {
       throw new APIError(401, '인증이 필요합니다.');
     }
 
-    // author_id를 명시적으로 설정
+    // author_id 및 익명 표시 이름 계산
+    const isAnonymous = postData.is_anonymous ?? true;
+    const displayName = postData.display_name ?? (isAnonymous ? '익명' : postData.author);
+
     const { data, error } = await supabase
       .from('posts')
-      .insert([{ ...postData, author_id: user.id }])
+      .insert([{ ...postData, is_anonymous: isAnonymous, display_name: displayName, author_id: user.id }])
       .select()
       .single();
 
@@ -266,10 +269,21 @@ export const api = {
       throw new APIError(401, '인증이 필요합니다.');
     }
 
-    // author_id를 명시적으로 설정
+    // author_id 및 익명 표시 이름 계산
+    const isAnonymous = commentData.is_anonymous ?? true;
+    const displayName = commentData.display_name ?? (isAnonymous ? '익명' : commentData.author);
+
     const { data, error } = await supabase
       .from('comments')
-      .insert([{ ...commentData, post_id: postId, author_id: user.id }])
+      .insert([
+        {
+          ...commentData,
+          is_anonymous: isAnonymous,
+          display_name: displayName,
+          post_id: postId,
+          author_id: user.id,
+        },
+      ])
       .select()
       .single();
 

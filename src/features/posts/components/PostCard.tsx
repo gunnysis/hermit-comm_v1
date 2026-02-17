@@ -23,7 +23,9 @@ const PostCardComponent = ({ post }: PostCardProps) => (
         <View className="flex-row justify-between items-center flex-wrap gap-2">
           <View className="flex-row items-center gap-2">
             <View className="bg-happy-100 px-3 py-1.5 rounded-full">
-              <Text className="text-sm font-semibold text-happy-700">{post.author}</Text>
+              <Text className="text-sm font-semibold text-happy-700">
+                {post.display_name ?? post.author}
+              </Text>
             </View>
             {post.comment_count !== undefined && (
               <View className="bg-mint-100 px-2.5 py-1 rounded-full">

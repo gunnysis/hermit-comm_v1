@@ -14,6 +14,7 @@ import { api } from '@/shared/lib/api';
 import { Comment, Reaction } from '@/types';
 import { formatDate } from '@/shared/utils/format';
 import { validateCommentContent } from '@/shared/utils/validate';
+import { resolveDisplayName } from '@/shared/lib/anonymous';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -94,16 +95,26 @@ export default function PostDetailScreen() {
       return;
     }
 
-    if (!savedAuthor) {
-      Alert.alert('오류', '작성자 이름을 설정해주세요.');
-      return;
-    }
-
     try {
       setCommentLoading(true);
+      const anonMode = 'always_anon';
+      const rawAuthor = savedAuthor ?? '';
+
+      const { isAnonymous, displayName } = resolveDisplayName({
+        anonMode,
+        rawAuthorName: rawAuthor,
+        userId: user?.id ?? null,
+        boardId: post?.board_id ?? null,
+        groupId: post?.group_id ?? null,
+        wantNameOverride: false,
+      });
       await api.createComment(Number(id), {
         content: commentContent.trim(),
-        author: savedAuthor,
+        author: rawAuthor || '익명',
+        board_id: post?.board_id,
+        group_id: post?.group_id,
+        is_anonymous: isAnonymous,
+        display_name: displayName,
       });
       setCommentContent('');
       await refetchComments();

@@ -7,13 +7,16 @@ import { Input } from '@/shared/components/Input';
 import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
 import { Post } from '@/types';
-import { usePosts } from '@/features/posts/hooks/usePosts';
+import { useBoardPosts } from '@/features/community/hooks/useBoardPosts';
+import { getBoardPosts } from '@/features/community/api/communityApi';
+import { useBoards } from '@/features/community/hooks/useBoards';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 
 type SortOrder = 'latest' | 'popular';
 
 export default function HomeScreen() {
+  const BOARD_ID = 1;
   const { isWide } = useResponsiveLayout();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -23,8 +26,14 @@ export default function HomeScreen() {
   const [searchInput, setSearchInput] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const isSearchMode = searchQuery.length > 0;
+  const { data: boards } = useBoards();
 
-  const { data: queryData, isLoading: loading, error, refetch } = usePosts(sortOrder);
+  const {
+    data: queryData,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useBoardPosts(BOARD_ID, sortOrder);
 
   useEffect(() => {
     if (queryData !== undefined) {
@@ -54,7 +63,7 @@ export default function HomeScreen() {
     if (!hasMore || loading || isSearchMode) return;
 
     try {
-      const result = await api.getPosts(20, offset, sortOrder);
+      const result = await getBoardPosts(BOARD_ID, { limit: 20, offset, sortOrder });
       if (result.length < 20) {
         setHasMore(false);
       }
@@ -67,7 +76,7 @@ export default function HomeScreen() {
     } catch (e) {
       console.error('게시글 로드 실패:', e);
     }
-  }, [offset, hasMore, loading, sortOrder, isSearchMode]);
+  }, [offset, hasMore, loading, sortOrder, isSearchMode, BOARD_ID]);
 
   const handleSearch = useCallback(async () => {
     const q = searchInput.trim();
@@ -115,6 +124,15 @@ export default function HomeScreen() {
           <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>
         </View>
         <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기가 있는 곳</Text>
+        {(() => {
+          const board = boards?.find((b) => b.id === BOARD_ID);
+          if (!board?.description) return null;
+          return (
+            <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
+              {board.description}
+            </Text>
+          );
+        })()}
         <View className="flex-row items-center gap-2 mt-3">
           <View className="flex-1">
             <Input

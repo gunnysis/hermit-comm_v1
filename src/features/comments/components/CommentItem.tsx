@@ -44,7 +44,9 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
     <View className="bg-cream-50 rounded-2xl p-4 mb-3 border border-cream-200">
       <View className="flex-row justify-between items-center mb-2">
         <View className="bg-mint-100 px-3 py-1 rounded-full">
-          <Text className="text-sm font-semibold text-mint-700">{comment.author}</Text>
+          <Text className="text-sm font-semibold text-mint-700">
+            {comment.display_name ?? comment.author}
+          </Text>
         </View>
         <Text className="text-xs text-gray-400">{formatDate(comment.created_at)}</Text>
       </View>

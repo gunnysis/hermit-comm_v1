@@ -1,5 +1,15 @@
 // API 타입 정의 (api_memo.md 기반)
 
+export interface Board {
+  id: number;
+  name: string;
+  description?: string | null;
+  visibility: 'public' | 'private';
+  anon_mode: 'always_anon' | 'allow_choice' | 'require_name';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Post {
   id: number;
   title: string;
@@ -7,6 +17,11 @@ export interface Post {
   author: string; // 닉네임 (사용자 입력)
   author_id: string; // UUID (서버 자동 설정)
   created_at: string;
+  /** 게시판/그룹 기반 익명 게시판용 */
+  board_id?: number;
+  group_id?: number;
+  is_anonymous: boolean;
+  display_name: string;
   /** 목록 조회 시 댓글 수 (선택) */
   comment_count?: number;
 }
@@ -18,6 +33,11 @@ export interface Comment {
   author: string; // 닉네임 (사용자 입력)
   author_id: string; // UUID (서버 자동 설정)
   created_at: string;
+  /** 게시판/그룹 기반 익명 게시판용 */
+  board_id?: number;
+  group_id?: number;
+  is_anonymous: boolean;
+  display_name: string;
 }
 
 export interface Reaction {
@@ -30,11 +50,21 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   author: string;
+  /** 선택: 특정 게시판/그룹 지정 */
+  board_id?: number;
+  group_id?: number;
+  /** 선택: 클라이언트에서 직접 익명 여부/표시 이름을 정하고 싶을 때 */
+  is_anonymous?: boolean;
+  display_name?: string;
 }
 
 export interface CreateCommentRequest {
   content: string;
   author: string;
+  board_id?: number;
+  group_id?: number;
+  is_anonymous?: boolean;
+  display_name?: string;
 }
 
 export interface CreateReactionRequest {
@@ -72,7 +102,9 @@ export function isPost(obj: unknown): obj is Post {
     typeof post.content === 'string' &&
     typeof post.author === 'string' &&
     typeof post.author_id === 'string' &&
-    typeof post.created_at === 'string'
+    typeof post.created_at === 'string' &&
+    typeof post.is_anonymous === 'boolean' &&
+    typeof post.display_name === 'string'
   );
 }
 
@@ -85,6 +117,8 @@ export function isComment(obj: unknown): obj is Comment {
     typeof comment.content === 'string' &&
     typeof comment.author === 'string' &&
     typeof comment.author_id === 'string' &&
-    typeof comment.created_at === 'string'
+    typeof comment.created_at === 'string' &&
+    typeof comment.is_anonymous === 'boolean' &&
+    typeof comment.display_name === 'string'
   );
 }

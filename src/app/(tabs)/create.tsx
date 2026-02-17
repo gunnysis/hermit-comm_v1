@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,9 @@ import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
+import { useBoards } from '@/features/community/hooks/useBoards';
+import { resolveDisplayName } from '@/shared/lib/anonymous';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 const createPostSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내로 입력해주세요.'),
@@ -21,17 +24,21 @@ const createPostSchema = z.object({
     .max(5000, '내용은 5000자 이내로 입력해주세요.'),
   author: z
     .string()
-    .min(1, '작성자 이름을 입력해주세요.')
-    .max(50, '작성자 이름은 50자 이내로 입력해주세요.'),
+    .max(50, '작성자 이름은 50자 이내로 입력해주세요.')
+    .optional(),
 });
 
 type CreatePostForm = z.infer<typeof createPostSchema>;
 
 export default function CreateScreen() {
+  const BOARD_ID = 1;
   const router = useRouter();
   const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsiveLayout();
+  const { data: boards } = useBoards();
+  const [showName, setShowName] = useState(false);
 
   const {
     control,
@@ -53,14 +60,30 @@ export default function CreateScreen() {
 
   const onSubmit = async (data: CreatePostForm) => {
     try {
+      const board = boards?.find((b) => b.id === BOARD_ID);
+      const anonMode = board?.anon_mode ?? 'always_anon';
+
+      const rawAuthor = data.author?.trim() ?? '';
+
+      const { isAnonymous, displayName } = resolveDisplayName({
+        anonMode,
+        rawAuthorName: rawAuthor,
+        userId: user?.id ?? null,
+        boardId: BOARD_ID,
+        wantNameOverride: showName,
+      });
+
       await api.createPost({
         title: data.title.trim(),
         content: data.content.trim(),
-        author: data.author.trim(),
+        author: rawAuthor,
+        board_id: BOARD_ID,
+        is_anonymous: isAnonymous,
+        display_name: displayName,
       });
 
-      if (data.author.trim() !== (savedAuthor ?? '')) {
-        await saveAuthor(data.author.trim());
+      if (rawAuthor && rawAuthor !== (savedAuthor ?? '')) {
+        await saveAuthor(rawAuthor);
       }
 
       Alert.alert('성공', '게시글이 작성되었습니다! 🎉', [
@@ -93,6 +116,15 @@ export default function CreateScreen() {
               <Text className="text-3xl font-bold text-gray-800">게시글 작성</Text>
             </View>
             <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기를 나눠주세요</Text>
+            {(() => {
+              const board = boards?.find((b) => b.id === BOARD_ID);
+              if (!board?.description) return null;
+              return (
+                <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
+                  {board.description}
+                </Text>
+              );
+            })()}
           </View>
 
           <View className="p-4 pb-2">
@@ -135,15 +167,53 @@ export default function CreateScreen() {
               name="author"
               render={({ field: { value, onChange } }) => (
                 <Input
-                  label="작성자"
+                  label="닉네임 (선택)"
                   value={value}
                   onChangeText={onChange}
-                  placeholder="이름을 입력하세요 👤"
+                  placeholder="닉네임을 입력하면 다음에도 기억해둘게요 👤"
                   error={errors.author?.message}
                   maxLength={50}
                 />
               )}
             />
+
+            <View className="mt-2 mb-2">
+              {(() => {
+                const board = boards?.find((b) => b.id === BOARD_ID);
+                const anonMode = board?.anon_mode ?? 'always_anon';
+
+                if (anonMode === 'always_anon') {
+                  return (
+                    <Text className="text-xs text-gray-500">
+                      이 게시판의 글은 항상 익명으로 표시됩니다.
+                    </Text>
+                  );
+                }
+
+                if (anonMode === 'require_name') {
+                  return (
+                    <Text className="text-xs text-gray-500">
+                      이 게시판의 글은 닉네임으로 표시됩니다. 작성자 이름을 입력해주세요.
+                    </Text>
+                  );
+                }
+
+                return (
+                  <Pressable
+                    onPress={() => setShowName((prev) => !prev)}
+                    className="flex-row items-center gap-2 py-1 active:opacity-80">
+                    <View
+                      className={`w-4 h-4 rounded border ${
+                        showName ? 'bg-happy-400 border-happy-400' : 'border-cream-400'
+                      }`}
+                    />
+                    <Text className="text-xs text-gray-600">
+                      이번 글에 내 닉네임을 함께 표시하기
+                    </Text>
+                  </Pressable>
+                );
+              })()}
+            </View>
           </View>
         </ScrollView>
 
