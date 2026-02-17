@@ -13,6 +13,8 @@ const mockPost: Post = {
   author_id: 'test-uuid',
   created_at: '2025-01-01T00:00:00Z',
   comment_count: 0,
+  is_anonymous: true,
+  display_name: '익명',
 };
 
 describe('통합: 프로바이더 + 컴포넌트 트리', () => {
@@ -43,7 +45,7 @@ describe('통합: 프로바이더 + 컴포넌트 트리', () => {
 
     expect(screen.getByText('은둔마을 첫 게시글')).toBeTruthy();
     expect(screen.getByText('따뜻한 이야기가 있는 곳입니다.')).toBeTruthy();
-    expect(screen.getByText('테스터')).toBeTruthy();
+    expect(screen.getByText('익명')).toBeTruthy();
   });
 
   it('PostList가 에러 시 에러 메시지를 표시한다', () => {

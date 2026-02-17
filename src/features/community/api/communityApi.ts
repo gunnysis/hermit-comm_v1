@@ -31,7 +31,10 @@ export interface GroupBoard extends Board {
 }
 
 export async function getBoards(): Promise<Board[]> {
-  const { data, error } = await supabase.from('boards').select('*').order('id', { ascending: true });
+  const { data, error } = await supabase
+    .from('boards')
+    .select('*')
+    .order('id', { ascending: true });
   if (error) {
     console.error('[Supabase] boards 조회 에러:', error);
     throw error;
@@ -61,12 +64,9 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
     throw error;
   }
 
-  const rows =
-    (data as { groups: { id: number; name: string; description?: string | null } | null }[]) || [];
+  const rows = (data || []) as unknown as { groups: GroupSummary | null }[];
 
-  return rows
-    .map((row) => row.groups)
-    .filter((g): g is GroupSummary => !!g);
+  return rows.map((row) => row.groups).filter((g): g is GroupSummary => !!g);
 }
 
 export async function getGroupBoards(groupId: number): Promise<GroupBoard[]> {
@@ -159,4 +159,3 @@ export async function getGroupPosts(
     return { ...rest, comment_count } as Post;
   });
 }
-
