@@ -8,6 +8,8 @@ describe('isPost', () => {
     author: '작성자',
     author_id: 'uuid-here',
     created_at: '2025-01-01T00:00:00.000Z',
+    is_anonymous: true,
+    display_name: '익명',
   };
 
   it('유효한 Post 객체면 true 반환', () => {
@@ -43,6 +45,8 @@ describe('isComment', () => {
     author: '작성자',
     author_id: 'uuid-here',
     created_at: '2025-01-01T00:00:00.000Z',
+    is_anonymous: true,
+    display_name: '익명',
   };
 
   it('유효한 Comment 객체면 true 반환', () => {
