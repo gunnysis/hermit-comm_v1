@@ -81,7 +81,7 @@ export default function CreateScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 48) : 0}>
         <ScrollView
           className="flex-1"
           keyboardShouldPersistTaps="handled"

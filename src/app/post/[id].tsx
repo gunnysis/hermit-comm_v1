@@ -225,7 +225,7 @@ export default function PostDetailScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 56) : 0}>
         {/* 헤더 */}
         <View
           className={`flex-row justify-between items-center px-4 ${isWide ? 'pt-4' : 'pt-12'} pb-4 bg-lavender-100 border-b border-cream-200 shadow-sm`}>
