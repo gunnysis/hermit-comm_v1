@@ -9,10 +9,12 @@ import { api } from '@/shared/lib/api';
 import { Post } from '@/types';
 import { usePosts } from '@/features/posts/hooks/usePosts';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 
 type SortOrder = 'latest' | 'popular';
 
 export default function HomeScreen() {
+  const { isWide } = useResponsiveLayout();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
   const [offset, setOffset] = useState(0);
@@ -106,7 +108,8 @@ export default function HomeScreen() {
       <StatusBar style="dark" />
 
       {/* 행복한 헤더 */}
-      <View className="bg-happy-100 px-4 pt-12 pb-6 border-b border-cream-200 shadow-sm">
+      <View
+        className={`bg-happy-100 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200 shadow-sm`}>
         <View className="flex-row items-center">
           <Text className="text-3xl mr-2">🏡</Text>
           <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>

@@ -78,10 +78,12 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="post/[id]" />
-        </Stack>
+        <View className="flex-1 bg-cream-100">
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="post/[id]" />
+          </Stack>
+        </View>
       </SafeAreaProvider>
     </QueryClientProvider>
   );

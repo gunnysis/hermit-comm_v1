@@ -11,6 +11,7 @@ import { Input } from '@/shared/components/Input';
 import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 
 const createPostSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내로 입력해주세요.'),
@@ -30,6 +31,7 @@ export default function CreateScreen() {
   const router = useRouter();
   const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
   const insets = useSafeAreaInsets();
+  const { isWide } = useResponsiveLayout();
 
   const {
     control,
@@ -79,12 +81,13 @@ export default function CreateScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 48) : 0}>
         <ScrollView
           className="flex-1"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 16 }}>
-          <View className="bg-peach-100 px-4 pt-12 pb-6 border-b border-cream-200">
+          <View
+            className={`bg-peach-100 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200`}>
             <View className="flex-row items-center">
               <Text className="text-3xl mr-2">✍️</Text>
               <Text className="text-3xl font-bold text-gray-800">게시글 작성</Text>

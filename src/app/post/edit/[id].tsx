@@ -19,11 +19,13 @@ import { api } from '@/shared/lib/api';
 import { useAPI } from '@/features/posts/hooks/useAPI';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { validatePostTitle, validatePostContent, validateAuthor } from '@/shared/utils/validate';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 
 export default function EditPostScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
+  const { isWide } = useResponsiveLayout();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -107,7 +109,8 @@ export default function EditPostScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-lavender-100 border-b border-cream-200">
+        <View
+          className={`flex-row justify-between items-center px-4 ${isWide ? 'pt-4' : 'pt-12'} pb-4 bg-lavender-100 border-b border-cream-200`}>
           <Pressable
             onPress={() => router.back()}
             className="p-2 active:opacity-70"

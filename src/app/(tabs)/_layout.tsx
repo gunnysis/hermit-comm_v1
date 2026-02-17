@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResponsiveLayout, CONTENT_MAX_WIDTH } from '@/shared/hooks/useResponsiveLayout';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { isWide } = useResponsiveLayout();
 
   return (
     <Tabs
@@ -21,6 +23,15 @@ export default function TabsLayout() {
           shadowRadius: 12,
           height: 60 + insets.bottom,
           paddingBottom: 8 + insets.bottom,
+          // 넓은 화면: 탭바를 콘텐츠 영역과 같은 너비로 중앙 정렬
+          ...(isWide && {
+            maxWidth: CONTENT_MAX_WIDTH,
+            alignSelf: 'center' as const,
+            width: '100%' as unknown as number,
+            borderLeftWidth: 1,
+            borderRightWidth: 1,
+            borderColor: '#FFF2AD',
+          }),
         },
         tabBarLabelStyle: {
           fontSize: 12,
