@@ -37,7 +37,7 @@ module.exports = ({ config }) => {
       ...config.expo,
       name: currentEnv.name,
       slug: 'gns-hermit-comm',
-      version: '1.1.1',
+      version: '1.1.3',
       orientation: 'portrait',
       icon: './assets/icon.png',
       scheme: currentEnv.scheme,
@@ -70,6 +70,7 @@ module.exports = ({ config }) => {
             action: 'VIEW',
             data: [
               { scheme: currentEnv.scheme, pathPrefix: '/post' },
+              { scheme: currentEnv.scheme, pathPrefix: '/admin' },
             ],
             category: ['BROWSABLE', 'DEFAULT'],
           },

@@ -25,7 +25,7 @@
 ```
 src/
 ├── app/                    # Expo Router (라우팅·레이아웃만)
-│   ├── (tabs)/             # 탭: 홈, 작성
+│   ├── (tabs)/             # 탭: 홈, 그룹, 작성, 설정
 │   ├── post/[id].tsx       # 게시글 상세
 │   ├── post/edit/[id].tsx  # 게시글 수정
 │   ├── groups/             # 내 그룹 목록, 그룹 게시판
@@ -63,7 +63,7 @@ src/
 | 레이어 | 경로 | 역할 |
 |--------|------|------|
 | **공통 저수준 API** | `shared/lib/api.ts` | 게시글·댓글·반응 CRUD, 검색(`getPosts`, `getPost`, `createPost`, `getComments`, `createComment`, `getReactions`, `createReaction` 등). 인증·RLS는 Supabase에 위임. |
-| **커뮤니티 API** | `features/community/api/communityApi.ts` | 보드·그룹·보드별 글 조회 및 게시글 생성. `getBoards`, `getMyGroups`, `getGroupBoards`, `getBoardPosts`, `getGroupPosts`, `createBoardPost`(내부에서 `api.createPost` 사용). |
+| **커뮤니티 API** | `features/community/api/communityApi.ts` | 보드·그룹·보드별 글 조회 및 게시글 생성·그룹 참여. `getBoards`, `getMyGroups`, `getGroupBoards`, `getBoardPosts`, `getGroupPosts`, `createBoardPost`, `joinGroupByInviteCode`(내부에서 Supabase 직접 호출). |
 | **관리자 API** | `features/admin/api/adminApi.ts` | 관리자 전용. 그룹·기본 보드 생성, 본인이 owner인 그룹 목록. `createGroupWithBoard`, `getMyManagedGroups`. |
 
 - **UI 사용 원칙**: 가능한 한 **feature API**(communityApi, adminApi)만 사용. 공개 게시판 글 작성 등은 기존처럼 `api.createPost` 직접 호출 허용.
@@ -76,7 +76,12 @@ src/
 - **관리자 구분**: DB의 `app_admin` 테이블 조회로 판단. 관리자 전용 **이메일/비밀번호 로그인** 후에만 관리자 영역 접근. DB 쪽 생성 권한은 `app_admin` 테이블 + RLS로 제한.
 - **익명 표시**: `shared/lib/anonymous.ts`의 `resolveDisplayName`, `generateAlias`. 보드별 `anon_mode`(always_anon / allow_choice / require_name)에 따라 `is_anonymous`, `display_name` 결정.
 
----
+### 5.1 관리자 계정 분리(운영 정책)
+
+- **원칙**
+  - 일반 사용자는 **Supabase 익명 로그인**을 기본으로 사용한다.
+  - 관리자는 일반 사용자와 **계정을 공유하지 않고**, Supabase Auth의 **별도 이메일/비밀번호 계정**으로만 로그인한다.
+  - MFA 등 로그인 단계를 추가하지 않는다. (운영 요구사항)
 
 ## 6. 관련 문서
 

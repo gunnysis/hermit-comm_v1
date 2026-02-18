@@ -283,7 +283,7 @@ values (
 INSERT INTO app_admin (user_id) VALUES ('해당-auth.users.id-UUID');
 ```
 
-이렇게 등록된 사용자만 앱에서 **내 그룹** → **관리자** → **관리자 로그인** 화면에서 이메일/비밀번호로 로그인 시 관리자 페이지에 접근할 수 있습니다. 앱의 `.env`에 관리자 UID를 넣을 필요는 없습니다.
+이렇게 등록된 사용자만 앱에서 관리자 딥링크(예: `hermitcommdev://admin/login`, `hermitcommpreview://admin/login`, `hermitcomm://admin/login`)로 진입한 뒤 이메일/비밀번호로 로그인 시 관리자 페이지에 접근할 수 있습니다. 앱의 `.env`에 관리자 UID를 넣을 필요는 없습니다.
 
 ---
 

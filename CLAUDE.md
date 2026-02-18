@@ -124,6 +124,26 @@ npm run update:production
 
 ---
 
+## 9. 탭·그룹·관리자 플로우 요약
+
+- **탭 구조**: `(tabs)/_layout.tsx` 기준으로 `홈(index)`, `그룹(groups)`, `작성(create)`, `설정(settings)` 네 개 탭을 사용.
+  - `src/app/(tabs)/groups.tsx` → `src/app/groups/index.tsx` 를 re-export 하여 그룹 탭 화면을 구성.
+- **그룹 탭 / 초대 코드**
+  - 그룹 탭 상단의 `초대 코드로 참여` 카드에서 초대 코드를 입력해 그룹에 참여.
+  - 관련 코드:
+    - API: `src/features/community/api/communityApi.ts` → `joinGroupByInviteCode`.
+    - 훅: `src/features/community/hooks/useJoinGroupByInviteCode.ts`.
+    - 화면: `src/app/groups/index.tsx` (초대 코드 카드 + 내 그룹 목록).
+  - 그룹 목록 쿼리: `useMyGroups` / `getMyGroups` (`features/community/hooks/api`).
+- **관리자 진입**
+  - 일반 사용자는 항상 익명 로그인으로 시작, UI 상에서는 관리자 진입 동선이 거의 드러나지 않게 유지.
+  - 앱 내 관리자 로그인 진입:
+    - 하단 **설정 탭** → 화면 오른쪽 아래의 작은 링크 `운영자용 관리자 페이지로 이동` → `/admin/login`.
+  - 이미 관리자 판별이 끝난 경우, 홈 헤더 우측의 작은 `관리자` 버튼으로 `/admin` 바로 진입.
+  - `/admin/_layout.tsx` 에서 관리자 여부(`useIsAdmin`)와 세션(`useAuth`)을 함께 체크하고, 비관리자/미로그인은 탭 화면으로 되돌린 뒤 익명 세션을 복구.
+
+---
+
 ## 8. 작업 시 유의사항
 
 - **환경 변수**: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`만 사용. 관리자 UID 하드코딩 금지.

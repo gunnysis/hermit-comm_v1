@@ -13,6 +13,7 @@ import { getBoardPosts } from '@/features/community/api/communityApi';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
+import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 
 type SortOrder = 'latest' | 'popular';
 
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const BOARD_ID = 1;
   const router = useRouter();
   const { isWide } = useResponsiveLayout();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
   const [offset, setOffset] = useState(0);
@@ -122,19 +124,24 @@ export default function HomeScreen() {
       <View
         className={`bg-happy-100 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200 shadow-sm`}>
         <View className="flex-row items-center justify-between">
-          <View>
-            <View className="flex-row items-center">
-              <Text className="text-3xl mr-2">🏡</Text>
-              <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>
+          <View className="flex-row items-center">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-3xl mr-2">🏡</Text>
+                <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>
+              </View>
+              <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기가 있는 곳</Text>
             </View>
-            <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기가 있는 곳</Text>
+            {!isAdminLoading && isAdmin === true && (
+              <Pressable
+                onPress={() => router.push('/admin' as Parameters<typeof router.push>[0])}
+                className="ml-3 px-2 py-1.5 rounded-lg border border-transparent"
+                accessibilityLabel="관리자 페이지"
+                accessibilityHint="관리자 페이지로 이동합니다">
+                <Text className="text-xs font-semibold text-gray-600">관리자</Text>
+              </Pressable>
+            )}
           </View>
-          <Pressable
-            onPress={() => router.push('/groups')}
-            className="px-3 py-2 bg-happy-200 rounded-xl"
-            accessibilityLabel="내 그룹">
-            <Text className="text-sm font-semibold text-gray-700">내 그룹</Text>
-          </Pressable>
         </View>
         {(() => {
           const board = boards?.find((b) => b.id === BOARD_ID);

@@ -26,6 +26,7 @@ import { auth } from '@/features/auth/auth';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 
 const QUERY_KEY_MANAGED_GROUPS = ['admin', 'myManagedGroups'] as const;
 
@@ -71,7 +72,11 @@ export default function AdminIndexScreen() {
       );
     },
     onError: (err: Error) => {
-      Alert.alert('생성 실패', err.message || '그룹 생성에 실패했습니다.');
+      const message = toFriendlyErrorMessage(
+        err,
+        '그룹 생성에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
+      Alert.alert('생성 실패', message);
     },
   });
 
@@ -103,7 +108,8 @@ export default function AdminIndexScreen() {
       await auth.signInAnonymously();
       router.replace('/(tabs)');
     } catch (e) {
-      Alert.alert('로그아웃 실패', (e as Error)?.message ?? '다시 시도해주세요.');
+      const message = toFriendlyErrorMessage(e, '로그아웃에 실패했습니다. 다시 시도해주세요.');
+      Alert.alert('로그아웃 실패', message);
     }
   }, [router]);
 

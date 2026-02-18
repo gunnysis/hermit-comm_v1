@@ -30,6 +30,11 @@ export interface GroupBoard extends Board {
   group_id?: number | null;
 }
 
+export interface JoinGroupByInviteCodeResult {
+  group: GroupSummary;
+  alreadyMember: boolean;
+}
+
 export async function getBoards(): Promise<Board[]> {
   const { data, error } = await supabase
     .from('boards')
@@ -67,6 +72,99 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
   const rows = (data || []) as unknown as { groups: GroupSummary | null }[];
 
   return rows.map((row) => row.groups).filter((g): g is GroupSummary => !!g);
+}
+
+export async function joinGroupByInviteCode(
+  inviteCode: string,
+): Promise<JoinGroupByInviteCodeResult> {
+  const trimmed = inviteCode.trim();
+  if (!trimmed) {
+    throw new Error('코드를 입력해주세요.');
+  }
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error('[Supabase] 사용자 조회 에러:', userError);
+    throw new Error('잠시 후 다시 시도해주세요.');
+  }
+  if (!user) {
+    throw new Error('로그인이 필요합니다.');
+  }
+
+  const { data: group, error: groupError } = await supabase
+    .from('groups')
+    .select('id, name, description, invite_code')
+    .eq('invite_code', trimmed)
+    .maybeSingle();
+
+  if (groupError) {
+    console.error('[Supabase] groups 초대 코드 조회 에러:', groupError);
+    throw new Error('잠시 후 다시 시도해주세요.');
+  }
+  if (!group) {
+    throw new Error('존재하지 않는 초대 코드입니다.');
+  }
+
+  const { data: member, error: memberError } = await supabase
+    .from('group_members')
+    .select('status')
+    .eq('group_id', group.id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (memberError) {
+    console.error('[Supabase] group_members 조회 에러:', memberError);
+    throw new Error('잠시 후 다시 시도해주세요.');
+  }
+
+  if (!member) {
+    const { error: insertError } = await supabase.from('group_members').insert({
+      group_id: group.id,
+      user_id: user.id,
+      role: 'member',
+      status: 'approved',
+    });
+
+    if (insertError) {
+      console.error('[Supabase] group_members INSERT 에러:', insertError);
+      throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
+    }
+
+    return {
+      group: {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+      },
+      alreadyMember: false,
+    };
+  }
+
+  if (member.status !== 'approved') {
+    const { error: updateError } = await supabase
+      .from('group_members')
+      .update({ status: 'approved' })
+      .eq('group_id', group.id)
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error('[Supabase] group_members UPDATE 에러:', updateError);
+      throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  }
+
+  return {
+    group: {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+    },
+    alreadyMember: true,
+  };
 }
 
 export async function getGroupBoards(groupId: number): Promise<GroupBoard[]> {
