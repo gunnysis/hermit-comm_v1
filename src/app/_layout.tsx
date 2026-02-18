@@ -3,48 +3,26 @@ import { Stack } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, ActivityIndicator } from 'react-native';
-import Constants from 'expo-constants';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { queryClient } from '@/shared/lib/queryClient';
 import '@/global.css';
 
-// #region agent log
-const _log = (message: string, data: Record<string, unknown>) => {
-  fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ location: 'app/_layout.tsx', message, data, timestamp: Date.now() }),
-  }).catch(() => {});
-};
-_log('_layout module loaded (imports done)', {});
-_log('splash config at runtime', {
-  hypothesisId: 'A',
-  splash: Constants.expoConfig?.splash ?? null,
-  splashImage: Constants.expoConfig?.splash?.image ?? null,
-});
-// #endregion
-
 async function checkAndApplyUpdate() {
-  _log('checkAndApplyUpdate called', { __DEV__ });
   if (__DEV__) return;
   try {
     const Updates = await import('expo-updates');
     if (typeof Updates.checkForUpdateAsync !== 'function') return;
-    _log('about to checkForUpdateAsync', {});
     const result = await Updates.checkForUpdateAsync();
-    _log('checkForUpdateAsync done', { isAvailable: result?.isAvailable });
     if (result.isAvailable) {
       await Updates.fetchUpdateAsync();
       await Updates.reloadAsync();
     }
-  } catch (err) {
-    _log('checkAndApplyUpdate catch', { errMsg: err instanceof Error ? err.message : String(err) });
+  } catch {
     // 네트워크 오류 등 시 무시 (사용자 안내 없음)
   }
 }
 
 export default function RootLayout() {
-  _log('RootLayout render', {});
   const { loading, error } = useAuth();
 
   // 앱 실행 시 1회만 OTA 업데이트 확인 후 자동 적용 (사용자 선택 없음)
@@ -82,6 +60,8 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="post/[id]" />
+            <Stack.Screen name="admin" />
+            <Stack.Screen name="groups" />
           </Stack>
         </View>
       </SafeAreaProvider>

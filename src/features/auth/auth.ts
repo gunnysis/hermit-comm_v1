@@ -40,6 +40,25 @@ export const auth = {
   },
 
   /**
+   * 이메일/비밀번호 로그인 (관리자 로그인용)
+   * 세션이 있으면 해당 사용자로 교체됨.
+   */
+  signInWithPassword: async (email: string, password: string): Promise<User> => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      console.error('[Auth] 이메일 로그인 실패:', error);
+      throw error;
+    }
+
+    if (!data.user) {
+      throw new Error('로그인 성공했으나 사용자 정보가 없습니다.');
+    }
+
+    return data.user;
+  },
+
+  /**
    * 현재 사용자 정보 조회
    */
   getCurrentUser: async (): Promise<User | null> => {

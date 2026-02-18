@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { Container } from '@/shared/components/Container';
 import { PostList } from '@/features/posts/components/PostList';
 import { Input } from '@/shared/components/Input';
@@ -17,6 +18,7 @@ type SortOrder = 'latest' | 'popular';
 
 export default function HomeScreen() {
   const BOARD_ID = 1;
+  const router = useRouter();
   const { isWide } = useResponsiveLayout();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -119,11 +121,21 @@ export default function HomeScreen() {
       {/* 행복한 헤더 */}
       <View
         className={`bg-happy-100 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200 shadow-sm`}>
-        <View className="flex-row items-center">
-          <Text className="text-3xl mr-2">🏡</Text>
-          <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>
+        <View className="flex-row items-center justify-between">
+          <View>
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-2">🏡</Text>
+              <Text className="text-3xl font-bold text-gray-800">은둔마을</Text>
+            </View>
+            <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기가 있는 곳</Text>
+          </View>
+          <Pressable
+            onPress={() => router.push('/groups')}
+            className="px-3 py-2 bg-happy-200 rounded-xl"
+            accessibilityLabel="내 그룹">
+            <Text className="text-sm font-semibold text-gray-700">내 그룹</Text>
+          </Pressable>
         </View>
-        <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기가 있는 곳</Text>
         {(() => {
           const board = boards?.find((b) => b.id === BOARD_ID);
           if (!board?.description) return null;

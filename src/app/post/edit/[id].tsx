@@ -16,7 +16,7 @@ import { ErrorView } from '@/shared/components/ErrorView';
 import { Input } from '@/shared/components/Input';
 import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
-import { useAPI } from '@/features/posts/hooks/useAPI';
+import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { validatePostTitle, validatePostContent, validateAuthor } from '@/shared/utils/validate';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
@@ -33,12 +33,13 @@ export default function EditPostScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ title: '', content: '', author: '' });
 
+  const postId = Number(id);
   const {
     data: post,
-    loading: fetchLoading,
+    isLoading: fetchLoading,
     error: fetchError,
     refetch,
-  } = useAPI(() => api.getPost(Number(id)));
+  } = usePostDetail(Number.isNaN(postId) ? null : postId);
 
   useEffect(() => {
     if (post) {
@@ -98,7 +99,10 @@ export default function EditPostScreen() {
     return (
       <Container>
         <StatusBar style="dark" />
-        <ErrorView message={fetchError || '게시글을 찾을 수 없습니다.'} onRetry={refetch} />
+        <ErrorView
+          message={(fetchError as Error)?.message ?? '게시글을 찾을 수 없습니다.'}
+          onRetry={refetch}
+        />
       </Container>
     );
   }

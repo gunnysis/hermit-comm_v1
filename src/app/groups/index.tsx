@@ -6,9 +6,11 @@ import { Container } from '@/shared/components/Container';
 import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
 import { useMyGroups } from '@/features/community/hooks/useMyGroups';
+import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 
 export default function MyGroupsScreen() {
   const router = useRouter();
+  const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const { data: groups, isLoading, error, refetch } = useMyGroups();
 
   if (isLoading) {
@@ -34,10 +36,22 @@ export default function MyGroupsScreen() {
       <StatusBar style="dark" />
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
         <View className="bg-happy-100 px-4 pt-12 pb-6 border-b border-cream-200 shadow-sm">
-          <Text className="text-3xl font-bold text-gray-800">내 그룹</Text>
-          <Text className="text-sm text-gray-600 mt-2">
-            참여 중인 프로그램/소모임의 익명 게시판 목록입니다.
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-3xl font-bold text-gray-800">내 그룹</Text>
+              <Text className="text-sm text-gray-600 mt-2">
+                참여 중인 프로그램/소모임의 익명 게시판 목록입니다.
+              </Text>
+            </View>
+            {!isAdminLoading && isAdmin === true && (
+              <Pressable
+                onPress={() => router.push('/admin' as Parameters<typeof router.push>[0])}
+                className="px-3 py-2 bg-happy-300 rounded-xl"
+                accessibilityLabel="관리자 페이지">
+                <Text className="text-sm font-semibold text-gray-700">관리자</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
 
         <View className="p-4 gap-3">
@@ -63,4 +77,3 @@ export default function MyGroupsScreen() {
     </Container>
   );
 }
-

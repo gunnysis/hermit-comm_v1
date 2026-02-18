@@ -69,6 +69,28 @@ git checkout -b [브랜치명]
 
 ---
 
+## 앱 테스트 (Android 에뮬레이터)
+
+1. **에뮬레이터 실행**  
+   Android Studio에서 AVD 실행하거나 터미널에서:
+   ```bash
+   %LOCALAPPDATA%\Android\Sdk\emulator\emulator -avd Galaxy_S25_Ultra
+   ```
+   (에뮬레이터가 완전히 부팅될 때까지 기다린 뒤 다음 단계 진행.)
+
+2. **서명 불일치로 설치 실패할 때**  
+   `INSTALL_FAILED_UPDATE_INCOMPATIBLE: signatures do not match` 가 나오면, 기존 앱을 제거한 뒤 다시 설치:
+   ```bash
+   adb uninstall com.gns.hermitcomm.dev
+   ```
+
+3. **앱 빌드·설치·실행**
+   ```bash
+   npm run android
+   ```
+
+---
+
 ## 문제 해결
 
 - **Metro/번들 오류**: `npx expo start --clear`

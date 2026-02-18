@@ -38,8 +38,8 @@ gns-hermit-comm/
 │   ├── comments/         # 댓글 관련
 │   └── reactions/        # 반응 관련
 ├── hooks/                # 커스텀 훅
-│   ├── useAPI.ts         # API 호출 훅
 │   ├── useAuthor.ts      # 작성자 관리
+│   ├── usePostDetail.ts  # 게시글 단건 조회 (React Query)
 │   ├── useRealtimePosts.ts      # 게시글 실시간 구독
 │   └── useRealtimeComments.ts   # 댓글 실시간 구독
 ├── lib/                  # 라이브러리 설정
@@ -67,7 +67,14 @@ gns-hermit-comm/
 - `EXPO_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`: Supabase Publishable Key
 
+## 문서
 
+전체 문서 목록은 [docs/README.md](docs/README.md)를 참고하세요. AI 작업 시 [claude.md](claude.md)에서 프로젝트 컨텍스트를 참고할 수 있습니다.
 
-
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 아키텍처·API 레이어·데이터 페칭 전략
+- [docs/APP_USAGE_GUIDE.md](docs/APP_USAGE_GUIDE.md) — 사용자·운영자 사용법
+- [docs/supabase_setup.md](docs/supabase_setup.md) — Supabase 설정·마이그레이션(001~008)
+- [docs/PROJECT_SETUP_PROPOSAL.md](docs/PROJECT_SETUP_PROPOSAL.md) — 기술 스택·폴더 구조 제안(참고용)
+- [supabase/migrations/README.md](supabase/migrations/README.md) — 마이그레이션 순서·요약
+- [ROADMAP.md](ROADMAP.md) — 로드맵
 

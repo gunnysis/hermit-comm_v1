@@ -6,6 +6,8 @@ export interface Board {
   description?: string | null;
   visibility: 'public' | 'private';
   anon_mode: 'always_anon' | 'allow_choice' | 'require_name';
+  /** 그룹 전용 게시판일 때 설정 (007 마이그레이션) */
+  group_id?: number | null;
   created_at: string;
   updated_at: string;
 }

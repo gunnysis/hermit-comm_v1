@@ -26,14 +26,18 @@
 
 ## 3. 데이터베이스 스키마 생성
 
-### SQL Editor에서 실행
+**권장**: Supabase CLI를 사용하는 경우 프로젝트 루트에서 `supabase db migrate up`으로 001~008 마이그레이션을 순서대로 적용할 수 있습니다.
 
-1. 왼쪽 메뉴에서 **SQL Editor**로 이동하세요
-2. "New query" 버튼을 클릭하세요
-3. `supabase/migrations/001_initial_schema.sql` 파일의 내용을 복사하여 붙여넣으세요
-4. "Run" 버튼을 클릭하여 실행하세요
+### SQL Editor에서 수동 실행
 
-### 생성되는 테이블
+CLI를 쓰지 않을 경우, **SQL Editor**에서 아래 순서대로 각 파일 내용을 복사·실행하세요.
+
+1. 왼쪽 메뉴에서 **SQL Editor**로 이동
+2. `supabase/migrations/001_initial_schema.sql` ~ `008_admin_rls.sql`을 **번호 순서대로** 각각 새 쿼리로 붙여넣고 "Run" 실행
+
+마이그레이션 목록과 요약은 [supabase/migrations/README.md](../supabase/migrations/README.md)를 참고하세요.
+
+### 001 적용 시 생성되는 테이블
 
 - **posts**: 게시글 정보 (id, title, content, author, created_at)
 - **comments**: 댓글 정보 (id, post_id, content, author, created_at)
@@ -238,6 +242,9 @@ delete from posts where id = 1;
 1. 기존 001–003 마이그레이션이 적용된 상태에서,
 2. `supabase/migrations/004_anonymous_board_schema.sql` 실행
 3. 이어서 `supabase/migrations/005_board_enums_and_indexes.sql` 실행
+4. `supabase/migrations/006_group_board_rls.sql` 실행 (그룹 게시판 RLS)
+5. `supabase/migrations/007_boards_group_id.sql` 실행 — `boards`에 `group_id` 추가
+6. `supabase/migrations/008_admin_rls.sql` 실행 — `app_admin` 테이블 및 그룹/보드 생성 RLS 제한
 
 Supabase CLI를 사용하는 경우, 프로젝트 루트에서:
 
@@ -264,6 +271,20 @@ values (
 이후 작성되는 게시글/댓글(`board_id = 1`)은 `is_anonymous`/`display_name` 컬럼을 통해
 클라이언트의 익명 정책(`anon_mode`)과 랜덤 별칭 로직에 따라 표시됩니다.
 
+### 8.4 관리자(app_admin) 설정 (007·008 적용 후)
+
+앱 내 **관리자 페이지**에서 그룹/보드를 생성하려면, **이메일/비밀번호**로 가입한 사용자를 Supabase Auth에 만든 뒤 **app_admin** 테이블에 등록해야 합니다.
+
+1. Supabase 대시보드 **Authentication** → **Providers**에서 **Email** 로그인이 활성화되어 있는지 확인합니다.
+2. **Authentication** → **Users**에서 **Add user**로 관리자용 이메일/비밀번호 계정을 생성하거나, Invite로 초대합니다.
+3. 생성된 사용자의 **UID**를 복사한 뒤 **SQL Editor**에서 다음을 실행합니다 (UUID를 해당 UID로 교체):
+
+```sql
+INSERT INTO app_admin (user_id) VALUES ('해당-auth.users.id-UUID');
+```
+
+이렇게 등록된 사용자만 앱에서 **내 그룹** → **관리자** → **관리자 로그인** 화면에서 이메일/비밀번호로 로그인 시 관리자 페이지에 접근할 수 있습니다. 앱의 `.env`에 관리자 UID를 넣을 필요는 없습니다.
+
 ---
 
 ## 9. 비용 관리
@@ -278,7 +299,7 @@ values (
 
 프로젝트가 성장하면 유료 플랜으로 업그레이드를 고려하세요.
 
-## 9. 모니터링
+## 10. 모니터링
 
 ### 대시보드에서 확인 가능한 정보
 
@@ -287,7 +308,7 @@ values (
 - **Logs**: API 요청 로그
 - **Reports**: 사용량 통계
 
-## 10. 문제 해결
+## 11. 문제 해결
 
 ### Realtime 연결 실패
 
@@ -320,14 +341,14 @@ values (
    ```
 2. 필요한 경우 정책 추가 또는 수정
 
-## 11. 추가 리소스
+## 12. 추가 리소스
 
 - [Supabase 공식 문서](https://supabase.com/docs)
 - [Supabase JavaScript 클라이언트](https://supabase.com/docs/reference/javascript)
 - [PostgreSQL 튜토리얼](https://www.postgresql.org/docs/)
 - [RLS 가이드](https://supabase.com/docs/guides/auth/row-level-security)
 
-## 12. 샘플 데이터 추가 (선택사항)
+## 13. 샘플 데이터 추가 (선택사항)
 
 테스트를 위해 샘플 데이터를 추가하려면 SQL Editor에서 실행:
 

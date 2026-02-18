@@ -2,9 +2,6 @@
  * Expo App Configuration
  * 환경별로 bundleIdentifier, package, appName을 자동으로 설정합니다.
  */
-const path = require('path');
-const fs = require('fs');
-
 module.exports = ({ config }) => {
   // EAS Build Profile 또는 APP_ENV 환경 변수로 환경 감지
   const buildProfile = process.env.EAS_BUILD_PROFILE || process.env.APP_ENV || 'development';
@@ -49,31 +46,11 @@ module.exports = ({ config }) => {
       runtimeVersion: {
         policy: 'appVersion',
       },
-      splash: (() => {
-        // #region agent log
-        const splashImage = './assets/splash-icon.png';
-        const resolved = path.resolve(__dirname, splashImage);
-        const exists = fs.existsSync(resolved);
-        try {
-          fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'app.config.js',
-              message: 'splash config evaluated',
-              hypothesisId: 'C',
-              data: { splashImage, resolved, exists, cwd: process.cwd() },
-              timestamp: Date.now(),
-            }),
-          }).catch(() => {});
-        } catch (_) {}
-        // #endregion
-        return {
-          image: splashImage,
-          resizeMode: 'contain',
-          backgroundColor: '#FFF8E7', // 따뜻한 크림색 (행복한 느낌)
-        };
-      })(),
+      splash: {
+        image: './assets/splash-icon.png',
+        resizeMode: 'contain',
+        backgroundColor: '#FFF8E7', // 따뜻한 크림색 (행복한 느낌)
+      },
       ios: {
         supportsTablet: true,
         bundleIdentifier: currentEnv.bundleIdentifier,

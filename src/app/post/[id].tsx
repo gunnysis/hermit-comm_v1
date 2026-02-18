@@ -5,13 +5,13 @@ import { ErrorView } from '@/shared/components/ErrorView';
 import { Input } from '@/shared/components/Input';
 import { Loading } from '@/shared/components/Loading';
 import { ReactionBar } from '@/features/posts/components/ReactionBar';
-import { useAPI } from '@/features/posts/hooks/useAPI';
+import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useRealtimeComments } from '@/features/comments/hooks/useRealtimeComments';
 import { useRealtimeReactions } from '@/features/posts/hooks/useRealtimeReactions';
 import { api } from '@/shared/lib/api';
-import { Comment, Reaction } from '@/types';
+import { Comment } from '@/types';
 import { formatDate } from '@/shared/utils/format';
 import { validateCommentContent } from '@/shared/utils/validate';
 import { resolveDisplayName } from '@/shared/lib/anonymous';
@@ -31,17 +31,20 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+const postIdNum = (id: string) => Number(id);
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const postId = postIdNum(id ?? '');
   const { author: savedAuthor } = useAuthor();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsiveLayout();
 
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [reactions, setReactions] = useState<Reaction[]>([]);
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [reactionLoading, setReactionLoading] = useState(false);
@@ -49,41 +52,54 @@ export default function PostDetailScreen() {
   // 게시글 조회
   const {
     data: post,
-    loading: postLoading,
+    isLoading: postLoading,
     error: postError,
     refetch: refetchPost,
-  } = useAPI(() => api.getPost(Number(id)));
+  } = usePostDetail(postId);
 
   // 댓글 조회
-  const { loading: commentsLoading, refetch: refetchComments } = useAPI(async () => {
-    const result = await api.getComments(Number(id));
-    setComments(result);
-    return result;
+  const {
+    data: comments = [],
+    isLoading: commentsLoading,
+    refetch: refetchComments,
+  } = useQuery({
+    queryKey: ['comments', postId],
+    queryFn: () => api.getComments(postId),
+    enabled: postId > 0,
   });
 
   // 반응 조회
-  const { refetch: refetchReactions } = useAPI(async () => {
-    const result = await api.getReactions(Number(id));
-    setReactions(result);
-    return result;
+  const { data: reactions = [], refetch: refetchReactions } = useQuery({
+    queryKey: ['reactions', postId],
+    queryFn: () => api.getReactions(postId),
+    enabled: postId > 0,
   });
 
-  // 실시간 댓글 업데이트 구독
+  // 실시간 댓글 업데이트 구독 (캐시 갱신)
   useRealtimeComments({
-    postId: Number(id),
-    onInsert: useCallback((newComment: Comment) => {
-      setComments((prev) =>
-        prev.some((c) => c.id === newComment.id) ? prev : [...prev, newComment],
-      );
-    }, []),
-    onDelete: useCallback((commentId: number) => {
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
-    }, []),
+    postId,
+    onInsert: useCallback(
+      (newComment: Comment) => {
+        queryClient.setQueryData<Comment[]>(['comments', postId], (old) =>
+          old?.some((c) => c.id === newComment.id) ? old : [...(old ?? []), newComment],
+        );
+      },
+      [queryClient, postId],
+    ),
+    onDelete: useCallback(
+      (commentId: number) => {
+        queryClient.setQueryData<Comment[]>(
+          ['comments', postId],
+          (old) => old?.filter((c) => c.id !== commentId) ?? [],
+        );
+      },
+      [queryClient, postId],
+    ),
   });
 
   // 반응 실시간 동기화
   useRealtimeReactions({
-    postId: Number(id),
+    postId,
     onReactionsChange: refetchReactions,
   });
 
@@ -130,7 +146,10 @@ export default function PostDetailScreen() {
   const handleEditComment = async (commentId: number, content: string) => {
     try {
       await api.updateComment(commentId, { content });
-      setComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, content } : c)));
+      queryClient.setQueryData<Comment[]>(
+        ['comments', postId],
+        (old) => old?.map((c) => (c.id === commentId ? { ...c, content } : c)) ?? [],
+      );
     } catch (error) {
       Alert.alert('오류', '댓글 수정에 실패했습니다.');
       console.error('댓글 수정 실패:', error);
@@ -222,7 +241,10 @@ export default function PostDetailScreen() {
     return (
       <Container>
         <StatusBar style="dark" />
-        <ErrorView message={postError || '게시글을 찾을 수 없습니다.'} onRetry={refetchPost} />
+        <ErrorView
+          message={(postError as Error)?.message ?? '게시글을 찾을 수 없습니다.'}
+          onRetry={refetchPost}
+        />
       </Container>
     );
   }

@@ -64,27 +64,6 @@ export function useRealtimePosts({
               if (!mounted) return;
               console.log('[Realtime] 게시글 삭제:', payload.old);
               try {
-                // #region agent log
-                fetch('http://127.0.0.1:7246/ingest/7ef6b468-3ff5-4039-b59e-18195ef1e24c', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    location: 'hooks/useRealtimePosts.ts:63',
-                    message: 'DELETE payload.old 검사',
-                    data: {
-                      old: payload.old,
-                      keys:
-                        payload && typeof payload.old === 'object'
-                          ? Object.keys(payload.old as Record<string, unknown>)
-                          : null,
-                    },
-                    hypothesisId: 'A',
-                    runId: 'realtime-delete',
-                    timestamp: Date.now(),
-                  }),
-                }).catch(() => {});
-                // #endregion
-
                 if (onDelete && payload.old) {
                   if (isPost(payload.old)) {
                     onDelete(payload.old.id);
