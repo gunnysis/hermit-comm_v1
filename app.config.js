@@ -37,7 +37,7 @@ module.exports = ({ config }) => {
       ...config.expo,
       name: currentEnv.name,
       slug: 'gns-hermit-comm',
-      version: '1.1.0',
+      version: '1.1.1',
       orientation: 'portrait',
       icon: './assets/icon.png',
       scheme: currentEnv.scheme,
