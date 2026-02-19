@@ -1,5 +1,5 @@
-# Preview ì±„ë„ OTA ?…ë°?´íŠ¸ ë°°í¬
-# ?¸ë¦¬ê±? main ?œì™¸ ë¸Œëœì¹?push ?ëŠ” ?˜ë™ ?¤í–‰
+# Preview ?? OTA ???? ?? (Android ??)
+# ???: main ?? ??? push ?? ?? ??
 name: Publish Update (Preview)
 
 on:
@@ -8,11 +8,13 @@ on:
       - '*'
       - '!main'
   workflow_dispatch: {}
+
 jobs:
   update:
     name: Publish to Preview Channel
     type: update
     environment: preview
     params:
+      platform: android
       channel: preview
       message: ${{ github.event.head_commit.message || 'Preview update' }}

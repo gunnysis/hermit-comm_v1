@@ -1,16 +1,18 @@
-# Production ì±„ë„ OTA ?…ë°?´íŠ¸ ë°°í¬
-# ?¸ë¦¬ê±? main ë¸Œëœì¹?push ?ëŠ” ?˜ë™ ?¤í–‰
+# Production ?? OTA ???? ?? (Android ??)
+# ???: main ??? push ?? ?? ??
 name: Publish Update (Production)
 
 on:
   push:
     branches: ['main']
   workflow_dispatch: {}
+
 jobs:
   update:
     name: Publish to Production Channel
     type: update
     environment: production
     params:
+      platform: android
       channel: production
       message: ${{ github.event.head_commit.message || 'Production update' }}

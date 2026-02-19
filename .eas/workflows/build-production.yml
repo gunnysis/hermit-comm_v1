@@ -1,24 +1,17 @@
-# Production ë¹Œë“œ (?¤í† ???œì¶œ??
-# ?¸ë¦¬ê±? main ë¸Œëœì¹?push ?ëŠ” ?˜ë™ ?¤í–‰
+# Production ?? (??? ??? · Android ??)
+# ???: main ??? push ?? ?? ??
 name: Build Production
 
 on:
   push:
     branches: ['main']
   workflow_dispatch: {}
+
 jobs:
   build_android:
     name: Build Android (Production)
     type: build
     params:
       platform: android
-      profile: production
-      message: ${{ github.event.head_commit.message || 'Production build' }}
-
-  build_ios:
-    name: Build iOS (Production)
-    type: build
-    params:
-      platform: ios
       profile: production
       message: ${{ github.event.head_commit.message || 'Production build' }}

@@ -1,10 +1,10 @@
-# Production ë¹Œë“œ ???¤í† ???œì¶œ (? íƒ ?¬ìš©)
-# ?¸ë¦¬ê±? ?˜ë™ ?¤í–‰ë§?(workflow_dispatch)
-# ë¹Œë“œ ?„ë£Œ ??ê°??Œë«?¼ì„ App Store / Play Store???œì¶œ?©ë‹ˆ??
-name: Build and Submit to Stores
+# Production ?? ? Play Store ?? (Android ??)
+# ???: ?? ??? (workflow_dispatch)
+name: Build and Submit to Play Store
 
 on:
   workflow_dispatch: {}
+
 jobs:
   build_android:
     name: Build Android
@@ -13,25 +13,10 @@ jobs:
       platform: android
       profile: production
 
-  build_ios:
-    name: Build iOS
-    type: build
-    params:
-      platform: ios
-      profile: production
-
   submit_android:
     name: Submit to Play Store
     type: submit
     needs: [build_android]
     params:
       build_id: ${{ needs.build_android.outputs.build_id }}
-      profile: production
-
-  submit_ios:
-    name: Submit to App Store
-    type: submit
-    needs: [build_ios]
-    params:
-      build_id: ${{ needs.build_ios.outputs.build_id }}
       profile: production
