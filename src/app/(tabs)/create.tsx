@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  Pressable,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -15,6 +23,7 @@ import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { resolveDisplayName } from '@/shared/lib/anonymous';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 const createPostSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내로 입력해주세요.'),
@@ -22,10 +31,7 @@ const createPostSchema = z.object({
     .string()
     .min(1, '내용을 입력해주세요.')
     .max(5000, '내용은 5000자 이내로 입력해주세요.'),
-  author: z
-    .string()
-    .max(50, '작성자 이름은 50자 이내로 입력해주세요.')
-    .optional(),
+  author: z.string().max(50, '작성자 이름은 50자 이내로 입력해주세요.').optional(),
 });
 
 type CreatePostForm = z.infer<typeof createPostSchema>;
@@ -33,6 +39,7 @@ type CreatePostForm = z.infer<typeof createPostSchema>;
 export default function CreateScreen() {
   const BOARD_ID = 1;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -86,7 +93,9 @@ export default function CreateScreen() {
         await saveAuthor(rawAuthor);
       }
 
-      Alert.alert('성공', '게시글이 작성되었습니다! 🎉', [
+      queryClient.invalidateQueries({ queryKey: ['boardPosts', BOARD_ID] });
+
+      Alert.alert('완료', '게시글이 작성되었습니다.', [
         {
           text: '확인',
           onPress: () => router.push('/(tabs)'),

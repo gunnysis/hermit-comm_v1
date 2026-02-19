@@ -258,3 +258,65 @@ export async function getGroupPosts(
     return { ...rest, comment_count } as Post;
   });
 }
+
+export async function searchGroupPosts(
+  groupId: number,
+  boardId: number,
+  query: string,
+  limit: number = 50,
+): Promise<Post[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  const escaped = q.replace(/'/g, "''");
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*, comments(count)')
+    .eq('group_id', groupId)
+    .eq('board_id', boardId)
+    .or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`)
+    .order('created_at', { ascending: false })
+    .range(0, limit - 1);
+
+  if (error) {
+    logger.error('[API] group posts 검색 에러:', error.message);
+    throw error;
+  }
+
+  const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
+  return rows.map((row) => {
+    const { comments: commentCount, ...rest } = row;
+    const comment_count = Array.isArray(commentCount)
+      ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
+      : typeof commentCount === 'number'
+        ? commentCount
+        : undefined;
+    return { ...rest, comment_count } as Post;
+  });
+}
+
+export async function leaveGroup(groupId: number): Promise<void> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    logger.error('[API] 사용자 조회 에러:', userError.message);
+    throw new Error('잠시 후 다시 시도해주세요.');
+  }
+  if (!user) {
+    throw new Error('로그인이 필요합니다.');
+  }
+
+  const { error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('user_id', user.id);
+
+  if (error) {
+    logger.error('[API] group leave 에러:', error.message);
+    throw new Error('그룹에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.');
+  }
+}

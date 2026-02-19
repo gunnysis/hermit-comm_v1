@@ -1,8 +1,7 @@
 # E2E: 앱 실행 후 홈 화면 노출 검증
-# 실행: maestro test .maestro (또는 npm run test:e2e)
-# 사전: iOS Simulator 또는 Android Emulator에서 앱 빌드 후 설치 필요
-appId: com.gns.hermitcomm
+appId: com.gns.hermitcomm.dev
 ---
-- launchApp
+- runFlow: common/launch-app.yaml
+
 - assertVisible: "은둔마을"
 - assertVisible: "따뜻한 이야기가 있는 곳"

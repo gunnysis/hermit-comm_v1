@@ -1,0 +1,25 @@
+# 공통: 앱 실행 → dev client 연결 → 홈 화면 대기
+appId: com.gns.hermitcomm.dev
+---
+- stopApp
+- launchApp
+
+# Expo Dev Client 런처에서 서버 선택 (필요시)
+- tapOn:
+    text: "http://10.0.2.2:8081"
+    optional: true
+
+# Expo Dev Menu의 Continue 버튼 (필요시)
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# 두 번째 Continue (서버 연결 후 dev menu가 다시 나올 수 있음)
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# 홈 화면 대기
+- extendedWaitUntil:
+    visible: "은둔마을"
+    timeout: 20000

@@ -10,6 +10,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useRealtimeComments } from '@/features/comments/hooks/useRealtimeComments';
 import { useRealtimeReactions } from '@/features/posts/hooks/useRealtimeReactions';
+import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
+import { useBoards } from '@/features/community/hooks/useBoards';
 import { api } from '@/shared/lib/api';
 import { Comment } from '@/types';
 import { formatDate } from '@/shared/utils/format';
@@ -18,7 +20,7 @@ import { resolveDisplayName } from '@/shared/lib/anonymous';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -49,7 +51,6 @@ export default function PostDetailScreen() {
   const [commentLoading, setCommentLoading] = useState(false);
   const [reactionLoading, setReactionLoading] = useState(false);
 
-  // 게시글 조회
   const {
     data: post,
     isLoading: postLoading,
@@ -57,7 +58,25 @@ export default function PostDetailScreen() {
     refetch: refetchPost,
   } = usePostDetail(postId);
 
-  // 댓글 조회
+  const groupId = post?.group_id ?? null;
+  const boardId = post?.board_id ?? null;
+
+  const { data: groupBoards } = useGroupBoards(groupId);
+  const { data: publicBoards } = useBoards();
+
+  const board = useMemo(() => {
+    if (!boardId) return null;
+    if (groupId && groupBoards) {
+      return groupBoards.find((b) => b.id === boardId) ?? null;
+    }
+    if (publicBoards) {
+      return publicBoards.find((b) => b.id === boardId) ?? null;
+    }
+    return null;
+  }, [boardId, groupId, groupBoards, publicBoards]);
+
+  const anonMode = board?.anon_mode ?? 'always_anon';
+
   const {
     data: comments = [],
     isLoading: commentsLoading,
@@ -68,14 +87,12 @@ export default function PostDetailScreen() {
     enabled: postId > 0,
   });
 
-  // 반응 조회
   const { data: reactions = [], refetch: refetchReactions } = useQuery({
     queryKey: ['reactions', postId],
     queryFn: () => api.getReactions(postId),
     enabled: postId > 0,
   });
 
-  // 실시간 댓글 업데이트 구독 (캐시 갱신)
   useRealtimeComments({
     postId,
     onInsert: useCallback(
@@ -97,13 +114,11 @@ export default function PostDetailScreen() {
     ),
   });
 
-  // 반응 실시간 동기화
   useRealtimeReactions({
     postId,
     onReactionsChange: refetchReactions,
   });
 
-  // 댓글 작성
   const handleSubmitComment = async () => {
     const validation = validateCommentContent(commentContent);
     if (!validation.isValid) {
@@ -113,15 +128,14 @@ export default function PostDetailScreen() {
 
     try {
       setCommentLoading(true);
-      const anonMode = 'always_anon';
       const rawAuthor = savedAuthor ?? '';
 
       const { isAnonymous, displayName } = resolveDisplayName({
         anonMode,
         rawAuthorName: rawAuthor,
         userId: user?.id ?? null,
-        boardId: post?.board_id ?? null,
-        groupId: post?.group_id ?? null,
+        boardId,
+        groupId,
         wantNameOverride: false,
       });
       await api.createComment(Number(id), {
@@ -141,7 +155,6 @@ export default function PostDetailScreen() {
     }
   };
 
-  // 댓글 수정
   const handleEditComment = async (commentId: number, content: string) => {
     try {
       await api.updateComment(commentId, { content });
@@ -155,7 +168,6 @@ export default function PostDetailScreen() {
     }
   };
 
-  // 댓글 삭제
   const handleDeleteComment = async (commentId: number) => {
     Alert.alert('댓글 삭제', '정말로 이 댓글을 삭제하시겠습니까?', [
       { text: '취소', style: 'cancel' },
@@ -174,7 +186,6 @@ export default function PostDetailScreen() {
     ]);
   };
 
-  // 반응 추가
   const handleReaction = async (reactionType: string) => {
     try {
       setReactionLoading(true);
@@ -187,7 +198,6 @@ export default function PostDetailScreen() {
     }
   };
 
-  // 공유 (딥링크 URL)
   const handleShare = useCallback(async () => {
     if (!post) return;
     const url = Linking.createURL(`/post/${id}`);
@@ -202,7 +212,6 @@ export default function PostDetailScreen() {
     }
   }, [post, id]);
 
-  // 게시글 삭제
   const handleDeletePost = () => {
     Alert.alert('게시글 삭제', '정말로 이 게시글을 삭제하시겠습니까?', [
       { text: '취소', style: 'cancel' },
@@ -212,11 +221,21 @@ export default function PostDetailScreen() {
         onPress: async () => {
           try {
             await api.deletePost(Number(id));
-            if (post?.group_id) {
-              queryClient.invalidateQueries({ queryKey: ['groupPosts', post.group_id] });
+            if (post?.group_id && post?.board_id) {
+              queryClient.invalidateQueries({
+                queryKey: ['groupPosts', post.group_id, post.board_id],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['groupPosts', post.group_id],
+              });
+            }
+            if (post?.board_id) {
+              queryClient.invalidateQueries({
+                queryKey: ['boardPosts', post.board_id],
+              });
             }
             queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
-            Alert.alert('성공', '게시글이 삭제되었습니다.', [
+            Alert.alert('완료', '게시글이 삭제되었습니다.', [
               { text: '확인', onPress: () => router.back() },
             ]);
           } catch {
@@ -248,7 +267,6 @@ export default function PostDetailScreen() {
     );
   }
 
-  // 작성자 본인만 삭제 가능 (author_id 기반)
   const canDeletePost = user?.id === post.author_id;
 
   return (
@@ -258,7 +276,6 @@ export default function PostDetailScreen() {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 56) : 0}>
-        {/* 헤더 */}
         <View
           className={`flex-row justify-between items-center px-4 ${isWide ? 'pt-4' : 'pt-12'} pb-4 bg-lavender-100 border-b border-cream-200 shadow-sm`}>
           <Pressable
@@ -305,7 +322,6 @@ export default function PostDetailScreen() {
           className="flex-1"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 12 }}>
-          {/* 게시글 내용 */}
           <View className="p-4 border-b border-cream-200 bg-white">
             <Text className="text-2xl font-bold text-gray-800 mb-3">{post.title}</Text>
             <View className="flex-row justify-between items-center mb-4">
@@ -318,7 +334,6 @@ export default function PostDetailScreen() {
             </View>
             <Text className="text-base text-gray-700 leading-6 mb-6">{post.content}</Text>
 
-            {/* 반응 (좋아요/하트/웃음) */}
             <View className="items-start">
               <ReactionBar
                 reactions={reactions}
@@ -328,10 +343,9 @@ export default function PostDetailScreen() {
             </View>
           </View>
 
-          {/* 댓글 목록 */}
           <View className="py-4">
             <Text className="text-lg font-bold text-gray-800 mb-4 px-4">
-              💬 댓글 {comments.length}개
+              댓글 {comments.length}개
             </Text>
             {commentsLoading && comments.length === 0 ? (
               <Loading size="small" />
@@ -346,13 +360,12 @@ export default function PostDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* 댓글 작성 - 하단 고정 입력 바 (키보드와 겹치지 않도록 KeyboardAvoidingView 안에 배치) */}
         <View className="flex-row items-end gap-2 px-4 py-3 bg-white border-t border-cream-200 shadow-lg">
           <View className="flex-1">
             <Input
               value={commentContent}
               onChangeText={setCommentContent}
-              placeholder="댓글을 입력하세요 💬"
+              placeholder="댓글을 입력하세요"
               multiline
               maxLength={1000}
               className="max-h-24 mb-0"

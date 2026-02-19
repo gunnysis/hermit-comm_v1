@@ -147,30 +147,41 @@ export const api = {
     const isAnonymous = postData.is_anonymous ?? true;
     const displayName = postData.display_name ?? (isAnonymous ? '익명' : postData.author);
 
-    const { data, error } = await supabase
-      .from('posts')
-      .insert([{ ...postData, is_anonymous: isAnonymous, display_name: displayName, author_id: user.id }])
-      .select()
-      .single();
+    const insertRow = {
+      ...postData,
+      is_anonymous: isAnonymous,
+      display_name: displayName,
+      author_id: user.id,
+    };
 
-    if (error) {
+    const { data, error } = await supabase.from('posts').insert([insertRow]).select().single();
+
+    if (!error) {
+      return data as Post;
+    }
+
+    if (error.code !== '42501') {
       logger.error('[API] createPost 에러:', error.message);
+      throw new APIError(500, '게시글 생성에 실패했습니다.', error.code, error);
+    }
+
+    const { error: retryError } = await supabase.from('posts').insert([insertRow]);
+
+    if (retryError) {
+      logger.error('[API] createPost 에러:', retryError.message);
       throw new APIError(
-        error.code === '42501' ? 403 : 500,
+        retryError.code === '42501' ? 403 : 500,
         '게시글 생성에 실패했습니다.',
-        error.code,
-        error,
+        retryError.code,
+        retryError,
       );
     }
 
-    return data as Post;
+    return { ...insertRow, id: 0, created_at: new Date().toISOString() } as unknown as Post;
   },
 
   deletePost: async (id: number): Promise<void> => {
-    const { error } = await supabase
-      .from('posts')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+    const { error } = await supabase.from('posts').delete().eq('id', id);
 
     if (error) {
       logger.error('[API] deletePost 에러:', error.message);
@@ -286,10 +297,7 @@ export const api = {
   },
 
   deleteComment: async (id: number): Promise<void> => {
-    const { error } = await supabase
-      .from('comments')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+    const { error } = await supabase.from('comments').delete().eq('id', id);
 
     if (error) {
       logger.error('[API] deleteComment 에러:', error.message);

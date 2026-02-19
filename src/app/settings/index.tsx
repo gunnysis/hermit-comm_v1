@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -22,23 +22,14 @@ function SettingsItem({ icon, label, onPress, detail, destructive }: SettingsIte
       className="flex-row items-center px-4 py-3.5 bg-white active:bg-cream-50"
       accessibilityLabel={label}
       accessibilityRole="button">
-      <Ionicons
-        name={icon}
-        size={20}
-        color={destructive ? '#FF7366' : '#6B7280'}
-      />
-      <Text
-        className={`flex-1 ml-3 text-base ${destructive ? 'text-coral-500' : 'text-gray-800'}`}>
+      <Ionicons name={icon} size={20} color={destructive ? '#FF7366' : '#6B7280'} />
+      <Text className={`flex-1 ml-3 text-base ${destructive ? 'text-coral-500' : 'text-gray-800'}`}>
         {label}
       </Text>
       {detail && <Text className="text-sm text-gray-400 mr-1">{detail}</Text>}
       <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
     </Pressable>
   );
-}
-
-function SettingsDivider() {
-  return <View className="h-px bg-cream-200 ml-11" />;
 }
 
 export default function SettingsScreen() {
@@ -48,10 +39,6 @@ export default function SettingsScreen() {
   const handleAdminAccess = useCallback(() => {
     router.push('/admin/login' as Parameters<typeof router.push>[0]);
   }, [router]);
-
-  const handleOpenGithub = useCallback(() => {
-    Linking.openURL('https://github.com/gunnysis/hermit-comm_v1');
-  }, []);
 
   return (
     <Container>
@@ -66,12 +53,6 @@ export default function SettingsScreen() {
             detail={`v${appVersion}`}
             onPress={() => {}}
           />
-          <SettingsDivider />
-          <SettingsItem
-            icon="logo-github"
-            label="프로젝트 정보"
-            onPress={handleOpenGithub}
-          />
         </View>
 
         <View className="mt-6 mx-4 rounded-2xl overflow-hidden border border-cream-200">
@@ -83,12 +64,8 @@ export default function SettingsScreen() {
         </View>
 
         <View className="items-center mt-8 px-4">
-          <Text className="text-xs text-gray-400 text-center">
-            은둔마을 - 따뜻한 익명 커뮤니티
-          </Text>
-          <Text className="text-xs text-gray-300 mt-1">
-            v{appVersion}
-          </Text>
+          <Text className="text-xs text-gray-400 text-center">은둔마을 - 따뜻한 익명 커뮤니티</Text>
+          <Text className="text-xs text-gray-300 mt-1">v{appVersion}</Text>
         </View>
       </ScrollView>
     </Container>

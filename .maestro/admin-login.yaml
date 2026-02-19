@@ -1,0 +1,47 @@
+# E2E: 관리자 로그인 → 관리자 페이지 진입 확인
+# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조)
+# 사전 조건: 에뮬레이터의 키보드가 영문 모드여야 합니다.
+#   한글 IME가 기본이면 이메일/비밀번호가 한글로 입력됩니다.
+#   해결: 에뮬레이터 Settings > System > Languages > English(US) 추가 후 1순위로 이동
+appId: com.gns.hermitcomm.dev
+---
+- runFlow: common/launch-app.yaml
+
+# 설정 탭 이동
+- tapOn: "설정"
+
+- extendedWaitUntil:
+    visible: "운영자 관리 페이지"
+    timeout: 5000
+
+# 관리자 페이지 진입
+- tapOn: "운영자 관리 페이지"
+
+- extendedWaitUntil:
+    visible: "관리자 로그인"
+    timeout: 5000
+
+# 이메일 입력
+- tapOn: "admin@example.com"
+- inputText: "${MAESTRO_ADMIN_EMAIL}"
+
+# 비밀번호 입력
+- tapOn:
+    text: "비밀번호"
+    index: 1
+- inputText: "${MAESTRO_ADMIN_PASSWORD}"
+
+# 로그인 버튼 스크롤 후 클릭
+- scrollUntilVisible:
+    element: "로그인"
+    direction: DOWN
+    timeout: 5000
+- tapOn: "로그인"
+
+# 관리자 페이지 도달 확인
+- extendedWaitUntil:
+    visible: "그룹 게시판 생성"
+    timeout: 10000
+
+- assertVisible: "그룹 게시판 생성"
+- assertVisible: "내가 만든 그룹"
