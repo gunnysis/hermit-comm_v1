@@ -70,11 +70,13 @@ export default function RootLayout() {
                   options={{ presentation: 'modal', headerShown: false }}
                 />
                 <Stack.Screen name="admin" />
-                <Stack.Screen name="groups" />
+                <Stack.Screen name="groups/index" />
+                <Stack.Screen name="groups/[groupId]" />
                 <Stack.Screen
-                  name="create"
+                  name="groups/create"
                   options={{ presentation: 'modal', headerShown: false }}
                 />
+                <Stack.Screen name="settings/index" />
               </Stack>
             </View>
           </View>
