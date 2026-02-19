@@ -1,0 +1,28 @@
+# Preview ë¹Œë“œ (?´ë? ?ŒìŠ¤?¸ìš©)
+# ?¸ë¦¬ê±? main???„ë‹Œ ë¸Œëœì¹?push, ?ëŠ” ?˜ë™ ?¤í–‰
+name: Build Preview
+
+on:
+  push:
+    branches:
+      - '*'
+      - '!main'
+  workflow_dispatch: {}
+jobs:
+  build_android:
+    name: Build Android (Preview)
+    type: build
+    params:
+      platform: android
+      profile: preview
+    env:
+      APP_ENV: preview
+
+  build_ios:
+    name: Build iOS (Preview)
+    type: build
+    params:
+      platform: ios
+      profile: preview
+    env:
+      APP_ENV: preview
