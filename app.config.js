@@ -87,13 +87,10 @@ module.exports = ({ config }) => {
       experiments: {
         typedRoutes: true,
       },
-      // EAS Updates 설정 (development는 제외 - development client 사용)
-      ...(buildProfile !== 'development' && {
-        updates: {
-          url: 'https://u.expo.dev/bc4199dd-30ad-42bb-ba1c-4e6fce0eecdd',
-          checkAutomatically: 'ON_LOAD',
-        },
-      }),
+      updates: {
+        url: 'https://u.expo.dev/bc4199dd-30ad-42bb-ba1c-4e6fce0eecdd',
+        checkAutomatically: buildProfile === 'development' ? 'ON_ERROR_RECOVERY' : 'ON_LOAD',
+      },
       extra: {
         router: {},
         eas: {
