@@ -65,8 +65,16 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="post/[id]" />
+                <Stack.Screen
+                  name="post/edit/[id]"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
                 <Stack.Screen name="admin" />
                 <Stack.Screen name="groups" />
+                <Stack.Screen
+                  name="create"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
               </Stack>
             </View>
           </View>

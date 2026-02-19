@@ -1,33 +1,43 @@
 -- =============================================================================
--- 005_board_enums_and_indexes.sql — boards/groups enum-style 제약 및 인덱스
+-- 005_board_enums_and_indexes.sql — CHECK 제약 + 복합 인덱스
 -- =============================================================================
 
--- visibility: public | private
-ALTER TABLE boards
-  ADD CONSTRAINT boards_visibility_check
-  CHECK (visibility IN ('public', 'private'));
+-- CHECK 제약 (멱등: 이미 존재하면 건너뜀)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'boards_visibility_check') THEN
+    ALTER TABLE boards ADD CONSTRAINT boards_visibility_check
+      CHECK (visibility IN ('public', 'private'));
+  END IF;
+END $$;
 
--- anon_mode: always_anon | allow_choice | require_name
-ALTER TABLE boards
-  ADD CONSTRAINT boards_anon_mode_check
-  CHECK (anon_mode IN ('always_anon', 'allow_choice', 'require_name'));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'boards_anon_mode_check') THEN
+    ALTER TABLE boards ADD CONSTRAINT boards_anon_mode_check
+      CHECK (anon_mode IN ('always_anon', 'allow_choice', 'require_name'));
+  END IF;
+END $$;
 
--- groups.join_mode: invite_only | request_approve | code_join
-ALTER TABLE groups
-  ADD CONSTRAINT groups_join_mode_check
-  CHECK (join_mode IN ('invite_only', 'request_approve', 'code_join'));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'groups_join_mode_check') THEN
+    ALTER TABLE groups ADD CONSTRAINT groups_join_mode_check
+      CHECK (join_mode IN ('invite_only', 'request_approve', 'code_join'));
+  END IF;
+END $$;
 
--- group_members.role: owner | member | moderator
-ALTER TABLE group_members
-  ADD CONSTRAINT group_members_role_check
-  CHECK (role IN ('owner', 'member', 'moderator'));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_members_role_check') THEN
+    ALTER TABLE group_members ADD CONSTRAINT group_members_role_check
+      CHECK (role IN ('owner', 'member', 'moderator'));
+  END IF;
+END $$;
 
--- group_members.status: pending | approved | rejected
-ALTER TABLE group_members
-  ADD CONSTRAINT group_members_status_check
-  CHECK (status IN ('pending', 'approved', 'rejected'));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'group_members_status_check') THEN
+    ALTER TABLE group_members ADD CONSTRAINT group_members_status_check
+      CHECK (status IN ('pending', 'approved', 'rejected'));
+  END IF;
+END $$;
 
--- 게시판별 최신순 조회 최적화용 복합 인덱스
+-- 게시판별 최신순 조회 복합 인덱스
 CREATE INDEX IF NOT EXISTS idx_posts_board_created_at
   ON posts(board_id, created_at DESC);
-

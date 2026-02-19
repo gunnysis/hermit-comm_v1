@@ -78,9 +78,8 @@ export default function EditPostScreen() {
       Alert.alert('성공', '게시글이 수정되었습니다.', [
         { text: '확인', onPress: () => router.replace(`/post/${id}`) },
       ]);
-    } catch (error) {
+    } catch {
       Alert.alert('오류', '게시글 수정에 실패했습니다.');
-      console.error('게시글 수정 실패:', error);
     } finally {
       setLoading(false);
     }

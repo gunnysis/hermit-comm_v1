@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { FlatList, RefreshControl, View, Pressable, Text } from 'react-native';
+import { RefreshControl, View, Pressable, Text } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Post } from '@/types';
 import { PostCard } from './PostCard';
 import { Loading } from '@/shared/components/Loading';
@@ -62,7 +63,7 @@ export function PostList({
         <View className="py-4 px-4">
           <Pressable
             onPress={handleLoadMorePress}
-            className="py-3 rounded-xl bg-happy-100 active:opacity-80"
+            className="py-3 rounded-xl bg-happy-400 active:opacity-80"
             accessibilityLabel="더 보기"
             accessibilityRole="button">
             <Text className="text-center font-semibold text-happy-700">더 보기</Text>
@@ -82,7 +83,7 @@ export function PostList({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={posts}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => <PostCard post={item} />}

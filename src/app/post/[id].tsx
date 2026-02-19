@@ -134,9 +134,8 @@ export default function PostDetailScreen() {
       });
       setCommentContent('');
       await refetchComments();
-    } catch (error) {
+    } catch {
       Alert.alert('오류', '댓글 작성에 실패했습니다.');
-      console.error('댓글 작성 실패:', error);
     } finally {
       setCommentLoading(false);
     }
@@ -152,7 +151,6 @@ export default function PostDetailScreen() {
       );
     } catch (error) {
       Alert.alert('오류', '댓글 수정에 실패했습니다.');
-      console.error('댓글 수정 실패:', error);
       throw error;
     }
   };
@@ -168,9 +166,8 @@ export default function PostDetailScreen() {
           try {
             await api.deleteComment(commentId);
             await refetchComments();
-          } catch (error) {
+          } catch {
             Alert.alert('오류', '댓글 삭제에 실패했습니다.');
-            console.error('댓글 삭제 실패:', error);
           }
         },
       },
@@ -183,9 +180,8 @@ export default function PostDetailScreen() {
       setReactionLoading(true);
       await api.createReaction(Number(id), { reaction_type: reactionType });
       await refetchReactions();
-    } catch (error) {
+    } catch {
       Alert.alert('오류', '반응 추가에 실패했습니다.');
-      console.error('반응 실패:', error);
     } finally {
       setReactionLoading(false);
     }
@@ -216,12 +212,15 @@ export default function PostDetailScreen() {
         onPress: async () => {
           try {
             await api.deletePost(Number(id));
+            if (post?.group_id) {
+              queryClient.invalidateQueries({ queryKey: ['groupPosts', post.group_id] });
+            }
+            queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
             Alert.alert('성공', '게시글이 삭제되었습니다.', [
               { text: '확인', onPress: () => router.back() },
             ]);
-          } catch (error) {
+          } catch {
             Alert.alert('오류', '게시글 삭제에 실패했습니다.');
-            console.error('게시글 삭제 실패:', error);
           }
         },
       },
@@ -311,7 +310,9 @@ export default function PostDetailScreen() {
             <Text className="text-2xl font-bold text-gray-800 mb-3">{post.title}</Text>
             <View className="flex-row justify-between items-center mb-4">
               <View className="bg-happy-100 px-3 py-1.5 rounded-full">
-                <Text className="text-sm font-semibold text-happy-700">{post.author}</Text>
+                <Text className="text-sm font-semibold text-happy-700">
+                  {post.display_name ?? post.author}
+                </Text>
               </View>
               <Text className="text-xs text-gray-400">{formatDate(post.created_at)}</Text>
             </View>

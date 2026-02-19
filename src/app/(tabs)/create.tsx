@@ -92,9 +92,8 @@ export default function CreateScreen() {
           onPress: () => router.push('/(tabs)'),
         },
       ]);
-    } catch (error) {
+    } catch {
       Alert.alert('오류', '게시글 작성에 실패했습니다.');
-      console.error('게시글 작성 실패:', error);
     }
   };
 

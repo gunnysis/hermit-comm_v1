@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 
 export interface CreateGroupWithBoardInput {
   name: string;
@@ -52,7 +53,7 @@ export async function createGroupWithBoard(
     .single();
 
   if (groupError) {
-    console.error('[adminApi] groups INSERT 에러:', groupError);
+    logger.error('[adminApi] groups INSERT 에러:', groupError.message);
     throw groupError;
   }
   if (!group) throw new Error('그룹 생성 결과를 받지 못했습니다.');
@@ -64,7 +65,7 @@ export async function createGroupWithBoard(
     status: 'approved',
   });
   if (memberError) {
-    console.error('[adminApi] group_members INSERT 에러:', memberError);
+    logger.error('[adminApi] group_members INSERT 에러:', memberError.message);
     throw memberError;
   }
 
@@ -75,7 +76,7 @@ export async function createGroupWithBoard(
     anon_mode: 'allow_choice',
   });
   if (boardError) {
-    console.error('[adminApi] boards INSERT 에러:', boardError);
+    logger.error('[adminApi] boards INSERT 에러:', boardError.message);
     throw boardError;
   }
 
@@ -101,7 +102,7 @@ export async function getMyManagedGroups(): Promise<ManagedGroup[]> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('[adminApi] my managed groups 조회 에러:', error);
+    logger.error('[adminApi] my managed groups 조회 에러:', error.message);
     throw error;
   }
   return (data || []) as ManagedGroup[];

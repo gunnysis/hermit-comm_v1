@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 import { api } from '@/shared/lib/api';
+import { logger } from '@/shared/utils/logger';
 import type { Board, Post } from '@/types';
 
 export type BoardSortOrder = 'latest' | 'popular';
@@ -41,7 +42,7 @@ export async function getBoards(): Promise<Board[]> {
     .select('*')
     .order('id', { ascending: true });
   if (error) {
-    console.error('[Supabase] boards 조회 에러:', error);
+    logger.error('[API] boards 조회 에러:', error.message);
     throw error;
   }
   return (data || []) as Board[];
@@ -53,7 +54,7 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
     error: userError,
   } = await supabase.auth.getUser();
   if (userError) {
-    console.error('[Supabase] 사용자 조회 에러:', userError);
+    logger.error('[API] 사용자 조회 에러:', userError.message);
     throw userError;
   }
   if (!user) return [];
@@ -65,7 +66,7 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
     .eq('status', 'approved');
 
   if (error) {
-    console.error('[Supabase] my groups 조회 에러:', error);
+    logger.error('[API] my groups 조회 에러:', error.message);
     throw error;
   }
 
@@ -88,7 +89,7 @@ export async function joinGroupByInviteCode(
   } = await supabase.auth.getUser();
 
   if (userError) {
-    console.error('[Supabase] 사용자 조회 에러:', userError);
+    logger.error('[API] 사용자 조회 에러:', userError.message);
     throw new Error('잠시 후 다시 시도해주세요.');
   }
   if (!user) {
@@ -102,7 +103,7 @@ export async function joinGroupByInviteCode(
     .maybeSingle();
 
   if (groupError) {
-    console.error('[Supabase] groups 초대 코드 조회 에러:', groupError);
+    logger.error('[API] groups 초대 코드 조회 에러:', groupError.message);
     throw new Error('잠시 후 다시 시도해주세요.');
   }
   if (!group) {
@@ -117,7 +118,7 @@ export async function joinGroupByInviteCode(
     .maybeSingle();
 
   if (memberError) {
-    console.error('[Supabase] group_members 조회 에러:', memberError);
+    logger.error('[API] group_members 조회 에러:', memberError.message);
     throw new Error('잠시 후 다시 시도해주세요.');
   }
 
@@ -130,7 +131,7 @@ export async function joinGroupByInviteCode(
     });
 
     if (insertError) {
-      console.error('[Supabase] group_members INSERT 에러:', insertError);
+      logger.error('[API] group_members INSERT 에러:', insertError.message);
       throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
     }
 
@@ -152,7 +153,7 @@ export async function joinGroupByInviteCode(
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error('[Supabase] group_members UPDATE 에러:', updateError);
+      logger.error('[API] group_members UPDATE 에러:', updateError.message);
       throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
     }
   }
@@ -176,7 +177,7 @@ export async function getGroupBoards(groupId: number): Promise<GroupBoard[]> {
     .order('id', { ascending: true });
 
   if (error) {
-    console.error('[Supabase] group boards 조회 에러:', error);
+    logger.error('[API] group boards 조회 에러:', error.message);
     throw error;
   }
   return (data || []) as GroupBoard[];
@@ -197,7 +198,7 @@ export async function getBoardPosts(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    console.error('[Supabase] board posts 조회 에러:', error);
+    logger.error('[API] board posts 조회 에러:', error.message);
     throw error;
   }
 
@@ -242,7 +243,7 @@ export async function getGroupPosts(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    console.error('[Supabase] group posts 조회 에러:', error);
+    logger.error('[API] group posts 조회 에러:', error.message);
     throw error;
   }
 
