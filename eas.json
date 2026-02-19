@@ -8,10 +8,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": {
-        "simulator": true,
-        "buildConfiguration": "Debug"
-      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
@@ -26,11 +22,6 @@
     "preview": {
       "channel": "preview",
       "distribution": "internal",
-      "ios": {
-        "simulator": false,
-        "buildConfiguration": "Release",
-        "image": "latest"
-      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
@@ -46,11 +37,6 @@
       "channel": "production",
       "developmentClient": false,
       "autoIncrement": true,
-      "ios": {
-        "simulator": false,
-        "buildConfiguration": "Release",
-        "image": "latest"
-      },
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
@@ -67,12 +53,6 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "ascAppId": "6746847373",
-        "ascApiKeyId": "7Z74AUMBV9",
-        "ascApiKeyIssuerId": "b1767416-268f-4e33-a669-fec8e9932646",
-        "ascApiKeyPath": ".key/AuthKey_7Z74AUMBV9.p8"
-      },
       "android": {
         "serviceAccountKeyPath": ".key/apps-2182e-4cfe31bef56b.json",
         "track": "production",

@@ -1,12 +1,7 @@
-# Preview ?? OTA ???? ?? (Android ??)
-# ???: main ?? ??? push ?? ?? ??
+# Preview 채널 OTA 업데이트 배포 (Android 전용 · 수동 실행만)
 name: Publish Update (Preview)
 
 on:
-  push:
-    branches:
-      - '*'
-      - '!main'
   workflow_dispatch: {}
 
 jobs:
@@ -17,4 +12,4 @@ jobs:
     params:
       platform: android
       channel: preview
-      message: ${{ github.event.head_commit.message || 'Preview update' }}
+      message: 'Preview update (manual)'
