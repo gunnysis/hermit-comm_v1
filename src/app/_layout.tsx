@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { queryClient } from '@/shared/lib/queryClient';
+import { AppErrorBoundary } from '@/shared/components/AppErrorBoundary';
+import { NetworkBanner } from '@/shared/components/NetworkBanner';
 import '@/global.css';
 
 async function checkAndApplyUpdate() {
@@ -56,14 +58,19 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <View className="flex-1 bg-cream-100">
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="post/[id]" />
-            <Stack.Screen name="admin" />
-            <Stack.Screen name="groups" />
-          </Stack>
-        </View>
+        <AppErrorBoundary>
+          <View className="flex-1 bg-cream-100">
+            <NetworkBanner />
+            <View className="flex-1">
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="post/[id]" />
+                <Stack.Screen name="admin" />
+                <Stack.Screen name="groups" />
+              </Stack>
+            </View>
+          </View>
+        </AppErrorBoundary>
       </SafeAreaProvider>
     </QueryClientProvider>
   );

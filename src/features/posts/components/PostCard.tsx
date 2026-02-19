@@ -8,9 +8,19 @@ interface PostCardProps {
   post: Post;
 }
 
+function buildAccessibilityLabel(post: Post): string {
+  const author = post.display_name ?? post.author;
+  const commentCount = post.comment_count ?? 0;
+  const label = `제목: ${post.title}, 작성자 ${author}, 댓글 ${commentCount}개`;
+  return label.length > 80 ? label.slice(0, 77) + '…' : label;
+}
+
 const PostCardComponent = ({ post }: PostCardProps) => (
   <Link href={`/post/${post.id}`} asChild>
-    <Pressable className="mx-4 mb-4 active:scale-[0.98]">
+    <Pressable
+      className="mx-4 mb-4 active:scale-[0.98]"
+      accessibilityRole="button"
+      accessibilityLabel={buildAccessibilityLabel(post)}>
       <View className="bg-white rounded-3xl p-5 shadow-lg border-l-4 border-l-happy-400 border border-cream-200">
         <Text className="text-lg font-bold text-gray-800 mb-2" numberOfLines={2}>
           {post.title}

@@ -43,6 +43,7 @@ export default function TabsLayout() {
         options={{
           title: '홈',
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          tabBarAccessibilityLabel: '홈, 공개 게시판 목록으로 이동',
         }}
       />
       <Tabs.Screen
@@ -52,6 +53,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
+          tabBarAccessibilityLabel: '그룹, 내 그룹 목록으로 이동',
         }}
       />
       <Tabs.Screen
@@ -59,6 +61,7 @@ export default function TabsLayout() {
         options={{
           title: '작성',
           tabBarIcon: ({ color, size }) => <Ionicons name="create" size={size} color={color} />,
+          tabBarAccessibilityLabel: '작성, 새 게시글 작성 화면으로 이동',
         }}
       />
       <Tabs.Screen
@@ -68,6 +71,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
+          tabBarAccessibilityLabel: '설정, 앱 설정 및 관리자 페이지로 이동',
         }}
       />
     </Tabs>
