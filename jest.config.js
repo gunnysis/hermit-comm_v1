@@ -12,6 +12,9 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   moduleNameMapper: {
     '^@react-native-async-storage/async-storage$': '<rootDir>/__mocks__/AsyncStorage.js',
+    '^@expo/vector-icons$': '<rootDir>/__mocks__/expo-vector-icons.js',
+    '^@expo/vector-icons/(.*)$': '<rootDir>/__mocks__/expo-vector-icons.js',
+    '^@shopify/flash-list$': '<rootDir>/__mocks__/@shopify/flash-list.js',
     '\\.css$': '<rootDir>/__mocks__/styleMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
