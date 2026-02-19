@@ -12,13 +12,15 @@
 
 ## 워크플로 요약
 
+> **현재 Android 전용으로 운영 중입니다.** iOS 빌드/배포가 필요해지면 각 워크플로에 iOS job을 추가하세요.
+
 | 파일 | 트리거 | 설명 |
 |------|--------|------|
-| `build-preview.yml` | main 제외 브랜치 push / 수동 | Preview 프로필로 Android·iOS 빌드 (내부 테스트) |
-| `build-production.yml` | main push / 수동 | Production 프로필로 Android·iOS 빌드 |
-| `publish-update-preview.yml` | main 제외 브랜치 push / 수동 | Preview 채널로 OTA 업데이트 배포 |
-| `publish-update-production.yml` | main push / 수동 | Production 채널로 OTA 업데이트 배포 |
-| `build-and-submit-production.yml` | 수동만 | Production 빌드 후 App Store / Play Store 제출 |
+| `build-preview.yml` | main 제외 브랜치 push / 수동 | Preview 프로필로 Android 빌드 (내부 테스트) |
+| `build-production.yml` | main push / 수동 | Production 프로필로 Android 빌드 |
+| `publish-update-preview.yml` | main 제외 브랜치 push / 수동 | Preview 채널로 Android OTA 업데이트 배포 |
+| `publish-update-production.yml` | main push / 수동 | Production 채널로 Android OTA 업데이트 배포 |
+| `build-and-submit-production.yml` | 수동만 | Android Production 빌드 후 Play Store 제출 |
 
 ## 수동 실행
 
