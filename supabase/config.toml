@@ -1,5 +1,6 @@
-# Supabase 로컬 개발 설정
-# https://supabase.com/docs/guides/cli/config
+# 은둔마을 Supabase 설정
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "gns-hermit-comm"
 
 [api]
 enabled = true
@@ -11,14 +12,21 @@ max_rows = 1000
 [db]
 port = 54322
 shadow_port = 54320
-major_version = 15
+major_version = 17
 
 [db.pooler]
 enabled = false
 
 [db.migrations]
-# 마이그레이션 디렉터리 (config 기준 상대 경로)
-dir = "migrations"
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[realtime]
+enabled = true
 
 [studio]
 enabled = true
@@ -38,6 +46,7 @@ site_url = "http://localhost:8081"
 additional_redirect_urls = ["https://localhost:8081"]
 jwt_expiry = 3600
 enable_signup = true
+enable_anonymous_sign_ins = true
 
 [auth.email]
 enable_signup = true
@@ -48,12 +57,38 @@ enable_confirmations = false
 enable_signup = false
 enable_confirmations = false
 
-# 익명 로그인 (앱에서 사용)
-[auth.external.anonymous]
-enabled = true
+[auth.sms.twilio]
+enabled = false
+account_sid = ""
+message_service_sid = ""
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
-[realtime]
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+otp_length = 6
+template = "Your code is {{ .Code }}"
+max_frequency = "5s"
+
+[auth.external.apple]
+enabled = false
+client_id = ""
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+redirect_uri = ""
+url = ""
+skip_nonce_check = false
+
+[edge_runtime]
 enabled = true
+policy = "per_worker"
+inspector_port = 8083
 
 [analytics]
 enabled = false

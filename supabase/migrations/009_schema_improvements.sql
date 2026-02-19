@@ -91,8 +91,9 @@ ALTER TABLE comments ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_posts_deleted_at    ON posts(deleted_at)    WHERE deleted_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments(deleted_at) WHERE deleted_at IS NOT NULL;
 
--- 6. posts_with_like_count 뷰 재생성 (전체 컬럼 + 소프트 삭제)
-CREATE OR REPLACE VIEW posts_with_like_count AS
+-- 6. posts_with_like_count 뷰 재생성 (컬럼 변경이 있으므로 DROP 후 재생성)
+DROP VIEW IF EXISTS posts_with_like_count;
+CREATE VIEW posts_with_like_count AS
 SELECT
   p.id, p.title, p.content, p.author, p.author_id, p.created_at,
   p.board_id, p.group_id, p.is_anonymous, p.display_name, p.member_id,
