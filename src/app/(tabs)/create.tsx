@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
+import { ContentEditor } from '@/shared/components/ContentEditor';
 import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
@@ -155,17 +156,15 @@ export default function CreateScreen() {
               control={control}
               name="content"
               render={({ field: { value, onChange } }) => (
-                <Input
+                <ContentEditor
                   label="내용"
                   value={value}
-                  onChangeText={onChange}
+                  onChange={onChange}
                   placeholder="이야기를 들려주세요 💭"
                   error={errors.content?.message}
-                  multiline
-                  numberOfLines={10}
-                  className="h-48"
-                  style={{ textAlignVertical: 'top' }}
                   maxLength={5000}
+                  accessibilityLabel="본문"
+                  accessibilityHint="리치 텍스트로 내용을 입력합니다"
                 />
               )}
             />

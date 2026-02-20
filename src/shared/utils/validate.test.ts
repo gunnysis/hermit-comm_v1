@@ -50,6 +50,28 @@ describe('validatePostContent', () => {
   it('1~5000자 내용이면 isValid true 반환', () => {
     expect(validatePostContent('내용')).toEqual({ isValid: true });
   });
+
+  it('HTML만 있고 실제 텍스트가 없으면 isValid false 반환', () => {
+    expect(validatePostContent('<p></p>')).toEqual({
+      isValid: false,
+      error: '내용을 입력해주세요.',
+    });
+    expect(validatePostContent('<p> </p>')).toEqual({
+      isValid: false,
+      error: '내용을 입력해주세요.',
+    });
+    expect(validatePostContent('<strong></strong>')).toEqual({
+      isValid: false,
+      error: '내용을 입력해주세요.',
+    });
+  });
+
+  it('HTML 안에 실제 텍스트가 있으면 isValid true 반환', () => {
+    expect(validatePostContent('<p>hello</p>')).toEqual({ isValid: true });
+    expect(validatePostContent('<strong>굵은 글</strong>')).toEqual({
+      isValid: true,
+    });
+  });
 });
 
 describe('validateAuthor', () => {

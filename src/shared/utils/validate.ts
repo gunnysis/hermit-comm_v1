@@ -1,5 +1,7 @@
 // 입력 검증 유틸리티
 
+import { stripHtml } from './html';
+
 export interface ValidationResult {
   isValid: boolean;
   error?: string;
@@ -17,6 +19,10 @@ export function validatePostTitle(title: string): ValidationResult {
 
 export function validatePostContent(content: string): ValidationResult {
   if (!content.trim()) {
+    return { isValid: false, error: '내용을 입력해주세요.' };
+  }
+  const plain = stripHtml(content).trim();
+  if (plain.length < 1) {
     return { isValid: false, error: '내용을 입력해주세요.' };
   }
   if (content.length > 5000) {

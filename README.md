@@ -88,6 +88,10 @@ gns-hermit-comm/
 - **expo.dev에서 확인**: 프로젝트 → **Workflows** (또는 **Builds**)에서 **"Build and Submit to Play Store"** 실행 이력을 찾고, **Submit to Play Store** 단계가 성공했는지 확인하세요.
 - **실패했다면**: 해당 실행 로그에서 빌드/제출 실패 원인 확인 (서비스 계정, 트랙, 서명 등). 성공했어도 Google Play Console에서 심사·출시까지 시간이 걸릴 수 있습니다.
 
+### EAS Insights
+
+`expo-insights`가 설치되어 있어, EAS 빌드/스토어 빌드 실행 시 **앱 실행(콜드 스타트)** 이벤트가 EAS Insights로 전송됩니다. 별도 코드·설정 없이 동작하며, expo.dev → 프로젝트 → **Insights** 메뉴에서 사용량·플랫폼·앱 버전별 통계를 볼 수 있습니다. (EAS 프로젝트 연결·`extra.eas.projectId` 사용 중.)
+
 ## 문서
 
 전체 문서 목록은 [docs/README.md](docs/README.md)를 참고하세요. AI 작업 시 [claude.md](claude.md)에서 프로젝트 컨텍스트를 참고할 수 있습니다.

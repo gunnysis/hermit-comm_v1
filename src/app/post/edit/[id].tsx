@@ -7,6 +7,7 @@ import { Container } from '@/shared/components/Container';
 import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
 import { Input } from '@/shared/components/Input';
+import { ContentEditor } from '@/shared/components/ContentEditor';
 import { Button } from '@/shared/components/Button';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { api } from '@/shared/lib/api';
@@ -152,17 +153,15 @@ export default function EditPostScreen() {
               error={errors.title}
               maxLength={100}
             />
-            <Input
+            <ContentEditor
+              key={`edit-${postId}-${content ? 'loaded' : 'init'}`}
               label="내용"
               value={content}
-              onChangeText={setContent}
+              onChange={setContent}
               placeholder="이야기를 들려주세요"
               error={errors.content}
-              multiline
-              numberOfLines={10}
-              className="h-48"
-              style={{ textAlignVertical: 'top' }}
               maxLength={5000}
+              accessibilityLabel="본문"
             />
 
             <View className="mt-2 mb-2">

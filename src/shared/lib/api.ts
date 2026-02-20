@@ -71,10 +71,11 @@ export const api = {
     return rows.map((row) => {
       const {
         comments: commentCount,
-        like_count: _lc,
+        like_count: _likeCount,
         comment_count: viewCommentCount,
         ...rest
       } = row;
+      void _likeCount;
       const comment_count =
         viewCommentCount !== undefined
           ? viewCommentCount

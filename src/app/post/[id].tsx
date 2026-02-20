@@ -5,6 +5,7 @@ import { ErrorView } from '@/shared/components/ErrorView';
 import { Input } from '@/shared/components/Input';
 import { Loading } from '@/shared/components/Loading';
 import { ReactionBar } from '@/features/posts/components/ReactionBar';
+import { PostBody } from '@/features/posts/components/PostBody';
 import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
@@ -322,24 +323,27 @@ export default function PostDetailScreen() {
           className="flex-1"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 12 }}>
-          <View className="p-4 border-b border-cream-200 bg-white">
-            <Text className="text-2xl font-bold text-gray-800 mb-3">{post.title}</Text>
-            <View className="flex-row justify-between items-center mb-4">
-              <View className="bg-happy-100 px-3 py-1.5 rounded-full">
-                <Text className="text-sm font-semibold text-happy-700">
-                  {post.display_name ?? post.author}
-                </Text>
+          <View className="mx-4 mt-4 rounded-2xl border border-cream-200 bg-white shadow-md overflow-hidden">
+            <View className="p-4">
+              <Text className="text-2xl font-bold text-gray-800 mb-3">{post.title}</Text>
+              <View className="flex-row justify-between items-center mb-4">
+                <View className="bg-happy-100 px-3 py-1.5 rounded-full">
+                  <Text className="text-sm font-semibold text-happy-700">
+                    {post.display_name ?? post.author}
+                  </Text>
+                </View>
+                <Text className="text-xs text-gray-400">{formatDate(post.created_at)}</Text>
               </View>
-              <Text className="text-xs text-gray-400">{formatDate(post.created_at)}</Text>
-            </View>
-            <Text className="text-base text-gray-700 leading-6 mb-6">{post.content}</Text>
-
-            <View className="items-start">
-              <ReactionBar
-                reactions={reactions}
-                onReaction={handleReaction}
-                loading={reactionLoading}
-              />
+              <View className="mb-6" accessibilityLabel="게시글 본문">
+                <PostBody content={post.content} />
+              </View>
+              <View className="border-t border-cream-200 pt-4 items-start">
+                <ReactionBar
+                  reactions={reactions}
+                  onReaction={handleReaction}
+                  loading={reactionLoading}
+                />
+              </View>
             </View>
           </View>
 

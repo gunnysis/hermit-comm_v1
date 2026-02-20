@@ -22,7 +22,7 @@ import { Pressable } from 'react-native';
 export default function HomeScreen() {
   const BOARD_ID = 1;
   const router = useRouter();
-  const { isWide } = useResponsiveLayout();
+  useResponsiveLayout();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);

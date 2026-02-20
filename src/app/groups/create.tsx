@@ -4,6 +4,7 @@ import { createBoardPost } from '@/features/community/api/communityApi';
 import { Button } from '@/shared/components/Button';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
+import { ContentEditor } from '@/shared/components/ContentEditor';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { resolveDisplayName } from '@/shared/lib/anonymous';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -98,8 +99,7 @@ export default function GroupCreatePostScreen() {
         { text: '확인', onPress: () => router.back() },
       ]);
     } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : '게시글 작성에 실패했습니다.';
+      const msg = error instanceof Error ? error.message : '게시글 작성에 실패했습니다.';
       Alert.alert('오류', msg);
     }
   };
@@ -142,17 +142,14 @@ export default function GroupCreatePostScreen() {
               control={control}
               name="content"
               render={({ field: { value, onChange } }) => (
-                <Input
+                <ContentEditor
                   label="내용"
                   value={value}
-                  onChangeText={onChange}
+                  onChange={onChange}
                   placeholder="이야기를 들려주세요"
                   error={errors.content?.message}
-                  multiline
-                  numberOfLines={10}
-                  className="h-48"
-                  style={{ textAlignVertical: 'top' }}
                   maxLength={5000}
+                  accessibilityLabel="본문"
                 />
               )}
             />
@@ -171,9 +168,7 @@ export default function GroupCreatePostScreen() {
                       showName ? 'bg-happy-400 border-happy-400' : 'border-cream-400'
                     }`}
                   />
-                  <Text className="text-xs text-gray-600">
-                    이번 글에 내 닉네임을 함께 표시하기
-                  </Text>
+                  <Text className="text-xs text-gray-600">이번 글에 내 닉네임을 함께 표시하기</Text>
                 </Pressable>
               ) : (
                 <Text className="text-xs text-gray-500">
