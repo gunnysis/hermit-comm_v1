@@ -2,8 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarPaddingBottom =
+    Platform.OS === 'ios' ? Math.max(28, insets.bottom) : Math.max(8, insets.bottom);
+  const tabBarHeight = Platform.OS === 'ios' ? 88 : 60 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
@@ -14,8 +20,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
           backgroundColor: '#FFFFFF',
-          height: Platform.OS === 'ios' ? 88 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
@@ -29,9 +35,7 @@ export default function TabLayout() {
         options={{
           title: '홈',
           tabBarLabel: '홈',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -39,9 +43,7 @@ export default function TabLayout() {
         options={{
           title: '그룹',
           tabBarLabel: '그룹',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="people-outline" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -55,9 +57,7 @@ export default function TabLayout() {
         options={{
           title: '설정',
           tabBarLabel: '설정',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="settings-outline" size={24} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={24} color={color} />,
         }}
       />
     </Tabs>

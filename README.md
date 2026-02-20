@@ -67,6 +67,22 @@ gns-hermit-comm/
 - `EXPO_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`: Supabase Publishable Key
 
+## 배포 (EAS)
+
+배포는 EAS Workflows로 자동화되어 있으며, **`main` 브랜치에 push할 때마다** 프로덕션 빌드와 OTA 업데이트가 실행되어 비용이 발생합니다.
+
+- **평소**: `commit`만 하고 **push는 하지 않기** → 로컬에서만 이력 쌓이고, 빌드/업데이트가 돌지 않아 비용·자동 배포가 발생하지 않음.
+- **배포할 때**: “이제 배포해야겠다”고 결정한 뒤 **`main`에 push** → 그 시점에 프로덕션 빌드 + OTA가 실행됨.
+
+다른 브랜치에 push하는 것은 프로덕션 배포를 트리거하지 않습니다. **`main`에 push하는 시점 = 배포가 실행된다**는 점만 유의하면 됩니다.
+
+| 워크플로우 | push 시 실행 | 비용 |
+|------------|--------------|------|
+| Build Preview / Publish Update (Preview) | ❌ 수동만 | - |
+| Build and Submit to Play Store | ✅ main push 시 (빌드 후 스토어 제출) | EAS 빌드 분 |
+| Publish Update (Production) | ✅ main push 시 | EAS Update 사용량 |
+| Build Production (빌드만) | ❌ 수동만 | - |
+
 ## 문서
 
 전체 문서 목록은 [docs/README.md](docs/README.md)를 참고하세요. AI 작업 시 [claude.md](claude.md)에서 프로젝트 컨텍스트를 참고할 수 있습니다.

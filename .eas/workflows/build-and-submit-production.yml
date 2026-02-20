@@ -1,8 +1,10 @@
-# Production ?? ? Play Store ?? (Android ??)
-# ???: ?? ??? (workflow_dispatch)
+# Production 빌드 후 Play Store 제출 (Android 전용)
+# main 브랜치 push 시 자동 실행 + 수동 실행(workflow_dispatch)
 name: Build and Submit to Play Store
 
 on:
+  push:
+    branches: ['main']
   workflow_dispatch: {}
 
 jobs:
@@ -12,6 +14,7 @@ jobs:
     params:
       platform: android
       profile: production
+      message: ${{ github.event.head_commit.message || 'Production build' }}
 
   submit_android:
     name: Submit to Play Store
