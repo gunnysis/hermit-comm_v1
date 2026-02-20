@@ -11,9 +11,10 @@ export function stripHtml(html: string): string {
     .trim();
 }
 
-/** 텍스트를 maxLen 자로 자르고 말줄임 표시 */
+/** 텍스트를 maxLen 자로 자르고 말줄임 표시. strip 결과가 비어 있으면 "내용 없음" 반환 */
 export function getExcerpt(text: string, maxLen: number): string {
-  const plain = typeof text === 'string' ? stripHtml(text) : '';
+  const plain = typeof text === 'string' ? stripHtml(text).trim() : '';
+  if (plain.length === 0) return '내용 없음';
   if (plain.length <= maxLen) return plain;
   return plain.slice(0, maxLen).trim() + '…';
 }

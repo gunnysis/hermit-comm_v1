@@ -95,6 +95,34 @@ git checkout -b [브랜치명]
 
 ---
 
+## 본문·에디터 디버깅
+
+글 보기/작성 관련 이슈 추적 시 참고.
+
+1. **허용·무시 태그**  
+   본문은 `src/features/posts/components/PostBody.tsx`의 `IGNORED_DOM_TAGS`로 제어됩니다.  
+   - **무시**(렌더 안 함): `script`, `iframe`, `object`, `embed`, `form`, `input`, `button`, `style`, `link`, `meta`, `head`, `title`, `svg`  
+   - **허용**: `p`, `strong`, `em`, `u`, `s`, `blockquote`, `ul`, `ol`, `li`, `br`, `code`, `pre`, `h2`, `h3`, `span`, `a`, `img`  
+   - 링크(`a`)는 **http/https**만 탭 시 열리고, 이미지(`img`)는 **http/https** `src`만 표시됩니다. 그 외 스킴은 차단되며 개발 시 콘솔에 로그가 남습니다.
+
+2. **HTML이 plain 텍스트로 보일 때**  
+   `src/shared/utils/html.ts`의 `isLikelyHtml()`이 `false`이면 HTML이 아닌 일반 텍스트로 렌더됩니다.  
+   - 태그 패턴이 정규식 `/<(?:\w+|[\w-]+)[\s>]/`에 맞지 않으면(예: `< p >`처럼 태그명 주변에 공백) plain으로 처리될 수 있습니다.
+
+3. **링크/이미지가 안 보이거나 안 열릴 때**  
+   - **링크**: `href`가 `http://` 또는 `https://`로 시작하는지 확인. `javascript:`, `data:` 등은 의도적으로 열리지 않습니다.  
+   - **이미지**: `src`가 `http://` 또는 `https://`인지 확인.  
+   - 개발 빌드에서는 콘솔에서 `[PostBody] 링크 스킴 차단`, `[PostBody] 이미지 src 차단` 로그로 차단된 URL을 확인할 수 있습니다.
+
+4. **개발 시 로그 키워드**  
+   - `[PostBody]` — 본문 렌더 fallback, 링크/이미지 차단, RenderHTML 에러  
+   - `[API]` — API 호출 실패  
+   - `[Realtime]` — 실시간 구독 에러  
+
+   로그는 `__DEV__`일 때만 출력됩니다 (`src/shared/utils/logger.ts`).
+
+---
+
 ## 문제 해결
 
 - **Metro/번들 오류**: `npx expo start --clear`

@@ -30,6 +30,12 @@ describe('getExcerpt', () => {
   it('HTML이 있으면 stripHtml 후 자름', () => {
     expect(getExcerpt('<p>가나다라마</p>', 3)).toBe('가나다…');
   });
+
+  it('strip 결과가 비어 있으면 "내용 없음" 반환', () => {
+    expect(getExcerpt('', 100)).toBe('내용 없음');
+    expect(getExcerpt('<img src="x">', 100)).toBe('내용 없음');
+    expect(getExcerpt('   ', 100)).toBe('내용 없음');
+  });
 });
 
 describe('isLikelyHtml', () => {

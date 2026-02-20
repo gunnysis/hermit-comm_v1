@@ -10,7 +10,7 @@ import { resolveDisplayName } from '@/shared/lib/anonymous';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
@@ -61,11 +61,19 @@ export default function GroupCreatePostScreen() {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreatePostForm>({
     resolver: zodResolver(createPostSchema),
     defaultValues: { title: '', content: '' },
   });
+
+  const handleContentChange = useCallback(
+    (html: string) => {
+      setValue('content', html);
+    },
+    [setValue],
+  );
 
   const onSubmit = async (data: CreatePostForm) => {
     if (!boardId || Number.isNaN(groupId)) {
@@ -141,11 +149,11 @@ export default function GroupCreatePostScreen() {
             <Controller
               control={control}
               name="content"
-              render={({ field: { value, onChange } }) => (
+              render={({ field: { value } }) => (
                 <ContentEditor
                   label="내용"
                   value={value}
-                  onChange={onChange}
+                  onChange={handleContentChange}
                   placeholder="이야기를 들려주세요"
                   error={errors.content?.message}
                   maxLength={5000}

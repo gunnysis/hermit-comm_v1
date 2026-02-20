@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -65,6 +65,13 @@ export default function CreateScreen() {
   useEffect(() => {
     if (savedAuthor) setValue('author', savedAuthor);
   }, [savedAuthor, setValue]);
+
+  const handleContentChange = useCallback(
+    (html: string) => {
+      setValue('content', html);
+    },
+    [setValue],
+  );
 
   const onSubmit = async (data: CreatePostForm) => {
     try {
@@ -155,11 +162,11 @@ export default function CreateScreen() {
             <Controller
               control={control}
               name="content"
-              render={({ field: { value, onChange } }) => (
+              render={({ field: { value } }) => (
                 <ContentEditor
                   label="내용"
                   value={value}
-                  onChange={onChange}
+                  onChange={handleContentChange}
                   placeholder="이야기를 들려주세요 💭"
                   error={errors.content?.message}
                   maxLength={5000}
