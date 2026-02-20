@@ -29,6 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 서버 상태 | TanStack Query (`useQuery`/`useMutation`) |
 | 백엔드 | Supabase (Auth, PostgreSQL, Realtime) |
 | 폼/검증 | React Hook Form, Zod |
+| 글 작성·본문 | TenTap(`@10play/tentap-editor`), react-native-webview, react-native-render-html |
 | 경로 별칭 | `@/` → `src/` |
 
 ---
@@ -42,13 +43,13 @@ src/
 │   ├── auth/         # signInAnonymously, useAuth
 │   ├── admin/        # adminApi (createGroupWithBoard, getMyManagedGroups), useIsAdmin
 │   ├── community/    # communityApi, useBoards, useBoardPosts, useMyGroups, useGroupBoards, useGroupPosts
-│   ├── posts/        # PostCard, PostList, usePostDetail, useRealtimePosts, useRealtimeReactions
+│   ├── posts/        # PostCard, PostList, PostBody, usePostDetail, useRealtimePosts, useRealtimeReactions
 │   └── comments/     # CommentList, useRealtimeComments
 ├── shared/
-│   ├── components/   # 공통 UI (Button, Input, Container, Loading, ErrorView, ScreenHeader, SortTabs, FloatingActionButton)
+│   ├── components/   # 공통 UI (Button, Input, Container, ContentEditor, Loading, ErrorView, ScreenHeader, SortTabs, FloatingActionButton)
 │   ├── lib/          # supabase, api, queryClient, admin, anonymous, errors, storage
 │   ├── hooks/        # useNetworkStatus, useResponsiveLayout
-│   └── utils/        # validate, format, logger
+│   └── utils/        # validate, format, logger, html(stripHtml, getExcerpt, isLikelyHtml)
 └── types/            # Post, Comment, Board, Reaction 등 전역 타입
 ```
 
@@ -126,6 +127,9 @@ npm run update:production
 | 익명 표시명 결정 | `src/shared/lib/anonymous.ts` → `resolveDisplayName`, `generateAlias` |
 | Supabase 클라이언트 | `src/shared/lib/supabase.ts` |
 | 공통 API | `src/shared/lib/api.ts` |
+| HTML 유틸 | `src/shared/utils/html.ts` → `stripHtml`, `getExcerpt`, `isLikelyHtml` |
+| 글 작성 에디터 | `src/shared/components/ContentEditor.tsx` |
+| 글 본문 표시 | `src/features/posts/components/PostBody.tsx` |
 | 전역 타입 | `src/types/index.ts` |
 
 ---
@@ -155,7 +159,15 @@ npm run update:production
 
 ---
 
-## 9. RLS 관련 주의사항 (Supabase)
+## 9. 글 작성·본문 표시
+
+- **작성**: `ContentEditor`(TenTap 래퍼) 사용. 공개/그룹 작성·수정 화면에서 본문은 HTML로 저장됨. 글자 수 표시(N/5000자), `validatePostContent`로 stripHtml 기반 실제 텍스트 검사.
+- **보기**: `PostBody`가 `isLikelyHtml(content)`로 HTML 여부 판단 후, HTML이면 `react-native-render-html`로 렌더(script/iframe 등 제한), 실패 시 plain 텍스트 fallback. 빈 본문은 "내용 없음" + 접근성 라벨.
+- **목록 미리보기**: `PostCard`에서 `getExcerpt(post.content, 120)`으로 요약 표시.
+
+---
+
+## 10. RLS 관련 주의사항 (Supabase)
 
 - **게시글 생성 (`createPost`)**: `.insert().select().single()` 체인에서 그룹 게시글의 경우 SELECT RLS(그룹 멤버십 요구)에 의해 차단될 수 있음. 42501 에러 시 `.select()` 없이 재시도하는 fallback 패턴 적용됨.
 - **게시글/댓글 삭제**: soft delete(`update({ deleted_at })`)는 UPDATE RLS의 `deleted_at IS NULL` 조건과 충돌. **hard delete(`.delete()`)를 사용**해야 함.
@@ -163,7 +175,7 @@ npm run update:production
 
 ---
 
-## 10. E2E 테스트 (Maestro)
+## 11. E2E 테스트 (Maestro)
 
 `.maestro/` 폴더에 시나리오 파일:
 
@@ -178,10 +190,12 @@ npm run update:production
 
 ---
 
-## 11. 작업 시 유의사항
+## 12. 작업 시 유의사항
 
 - **환경 변수**: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`만 사용. 관리자 UID 하드코딩 금지.
 - **Expo Router 타입 단언**: `router.replace('/admin')` 등 typed route 이슈 시 `as Parameters<typeof router.replace>[0]` 사용.
 - **스플래시/아이콘 변경**: prebuild 시점 에셋이므로 변경 후 `npx expo prebuild --clean` 후 재빌드 필요.
 - **캐시 무효화**: 게시글/댓글 생성·수정·삭제 후 반드시 관련 쿼리 키(`boardPosts`, `groupPosts`, `post` 등) `invalidateQueries` 호출.
+- **OTA vs Production 빌드**: 네이티브 의존성 추가/변경(예: TenTap, react-native-webview) 시에는 **Production 빌드 후 스토어 제출**이 필요. OTA는 JS 번들만 갱신하므로 새 네이티브 모듈이 포함되지 않음.
+- **EAS 의존성 설치**: 루트 `.npmrc`에 `legacy-peer-deps=true` 설정. TenTap 등 React 18 peer와의 호환용.
 - **상세 문서**: `docs/ARCHITECTURE.md`, `docs/supabase_setup.md`, `dev.md` 참고.

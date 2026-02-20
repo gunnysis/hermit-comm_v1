@@ -18,6 +18,8 @@
 
 ## 캐시 / 의존성
 
+- 루트 **`.npmrc`**에 `legacy-peer-deps=true` 설정됨 (TenTap 등 peer 호환·EAS 빌드용). 변경하지 말 것.
+
 ```bash
 # 캐시 + node_modules 초기화 후 재설치
 rm -rf node_modules package-lock.json
@@ -50,6 +52,8 @@ npm install
 
 - Android 에뮬레이터에서 실행 전: 해당 프로필로 빌드한 APK/IPA 설치 필요.
 - `--auto-submit`: 스토어 제출까지 수행 (submit 설정이 있을 때).
+
+**OTA vs Production 빌드**: JS/리소스만 바꾼 경우는 **OTA** (`npm run update:production` 또는 워크플로우 "Publish Update (Production)")로 배포. **네이티브 의존성 추가/변경**(예: TenTap, react-native-webview)이 있으면 **Production 빌드 후 스토어 제출**이 필요합니다. OTA는 기존 앱에 새 네이티브 모듈을 넣지 않습니다.
 
 ---
 

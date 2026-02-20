@@ -9,10 +9,11 @@
 - **Styling**: NativeWind (Tailwind CSS)
 - **Routing**: Expo Router (File-based)
 - **Language**: TypeScript
+- **글 작성·본문**: TenTap 에디터(`@10play/tentap-editor`), `react-native-webview`, `react-native-render-html` (HTML 본문 표시)
 
 ## 주요 기능
 
-- ✍️ 게시글 작성 및 조회
+- ✍️ **리치 텍스트** 게시글 작성 및 HTML 본문 표시 (TenTap 에디터)
 - 💬 댓글 시스템
 - ❤️ 반응 (좋아요)
 - 🔄 **실시간 업데이트** (Supabase Realtime)
@@ -23,36 +24,30 @@
 ## 프로젝트 구조
 
 ```
-gns-hermit-comm/
-├── app/                    # Expo Router 페이지
-│   ├── (tabs)/            # 탭 네비게이션
-│   │   ├── index.tsx      # 홈 (게시글 목록)
-│   │   └── create.tsx     # 게시글 작성
-│   ├── post/
-│   │   └── [id].tsx       # 게시글 상세
-│   └── _layout.tsx        # 루트 레이아웃
-├── .maestro/            # E2E 테스트 시나리오 (Maestro)
-├── components/            # 재사용 가능한 컴포넌트
-│   ├── common/           # 공통 컴포넌트
-│   ├── posts/            # 게시글 관련
-│   ├── comments/         # 댓글 관련
-│   └── reactions/        # 반응 관련
-├── hooks/                # 커스텀 훅
-│   ├── useAuthor.ts      # 작성자 관리
-│   ├── usePostDetail.ts  # 게시글 단건 조회 (React Query)
-│   ├── useRealtimePosts.ts      # 게시글 실시간 구독
-│   └── useRealtimeComments.ts   # 댓글 실시간 구독
-├── lib/                  # 라이브러리 설정
-│   ├── supabase.ts       # Supabase 클라이언트
-│   └── api.ts            # API 레이어
-├── types/                # TypeScript 타입 정의
-├── styles/               # 스타일 테마
-├── utils/                # 유틸리티 함수
-├── supabase/            # Supabase 마이그레이션
-│   └── migrations/
-└── docs/                # 문서
-    └── supabase_setup.md
+src/
+├── app/                    # Expo Router (라우팅·레이아웃)
+│   ├── (tabs)/             # 탭: 홈, 그룹, 작성, 설정
+│   ├── post/[id].tsx       # 게시글 상세
+│   ├── post/edit/[id].tsx  # 게시글 수정
+│   ├── groups/             # 내 그룹, 그룹 게시판
+│   └── admin/              # 관리자 (그룹·보드 생성)
+├── features/
+│   ├── auth/               # 익명 로그인, useAuth
+│   ├── admin/              # 관리자 API·useIsAdmin
+│   ├── community/          # 보드·그룹·communityApi
+│   ├── posts/              # PostCard, PostList, PostBody, usePostDetail, 실시간
+│   └── comments/           # CommentList, useRealtimeComments
+├── shared/
+│   ├── components/         # Button, Input, ContentEditor, ErrorView 등
+│   ├── lib/                # supabase, api, queryClient, admin, anonymous
+│   ├── hooks/              # useNetworkStatus, useResponsiveLayout
+│   └── utils/              # validate, format, logger, html(stripHtml, getExcerpt)
+└── types/                  # Post, Comment, Board 등
 ```
+
+- `.maestro/` — E2E 시나리오 (Maestro)
+- `supabase/migrations/` — DB 마이그레이션
+- `docs/` — 아키텍처·설정·사용 가이드
 
 ## 실시간 업데이트
 
@@ -88,13 +83,26 @@ gns-hermit-comm/
 - **expo.dev에서 확인**: 프로젝트 → **Workflows** (또는 **Builds**)에서 **"Build and Submit to Play Store"** 실행 이력을 찾고, **Submit to Play Store** 단계가 성공했는지 확인하세요.
 - **실패했다면**: 해당 실행 로그에서 빌드/제출 실패 원인 확인 (서비스 계정, 트랙, 서명 등). 성공했어도 Google Play Console에서 심사·출시까지 시간이 걸릴 수 있습니다.
 
+### OTA vs Production 빌드
+
+| 변경 유형 | 배포 방법 |
+|-----------|-----------|
+| **JS/TS·리소스만** (로직·UI 텍스트 등) | **OTA** (`npm run update:production` 또는 워크플로우 "Publish Update (Production)") |
+| **네이티브 의존성 추가/변경** (예: 새 네이티브 모듈, `react-native-webview`, TenTap 에디터 등) | **Production 빌드 후 스토어 제출** (`eas build --profile production --auto-submit` 또는 "Build and Submit to Play Store") |
+
+리치 텍스트 에디터(TenTap, WebView) 도입처럼 **네이티브 코드가 바뀌는 수정**은 반드시 새 앱 빌드 후 스토어 제출이 필요합니다. OTA만으로는 기존 사용자 앱에 네이티브 모듈이 추가되지 않습니다.
+
+### EAS 빌드·의존성
+
+- **`.npmrc`**: 프로젝트 루트에 `legacy-peer-deps=true`가 설정되어 있습니다. TenTap 등 React 18 peer 의존성과의 호환을 위해 EAS 클라우드 설치 단계에서 사용됩니다.
+
 ### EAS Insights
 
 `expo-insights`가 설치되어 있어, EAS 빌드/스토어 빌드 실행 시 **앱 실행(콜드 스타트)** 이벤트가 EAS Insights로 전송됩니다. 별도 코드·설정 없이 동작하며, expo.dev → 프로젝트 → **Insights** 메뉴에서 사용량·플랫폼·앱 버전별 통계를 볼 수 있습니다. (EAS 프로젝트 연결·`extra.eas.projectId` 사용 중.)
 
 ## 문서
 
-전체 문서 목록은 [docs/README.md](docs/README.md)를 참고하세요. AI 작업 시 [claude.md](claude.md)에서 프로젝트 컨텍스트를 참고할 수 있습니다.
+전체 문서 목록은 [docs/README.md](docs/README.md)를 참고하세요. AI 작업 시 [CLAUDE.md](CLAUDE.md)에서 프로젝트 컨텍스트를 참고할 수 있습니다.
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 아키텍처·API 레이어·데이터 페칭 전략
 - [docs/APP_USAGE_GUIDE.md](docs/APP_USAGE_GUIDE.md) — 사용자·운영자 사용법

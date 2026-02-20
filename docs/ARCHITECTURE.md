@@ -15,6 +15,7 @@
 | **라우팅** | Expo Router | 파일 기반 라우팅 |
 | **서버 상태** | TanStack Query (React Query) | 데이터 페칭·캐싱·재검증 |
 | **폼/검증** | React Hook Form + Zod | 게시글·댓글·관리자 폼 |
+| **글 작성·본문** | TenTap(`@10play/tentap-editor`), react-native-webview, react-native-render-html | 리치 텍스트 작성·HTML 본문 표시 |
 | **날짜** | date-fns | 날짜 포맷 |
 | **언어** | TypeScript | 타입 안정성 |
 
@@ -35,13 +36,13 @@ src/
 │   ├── auth/               # 인증 (익명 로그인, useAuth)
 │   ├── admin/              # 관리자 API (createGroupWithBoard, getMyManagedGroups)
 │   ├── community/          # 보드·그룹·보드별 글 (communityApi, useBoards, useBoardPosts 등)
-│   ├── posts/              # 게시글 (PostCard, PostList, usePostDetail, useRealtimePosts)
+│   ├── posts/              # 게시글 (PostCard, PostList, PostBody, usePostDetail, useRealtimePosts)
 │   └── comments/           # 댓글 (CommentList, useRealtimeComments)
 ├── shared/
-│   ├── components/         # UI 키트 (Button, Input, Container, Loading, ErrorView)
+│   ├── components/         # UI 키트 (Button, Input, Container, ContentEditor, Loading, ErrorView)
 │   ├── hooks/              # useResponsiveLayout 등
 │   ├── lib/                # supabase, api, queryClient, admin, anonymous
-│   └── utils/              # validate, format, logger
+│   └── utils/              # validate, format, logger, html(stripHtml, getExcerpt, isLikelyHtml)
 └── types/                  # 전역 타입 (Post, Comment, Board 등)
 ```
 
@@ -70,20 +71,28 @@ src/
 
 ---
 
-## 5. 인증·익명 정책 요약
+## 5. 글 작성·본문 표시
+
+- **작성**: `shared/components/ContentEditor.tsx`(TenTap 래퍼). 본문은 HTML로 저장되며, `shared/utils/validate.ts`의 `validatePostContent`에서 `stripHtml`로 실제 텍스트 길이 검사(최대 5000자).
+- **보기**: `features/posts/components/PostBody.tsx`가 `html.isLikelyHtml(content)`로 분기 후, HTML이면 `react-native-render-html`로 안전 렌더(script/iframe 등 제한), 실패 시 plain 텍스트 fallback. 빈 본문은 "내용 없음" + 접근성 라벨.
+- **목록 미리보기**: `PostCard`에서 `html.getExcerpt(post.content, 120)`으로 요약 표시.
+
+---
+
+## 6. 인증·익명 정책 요약
 
 - **인증**: 앱 시작 시 Supabase 익명 로그인(`signInAnonymously`). `useAuth`로 세션·로딩·에러 관리.
 - **관리자 구분**: DB의 `app_admin` 테이블 조회로 판단. 관리자 전용 **이메일/비밀번호 로그인** 후에만 관리자 영역 접근. DB 쪽 생성 권한은 `app_admin` 테이블 + RLS로 제한.
 - **익명 표시**: `shared/lib/anonymous.ts`의 `resolveDisplayName`, `generateAlias`. 보드별 `anon_mode`(always_anon / allow_choice / require_name)에 따라 `is_anonymous`, `display_name` 결정.
 
-### 5.1 관리자 계정 분리(운영 정책)
+### 6.1 관리자 계정 분리(운영 정책)
 
 - **원칙**
   - 일반 사용자는 **Supabase 익명 로그인**을 기본으로 사용한다.
   - 관리자는 일반 사용자와 **계정을 공유하지 않고**, Supabase Auth의 **별도 이메일/비밀번호 계정**으로만 로그인한다.
   - MFA 등 로그인 단계를 추가하지 않는다. (운영 요구사항)
 
-## 6. 관련 문서
+## 7. 관련 문서
 
 - [PROJECT_SETUP_PROPOSAL.md](PROJECT_SETUP_PROPOSAL.md) — 기술 스택 제안·폴더 구조 제안·CI/CD
 - [APP_USAGE_GUIDE.md](APP_USAGE_GUIDE.md) — 사용자·운영자 사용법
