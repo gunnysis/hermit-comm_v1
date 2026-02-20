@@ -76,12 +76,17 @@ gns-hermit-comm/
 
 다른 브랜치에 push하는 것은 프로덕션 배포를 트리거하지 않습니다. **`main`에 push하는 시점 = 배포가 실행된다**는 점만 유의하면 됩니다.
 
-| 워크플로우 | push 시 실행 | 비용 |
-|------------|--------------|------|
+| 워크플로우 | push 시 실행 | 하는 일 |
+|------------|--------------|----------|
 | Build Preview / Publish Update (Preview) | ❌ 수동만 | - |
-| Build and Submit to Play Store | ✅ main push 시 (빌드 후 스토어 제출) | EAS 빌드 분 |
-| Publish Update (Production) | ✅ main push 시 | EAS Update 사용량 |
+| **Build and Submit to Play Store** | ✅ main push 시 | **빌드 후 Play Store에 APK/AAB 제출** (스토어에 새 버전 올라감) |
+| Publish Update (Production) | ✅ main push 시 | **OTA만** (이미 설치한 사용자에게 JS 번들 전달, 스토어 업로드 아님) |
 | Build Production (빌드만) | ❌ 수동만 | - |
+
+**중요**: expo.dev에 "Publish Update (Production)"만 보인다면 → OTA 퍼블리시만 된 상태입니다. **Play Store에 실제로 올라가려면 "Build and Submit to Play Store" 워크플로우**가 실행·성공해야 합니다.
+
+- **expo.dev에서 확인**: 프로젝트 → **Workflows** (또는 **Builds**)에서 **"Build and Submit to Play Store"** 실행 이력을 찾고, **Submit to Play Store** 단계가 성공했는지 확인하세요.
+- **실패했다면**: 해당 실행 로그에서 빌드/제출 실패 원인 확인 (서비스 계정, 트랙, 서명 등). 성공했어도 Google Play Console에서 심사·출시까지 시간이 걸릴 수 있습니다.
 
 ## 문서
 
