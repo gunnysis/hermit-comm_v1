@@ -311,7 +311,7 @@ export async function leaveGroup(groupId: number): Promise<void> {
 
   const { error } = await supabase
     .from('group_members')
-    .delete()
+    .update({ status: 'left', left_at: new Date().toISOString() })
     .eq('group_id', groupId)
     .eq('user_id', user.id);
 

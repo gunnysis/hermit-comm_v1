@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { AppState, View, Text, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { queryClient } from '@/shared/lib/queryClient';
+import { supabase } from '@/shared/lib/supabase';
 import { AppErrorBoundary } from '@/shared/components/AppErrorBoundary';
 import { NetworkBanner } from '@/shared/components/NetworkBanner';
 import '@/global.css';
@@ -30,6 +31,21 @@ export default function RootLayout() {
   // 앱 실행 시 1회만 OTA 업데이트 확인 후 자동 적용 (사용자 선택 없음)
   useEffect(() => {
     checkAndApplyUpdate();
+  }, []);
+
+  // 포그라운드/백그라운드에 따라 Supabase 토큰 자동 갱신 제어
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+    return () => {
+      subscription.remove();
+      supabase.auth.stopAutoRefresh();
+    };
   }, []);
 
   // 인증 초기화 중에는 로딩 표시

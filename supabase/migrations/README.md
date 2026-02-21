@@ -18,6 +18,8 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 | 9 | `009_schema_improvements.sql` | updated_at 트리거, 소프트 삭제, group_members 확장, 뷰 재생성 |
 | 10 | `010_rls_performance.sql` | `(select auth.uid())` 캐싱 패턴, 복합 인덱스, 최종 RLS 정책 |
 | 11 | `011_spam_prevention.sql` | 일일 게시글(50건)/댓글(100건) 제한 트리거 |
+| 12 | `012_grant_permissions.sql` | anon/authenticated 권한 부여 |
+| 13 | `013_group_members_soft_leave.sql` | group_members 소프트 탈퇴(status=left), left_at, 부분 인덱스, 정리 함수 |
 
 ## 최종 스키마 요약
 
@@ -38,6 +40,22 @@ app_admin       — 앱 관리자 (SQL Editor로만 등록)
 - **updated_at 자동 갱신**: BEFORE UPDATE 트리거 (posts, comments, boards, groups)
 - **RLS 성능 최적화**: `(select auth.uid())` 캐싱, `idx_group_members_lookup` 복합 인덱스
 - **스팸 방지**: 사용자당 일일 게시글 50건, 댓글 100건 제한
+- **group_members 소프트 탈퇴**: 탈퇴 시 DELETE 대신 `status='left'`, `left_at` 기록. 재가입 시 같은 행을 `approved`로 복구.
+- **오래된 익명 사용자 정리**: `cleanup_orphan_group_members()` 함수로 180일 이상 미접속 익명 사용자의 group_members 행 삭제 (아래 실행 방법 참고).
+
+## group_members 정리 함수 실행 (선택)
+
+오래 로그인하지 않은 익명 사용자의 `group_members` 행이 쌓이지 않도록 주기적으로 정리하려면, Supabase 대시보드 SQL Editor에서 다음을 실행하세요 (예: 월 1회).
+
+```sql
+-- 기본 180일 미접속 익명 사용자의 group_members 행 삭제. 삭제된 행 수를 반환합니다.
+SELECT public.cleanup_orphan_group_members(180);
+
+-- 기간을 90일로 하려면:
+-- SELECT public.cleanup_orphan_group_members(90);
+```
+
+Edge Function 또는 외부 cron에서 위 SQL을 호출하도록 구성해 자동화할 수도 있습니다. `auth.users`는 수정하지 않고 `public.group_members` 행만 삭제합니다.
 
 ## Supabase 대시보드에서 수동 설정이 필요한 항목
 
