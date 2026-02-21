@@ -33,7 +33,7 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.table_constraints
-    WHERE constraint_name = 'posts_member_id_fkey' AND table_name = 'posts'
+    WHERE table_schema = 'public' AND constraint_name = 'posts_member_id_fkey' AND table_name = 'posts'
   ) THEN
     ALTER TABLE posts
       ADD CONSTRAINT posts_member_id_fkey
@@ -92,6 +92,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_deleted_at    ON posts(deleted_at)    WHERE
 CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments(deleted_at) WHERE deleted_at IS NOT NULL;
 
 -- 6. posts_with_like_count 뷰 재생성 (컬럼 변경이 있으므로 DROP 후 재생성)
+--    규모 확대 시 materialized view 또는 별도 집계 테이블 검토 가능
 DROP VIEW IF EXISTS posts_with_like_count;
 CREATE VIEW posts_with_like_count AS
 SELECT

@@ -73,3 +73,11 @@ DO $$ BEGIN
       FOR EACH ROW EXECUTE FUNCTION public.check_daily_comment_limit();
   END IF;
 END $$;
+
+-- -----------------------------------------------------------------------------
+-- 3. 일일 제한 트리거 쿼리 최적화용 복합 인덱스 (author_id + created_at)
+-- -----------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_posts_author_id_created_at
+  ON posts(author_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id_created_at
+  ON comments(author_id, created_at DESC);

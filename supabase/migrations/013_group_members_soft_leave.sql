@@ -32,15 +32,20 @@ SET search_path = public, auth
 AS $$
 DECLARE
   deleted_count integer;
+  safe_days integer;
 BEGIN
+  -- 1일 미만·NULL·음수 방지 (의도치 않은 대량 삭제 방지)
+  safe_days := GREATEST(COALESCE(NULLIF(days_inactive, 0), 180), 1);
+
   DELETE FROM public.group_members
   WHERE user_id IN (
     SELECT id FROM auth.users
     WHERE is_anonymous = true
-      AND (last_sign_in_at IS NULL OR last_sign_in_at < (now() - (days_inactive || ' days')::interval))
+      AND (last_sign_in_at IS NULL OR last_sign_in_at < (now() - (safe_days || ' days')::interval))
   );
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
+  RAISE NOTICE 'cleanup_orphan_group_members: deleted % rows (days_inactive=%)', deleted_count, safe_days;
   RETURN deleted_count;
 END;
 $$;
