@@ -1,5 +1,5 @@
-# 영어 입력 전: 키보드가 한국어일 때 한/영 또는 ABC 키 탭으로 영어로 전환 (optional)
-# runFlow로만 호출됨 (appId는 상위 플로우와 동일하게)
+# 영어 입력 전: 키보드가 한국어일 때 한/영 또는 ABC(영) 키 탭으로 영어로 전환 (optional)
+# 일부 기기에서는 키가 "ABC영" 등으로 표시됨. 모두 optional이라 없어도 경고만 남음.
 appId: com.gns.hermitcomm.dev
 ---
 - tapOn:
@@ -7,4 +7,7 @@ appId: com.gns.hermitcomm.dev
     optional: true
 - tapOn:
     text: "ABC"
+    optional: true
+- tapOn:
+    text: "ABC영"
     optional: true

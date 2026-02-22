@@ -36,6 +36,8 @@ npm test
 npm run lint
 ```
 
+- **디버그 코드**: 프로덕션 빌드에 디버그 전용 로깅·개발 서버 URL·테스트용 분기가 포함되지 않았는지 확인합니다.
+
 E2E(선택):
 
 ```bash
@@ -68,7 +70,8 @@ npm run test:e2e:admin
 ## 4. Supabase / 백엔드
 
 - **마이그레이션**  
-  `supabase/migrations/` 001~011 순서대로 프로덕션 DB에 적용되어 있는지 확인합니다.  
+  `supabase/migrations/`를 **번호 순서대로** 프로덕션 DB에 적용합니다.  
+  (001_schema → 002_rls → 003_grants → 009~012. 상세는 `supabase/migrations/README.md` 참고.)  
   로컬: `supabase db push` 또는 대시보드에서 SQL 실행.
 
 - **RLS**  
@@ -98,7 +101,8 @@ npm run test:e2e:admin
 |------|------|
 | EAS Secrets에 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` 설정 | ☐ |
 | `tsc` / `npm test` / `npm run lint` 통과 | ☐ |
-| 프로덕션 Supabase 마이그레이션 적용 | ☐ |
+| 디버그/개발 전용 코드 제거 여부 확인 | ☐ |
+| 프로덕션 Supabase 마이그레이션 적용(001→002→003→009~012) | ☐ |
 | (선택) Sentry DSN 설정 | ☐ |
 | (선택) 서비스 계정 키로 Play 제출 설정 | ☐ |
 | 버전/빌드 번호 확인 | ☐ |

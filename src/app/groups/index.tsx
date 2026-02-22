@@ -62,7 +62,7 @@ export default function MyGroupsScreen() {
               try {
                 await leaveGroup(groupId);
                 queryClient.invalidateQueries({ queryKey: ['myGroups'] });
-                Alert.alert('완료', '그룹에서 나갔습니다.');
+                Alert.alert('완료', '그룹에서 나갔습니다.', [{ text: '확인' }]);
               } catch (e) {
                 const message = toFriendlyErrorMessage(
                   e,

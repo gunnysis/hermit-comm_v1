@@ -30,14 +30,15 @@ enabled = true
 
 [studio]
 enabled = true
-port = 54323
+port = 54325
 
 [inbucket]
 enabled = true
 port = 54324
 
+# Windows Docker에서 Storage 헬스 체크 타임아웃 시 false로 두면 supabase start 성공. 이미지 업로드 필요 시 true로 복구.
 [storage]
-enabled = true
+enabled = false
 file_size_limit = "50MiB"
 
 [auth]

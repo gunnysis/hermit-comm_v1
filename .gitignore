@@ -50,6 +50,7 @@ Desktop.ini
 
 # testing
 coverage/
+.maestro/.e2e-last-failed
 
 # generated native folders
 /ios

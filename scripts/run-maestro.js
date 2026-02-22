@@ -24,9 +24,12 @@ if (fs.existsSync(envPath)) {
 const home = process.env.USERPROFILE || process.env.HOME || '';
 const isWin = process.platform === 'win32';
 const maestroBin = path.join(home, '.maestro', 'bin', isWin ? 'maestro.bat' : 'maestro');
-const args = process.argv.slice(2);
+const rawArgs = process.argv.slice(2);
+const resumeFlag = rawArgs.includes('--resume');
+const args = rawArgs.filter((a) => a !== '--resume');
 
 const APP_ID = 'com.gns.hermitcomm.dev';
+const E2E_LAST_FAILED_FILE = path.join(root, '.maestro', '.e2e-last-failed');
 const E2E_FLOW_ORDER = [
   '.maestro/app-launch.yaml',
   '.maestro/admin-login.yaml',
@@ -75,7 +78,27 @@ function runMaestroTest(flowPath) {
 if (args[0] === 'test' && args.length >= 2) {
   let flows = args.slice(1);
   if (flows.length === 1 && (flows[0] === '.maestro' || flows[0] === '.maestro/')) {
-    flows = E2E_FLOW_ORDER;
+    flows = [...E2E_FLOW_ORDER];
+    // --resume: 마지막 실패 플로우부터 재실행
+    if (resumeFlag) {
+      const lastFailedPath = (() => {
+        try {
+          if (fs.existsSync(E2E_LAST_FAILED_FILE)) {
+            return fs.readFileSync(E2E_LAST_FAILED_FILE, 'utf8').trim();
+          }
+        } catch (_) {}
+        return null;
+      })();
+      const idx = lastFailedPath
+        ? E2E_FLOW_ORDER.findIndex((p) => path.normalize(p) === path.normalize(lastFailedPath))
+        : -1;
+      if (idx >= 0) {
+        flows = E2E_FLOW_ORDER.slice(idx);
+        console.log(`[run-maestro] Resume from ${path.basename(flows[0])} (${flows.length} flow(s))`);
+      } else if (lastFailedPath) {
+        console.warn(`[run-maestro] Unknown last-failed "${lastFailedPath}", running full order.`);
+      }
+    }
   }
   // 기본값 true: 세션 복원 시 "관리자 로그인"이 안 보이므로, 관리자 플로우 전에 앱 데이터 초기화
   const clearAppDataFlag = process.env.MAESTRO_CLEAR_APP_DATA !== 'false';
@@ -89,9 +112,24 @@ if (args[0] === 'test' && args.length >= 2) {
     }
     const result = runMaestroTest(flowPath);
     if (result.status !== 0) {
+      // 실패/성공 여부와 관계없이 테스트 그룹 삭제 시도 (실패한 플로우가 cleanup 자체가 아닐 때)
+      const cleanupPath = path.normalize('.maestro/e2e-cleanup.yaml');
+      if (path.normalize(flowPath) !== cleanupPath) {
+        console.log('[run-maestro] Running e2e-cleanup to remove test groups...');
+        runMaestroTest('.maestro/e2e-cleanup.yaml');
+      }
+      try {
+        fs.mkdirSync(path.dirname(E2E_LAST_FAILED_FILE), { recursive: true });
+        fs.writeFileSync(E2E_LAST_FAILED_FILE, flowPath, 'utf8');
+      } catch (_) {}
+      console.error(`[run-maestro] Failed at ${path.basename(flowPath)}. Resume with: npm run test:e2e:resume`);
       process.exit(result.status ?? 1);
     }
   }
+  // 전체 성공 시 재개용 파일 삭제
+  try {
+    if (fs.existsSync(E2E_LAST_FAILED_FILE)) fs.unlinkSync(E2E_LAST_FAILED_FILE);
+  } catch (_) {}
   process.exit(0);
 }
 

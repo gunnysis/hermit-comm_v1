@@ -21,10 +21,10 @@ appId: com.gns.hermitcomm.dev
 # 참여하기
 - tapOn: "참여하기"
 
-# 완료 알림 대기 후 확인
+# 완료 알림 대기 (제목 "완료" 노출 후 확인 버튼 탭)
 - extendedWaitUntil:
-    visible: "확인"
-    timeout: 10000
+    visible: "완료"
+    timeout: 15000
 - tapOn: "확인"
 
 # 참여한 그룹이 목록에 보이는지 확인
@@ -32,3 +32,14 @@ appId: com.gns.hermitcomm.dev
     visible: "E2E Invite Test"
     timeout: 5000
 - assertVisible: "E2E Invite Test"
+
+# 내 그룹 목록에서 테스트 그룹 제거: 나가기 후 확인
+- tapOn: "나가기"
+- extendedWaitUntil:
+    visible: "그룹 나가기"
+    timeout: 5000
+- tapOn: "나가기"
+- extendedWaitUntil:
+    visible: "완료"
+    timeout: 10000
+- tapOn: "확인"
