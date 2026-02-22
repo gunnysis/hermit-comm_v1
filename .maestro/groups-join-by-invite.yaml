@@ -1,6 +1,6 @@
-# E2E: 그룹 탭에서 초대 코드 "테스트"로 그룹 참여
-# 사전 조건: 초대 코드가 "테스트"인 그룹 존재 (admin-create-group-invite-test.yaml 선행 실행 권장)
-# 키보드: 에뮬레이터 한국어/영어 키보드 설정. "테스트"는 한글 키보드로 입력.
+# E2E: 그룹 탭에서 초대 코드 "TESTCODE"로 그룹 참여
+# 사전 조건: admin-create-group-invite-test.yaml 선행 실행 (초대 코드 TESTCODE인 그룹 생성)
+# Maestro는 유니코드 입력 미지원 → ASCII 초대 코드 사용
 appId: com.gns.hermitcomm.dev
 ---
 - runFlow: common/launch-app.yaml
@@ -11,12 +11,12 @@ appId: com.gns.hermitcomm.dev
     visible: "초대 코드로 참여"
     timeout: 8000
 
-# 초대 코드 입력란 터치 후 한글 키보드로 전환, "테스트" 입력
+# 초대 코드 입력 (ASCII)
 - tapOn:
     text: "초대 코드 입력"
     optional: true
-- runFlow: common/ensure-korean-keyboard.yaml
-- inputText: "테스트"
+- runFlow: common/ensure-english-keyboard.yaml
+- inputText: "TESTCODE"
 
 # 참여하기
 - tapOn: "참여하기"
@@ -29,6 +29,6 @@ appId: com.gns.hermitcomm.dev
 
 # 참여한 그룹이 목록에 보이는지 확인
 - extendedWaitUntil:
-    visible: "E2E 초대테스트"
+    visible: "E2E Invite Test"
     timeout: 5000
-- assertVisible: "E2E 초대테스트"
+- assertVisible: "E2E Invite Test"

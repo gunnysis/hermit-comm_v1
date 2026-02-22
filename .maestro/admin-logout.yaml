@@ -45,9 +45,13 @@ appId: com.gns.hermitcomm.dev
 # 로그아웃
 - tapOn: "로그아웃"
 
+# 탭 화면 복귀 후 홈 탭 선택 (로그아웃 후 어느 탭이 보일지 모르므로)
+- extendedWaitUntil:
+    visible: "홈"
+    timeout: 10000
+- tapOn: "홈"
 # 홈 화면으로 복귀 확인 (익명 세션 복구)
 - extendedWaitUntil:
     visible: "은둔마을"
     timeout: 10000
-
 - assertVisible: "따뜻한 이야기가 있는 곳"

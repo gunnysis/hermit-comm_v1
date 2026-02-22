@@ -35,7 +35,9 @@ export default function MyGroupsScreen() {
       if (result.alreadyMember) {
         Alert.alert('안내', '이미 참여 중인 그룹이에요.');
       } else {
-        Alert.alert('완료', '그룹에 참여했어요. 내 그룹 목록에서 확인할 수 있어요.');
+        Alert.alert('완료', '그룹에 참여했어요. 내 그룹 목록에서 확인할 수 있어요.', [
+          { text: '확인' },
+        ]);
       }
     } catch (e) {
       const message = toFriendlyErrorMessage(

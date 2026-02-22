@@ -41,10 +41,10 @@ appId: com.gns.hermitcomm.dev
     visible: "그룹 게시판 생성"
     timeout: 10000
 
-# 그룹 생성 폼 입력 (영어 키보드로 전환 후 입력)
+# 그룹 생성 폼 입력 (Maestro는 유니코드 미지원 → ASCII만 사용)
 - tapOn: "예: 2025 봄 프로그램"
 - runFlow: common/ensure-english-keyboard.yaml
-- inputText: "E2E 테스트 그룹"
+- inputText: "E2E Test Group"
 
 - tapOn: "예: WELCOME2025"
 - runFlow: common/ensure-english-keyboard.yaml
@@ -54,7 +54,7 @@ appId: com.gns.hermitcomm.dev
     text: "그룹에 대한 간단한 설명"
     optional: true
 - runFlow: common/ensure-english-keyboard.yaml
-- inputText: "E2E 테스트용 그룹입니다"
+- inputText: "E2E test group"
 
 # 그룹 생성 버튼
 - tapOn: "그룹 생성"
@@ -66,4 +66,4 @@ appId: com.gns.hermitcomm.dev
 - tapOn: "확인"
 
 # 생성된 그룹이 목록에 보이는지 확인
-- assertVisible: "E2E 테스트 그룹"
+- assertVisible: "E2E Test Group"

@@ -67,43 +67,8 @@ export default function AdminLoginScreen() {
   }, [user, isAdmin, isAdminLoading, router]);
 
   if (user && isAdmin === true && !isAdminLoading) {
-    // #region agent log
-    if (typeof fetch === 'function') {
-      fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
-        body: JSON.stringify({
-          sessionId: 'd0d0af',
-          runId: 'e2e-debug',
-          hypothesisId: 'A',
-          location: 'admin/login.tsx',
-          message: 'login screen skipped (already admin, redirecting)',
-          data: {},
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-    }
-    // #endregion
     return null;
   }
-
-  // #region agent log
-  if (typeof fetch === 'function') {
-    fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
-      body: JSON.stringify({
-        sessionId: 'd0d0af',
-        runId: 'e2e-debug',
-        hypothesisId: 'C',
-        location: 'admin/login.tsx',
-        message: 'login form visible (관리자 로그인 on screen)',
-        data: {},
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
 
   return (
     <Container>

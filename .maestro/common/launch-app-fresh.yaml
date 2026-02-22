@@ -1,25 +1,11 @@
 # 공통: 앱 재시작 후 홈 대기 (익명 세션 보장 — 관리자 시나리오용)
-# stopApp + launchApp으로 이전 로그인 상태를 초기화하고, "운영자 관리 페이지" 탭 시 항상 로그인 화면이 나오도록 함
+# stopApp + launchApp으로 이전 로그인 상태를 초기화. Dev Client 사용 시 서버 선택/Continue는 수동 처리
 appId: com.gns.hermitcomm.dev
 ---
 - stopApp
 - launchApp
 
-# Expo Dev Client 런처에서 서버 선택 (필요시)
-- tapOn:
-    text: "http://10.0.2.2:8081"
-    optional: true
-- tapOn:
-    text: "Continue"
-    optional: true
-- tapOn:
-    text: "Continue"
-    optional: true
-
-# 홈 화면 대기 (재시작 후 로딩·Dev Client 처리 시간 고려)
-- extendedWaitUntil:
-    visible: "은둔마을"
-    timeout: 45000
+# 앱 준비 대기: 탭 바가 보이면 준비 완료 (어느 탭이 활성화돼도 "설정" 등 탭 라벨은 보임)
 - extendedWaitUntil:
     visible: "설정"
-    timeout: 10000
+    timeout: 45000

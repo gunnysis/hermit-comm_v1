@@ -1,0 +1,67 @@
+# E2E: 테스트 종료 후 생성된 그룹 삭제 (E2E Test Group, E2E Invite Test)
+# 사전 조건: groups-join-by-invite.yaml까지 완료된 상태. 앱은 익명 사용자.
+# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조)
+appId: com.gns.hermitcomm.dev
+---
+- runFlow: common/launch-app.yaml
+
+# 설정 → 관리자 로그인
+- tapOn: "설정"
+- extendedWaitUntil:
+    visible: "운영자 관리 페이지"
+    timeout: 5000
+- tapOn: "운영자 관리 페이지"
+
+# 로그인 화면 로드 대기
+- extendedWaitUntil:
+    visible: "관리자 로그인"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "이메일"
+    timeout: 5000
+
+# 로그인
+- tapOn: "admin@example.com"
+- runFlow: common/ensure-english-keyboard.yaml
+- inputText: "${MAESTRO_ADMIN_EMAIL}"
+- tapOn:
+    text: "비밀번호"
+    index: 1
+- runFlow: common/ensure-english-keyboard.yaml
+- inputText: "${MAESTRO_ADMIN_PASSWORD}"
+- scrollUntilVisible:
+    element: "로그인"
+    direction: DOWN
+    timeout: 5000
+- tapOn: "로그인"
+
+# 관리자 페이지 도달 후 "내가 만든 그룹" 목록 대기
+- extendedWaitUntil:
+    visible: "그룹 게시판 생성"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: "내가 만든 그룹"
+    timeout: 5000
+
+# 첫 번째 그룹 삭제 (카드의 "삭제" 버튼 → 확인 Alert에서 "삭제")
+- tapOn: "삭제"
+- extendedWaitUntil:
+    visible: "그룹 삭제"
+    timeout: 5000
+- tapOn: "삭제"
+
+# 두 번째 그룹 삭제
+- extendedWaitUntil:
+    visible: "삭제"
+    timeout: 5000
+- tapOn: "삭제"
+- extendedWaitUntil:
+    visible: "그룹 삭제"
+    timeout: 5000
+- tapOn: "삭제"
+
+# 목록 비었음 확인
+- extendedWaitUntil:
+    visible: "아직 생성한 그룹이 없습니다."
+    timeout: 5000
+- assertVisible: "아직 생성한 그룹이 없습니다."

@@ -1,4 +1,5 @@
-# E2E: 관리자가 초대 코드 "테스트"인 그룹 생성 (groups-join-by-invite.yaml 사전 조건)
+# E2E: 관리자가 초대 코드 "TESTCODE"인 그룹 생성 (groups-join-by-invite.yaml 사전 조건)
+# Maestro는 유니코드 입력 미지원 → 그룹명·초대코드·설명 모두 ASCII 사용
 # 전제: 익명 세션에서 시작 (launch-app-fresh)
 # 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조)
 appId: com.gns.hermitcomm.dev
@@ -39,18 +40,18 @@ appId: com.gns.hermitcomm.dev
     visible: "그룹 게시판 생성"
     timeout: 10000
 
-# 그룹 생성 (영어 입력 후 한글 "테스트" 입력)
+# 그룹 생성 (ASCII만 입력)
 - tapOn: "예: 2025 봄 프로그램"
 - runFlow: common/ensure-english-keyboard.yaml
-- inputText: "E2E 초대테스트"
+- inputText: "E2E Invite Test"
 - tapOn: "예: WELCOME2025"
-- runFlow: common/ensure-korean-keyboard.yaml
-- inputText: "테스트"
+- runFlow: common/ensure-english-keyboard.yaml
+- inputText: "TESTCODE"
 - tapOn:
     text: "그룹에 대한 간단한 설명"
     optional: true
 - runFlow: common/ensure-english-keyboard.yaml
-- inputText: "초대 코드 테스트용 그룹 (코드: 테스트)"
+- inputText: "Invite code test group"
 
 - tapOn: "그룹 생성"
 - extendedWaitUntil:
@@ -58,4 +59,4 @@ appId: com.gns.hermitcomm.dev
     timeout: 10000
 - tapOn: "확인"
 
-- assertVisible: "E2E 초대테스트"
+- assertVisible: "E2E Invite Test"

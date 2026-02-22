@@ -107,3 +107,32 @@ export async function getMyManagedGroups(): Promise<ManagedGroup[]> {
   }
   return (data || []) as ManagedGroup[];
 }
+
+/**
+ * 본인이 소유한 그룹 삭제. RLS: app_admin이면서 owner_id = 본인인 경우만 삭제 가능.
+ * 그룹 삭제 시 boards, group_members는 CASCADE로 삭제됨.
+ */
+export async function deleteGroup(groupId: number): Promise<void> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user) throw new Error('로그인이 필요합니다.');
+
+  const { data, error } = await supabase
+    .from('groups')
+    .delete()
+    .eq('id', groupId)
+    .eq('owner_id', user.id)
+    .select('id')
+    .maybeSingle();
+
+  if (error) {
+    logger.error('[adminApi] groups DELETE 에러:', error.message);
+    throw error;
+  }
+  if (!data) {
+    throw new Error('삭제할 수 없는 그룹이거나 이미 삭제되었습니다.');
+  }
+}

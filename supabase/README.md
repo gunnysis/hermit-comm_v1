@@ -4,11 +4,22 @@
 
 ```
 supabase/
-├── config.toml          # 로컬/CLI 설정
-├── migrations/           # DB 마이그레이션 (순서대로 적용)
-│   ├── 001_schema.sql    # 통합 스키마
-│   ├── 002_rls.sql       # RLS 정책
-│   └── 003_grants.sql    # 권한 부여
+├── config.toml              # 로컬/CLI 설정
+├── migrations/               # DB 마이그레이션 (순서대로 적용)
+│   ├── 001_schema.sql       # 통합 스키마
+│   ├── 002_rls.sql          # RLS 정책
+│   ├── 003_grants.sql       # 권한 부여
+│   ├── 009_post_analysis.sql # 감정 분석·뷰
+│   ├── 010_image_attachment.sql # posts.image_url
+│   ├── 011_emotion_trend_rpc.sql # get_emotion_trend RPC
+│   └── 012_group_delete_rls.sql # 그룹 삭제 RLS·CASCADE
+├── apply-to-existing-db/    # 기존 DB에 마이그레이션 적용 (CLI 확인 기반)
+│   ├── README.md            # 적용 순서·방법·CLI 확인
+│   ├── check_applied.sql    # SQL Editor용 적용 여부 확인
+│   ├── APPLY_ORDER.txt      # 수동 적용 시 파일 순서
+│   ├── migration_list_reference.txt  # supabase migration list 출력 해석
+│   └── scripts/
+│       └── check_via_cli.ps1 # CLI로 적용 여부 확인 (PowerShell)
 └── README.md
 ```
 
@@ -45,9 +56,8 @@ supabase stop   # 종료 시
 
 1. **대시보드 SQL Editor**
    - [Supabase Dashboard](https://app.supabase.com) → 프로젝트 → SQL Editor
-   - `001_schema.sql` 내용 붙여넣기 → Run
-   - 그다음 `002_rls.sql` 실행
-   - 그다음 `003_grants.sql` 실행
+   - 적용 순서는 [apply-to-existing-db/README.md](apply-to-existing-db/README.md) 및 [apply-to-existing-db/APPLY_ORDER.txt](apply-to-existing-db/APPLY_ORDER.txt) 참고. (001 → 002 → 003 → 009 → 010 → 011 → 012)
+   - 이미 적용된 항목은 [apply-to-existing-db/check_applied.sql](apply-to-existing-db/check_applied.sql)로 확인 후 건너뛸 수 있음.
 
 2. **CLI로 푸시 (연결 후)**
 
@@ -78,5 +88,10 @@ supabase start
 | 001_schema.sql | groups, boards, group_members, posts, comments, reactions, app_admin, 인덱스·트리거·뷰·함수 |
 | 002_rls.sql | RLS 정책 (auth.uid() 캐싱, 그룹 멤버십, 관리자 제한) |
 | 003_grants.sql | anon/authenticated 권한 + posts_with_like_count SELECT |
+| 009_post_analysis.sql | post_analysis 테이블, posts_with_like_count 뷰(emotions 포함) |
+| 010_image_attachment.sql | posts.image_url 컬럼 |
+| 011_emotion_trend_rpc.sql | get_emotion_trend(days) RPC |
+| 012_group_delete_rls.sql | groups DELETE RLS, posts/comments board_id ON DELETE CASCADE |
 
-자세한 요약은 [migrations/README.md](migrations/README.md)를 참고하세요.
+- 자세한 요약: [migrations/README.md](migrations/README.md)
+- **기존 DB에 적용**: [apply-to-existing-db/README.md](apply-to-existing-db/README.md)

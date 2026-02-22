@@ -10,6 +10,8 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 | 1 | `001_schema.sql` | 통합 스키마: groups, boards, group_members, posts, comments, reactions, app_admin, 인덱스·CHECK·updated_at 트리거·소프트 삭제·뷰·스팸 방지·cleanup_orphan_group_members |
 | 2 | `002_rls.sql` | RLS 정책 최종: posts, comments, reactions, boards, groups, group_members, app_admin (auth.uid() 캐싱·그룹 멤버십·관리자 제한) |
 | 3 | `003_grants.sql` | anon/authenticated 권한 부여 + posts_with_like_count SELECT |
+| … | `009`–`011` | (기존 마이그레이션) |
+| 12 | `012_group_delete_rls.sql` | groups DELETE RLS(본인 소유+app_admin), posts/comments board_id ON DELETE CASCADE |
 
 ## 최종 스키마 요약
 

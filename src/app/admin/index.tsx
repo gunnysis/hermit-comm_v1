@@ -22,13 +22,12 @@ import {
   getMyManagedGroups,
   type CreateGroupWithBoardInput,
 } from '@/features/admin/api/adminApi';
+import { QUERY_KEY_MANAGED_GROUPS, useDeleteGroup } from '@/features/admin/hooks/useDeleteGroup';
 import { auth } from '@/features/auth/auth';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
-
-const QUERY_KEY_MANAGED_GROUPS = ['admin', 'myManagedGroups'] as const;
 
 function useMyManagedGroups() {
   return useQuery({
@@ -58,6 +57,7 @@ export default function AdminIndexScreen() {
   const [description, setDescription] = useState('');
 
   const { data: groups, isLoading, error, refetch } = useMyManagedGroups();
+  const deleteGroupMutation = useDeleteGroup();
   const createMutation = useMutation({
     mutationFn: (input: CreateGroupWithBoardInput) => createGroupWithBoard(input),
     onSuccess: (result) => {
@@ -101,6 +101,34 @@ export default function AdminIndexScreen() {
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
+
+  const handleDeleteGroup = useCallback(
+    (group: { id: number; name: string }) => {
+      Alert.alert(
+        '그룹 삭제',
+        `"${group.name}"을(를) 삭제할까요? 보드와 게시글·댓글이 모두 삭제됩니다.`,
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: () => {
+              deleteGroupMutation.mutate(group.id, {
+                onError: (err: Error) => {
+                  const message = toFriendlyErrorMessage(
+                    err,
+                    '삭제에 실패했습니다. 다시 시도해주세요.',
+                  );
+                  Alert.alert('삭제 실패', message);
+                },
+              });
+            },
+          },
+        ],
+      );
+    },
+    [deleteGroupMutation],
+  );
 
   const handleLogout = useCallback(async () => {
     try {
@@ -199,32 +227,48 @@ export default function AdminIndexScreen() {
             {(groups ?? []).length === 0 ? (
               <Text className="text-sm text-gray-500">아직 생성한 그룹이 없습니다.</Text>
             ) : (
-              (groups ?? []).map((group) => (
-                <View
-                  key={group.id}
-                  className="bg-white rounded-2xl px-4 py-3 mb-3 border border-cream-200">
-                  <Text className="text-base font-semibold text-gray-800">{group.name}</Text>
-                  {group.description && (
-                    <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
-                      {group.description}
-                    </Text>
-                  )}
-                  <View className="flex-row items-center justify-between mt-2">
-                    <Text className="text-xs text-gray-500">
-                      초대 코드: {group.invite_code ?? '-'} ·{' '}
-                      {format(new Date(group.created_at), 'yyyy.MM.dd', { locale: ko })}
-                    </Text>
-                    {group.invite_code ? (
-                      <Pressable
-                        onPress={() => shareInviteCode(group.invite_code!)}
-                        className="px-3 py-1.5 bg-happy-200 rounded-lg"
-                        accessibilityLabel="초대 코드 공유">
-                        <Text className="text-xs font-semibold text-gray-700">공유</Text>
-                      </Pressable>
-                    ) : null}
+              (groups ?? []).map((group) => {
+                const isDeleting =
+                  deleteGroupMutation.isPending && deleteGroupMutation.variables === group.id;
+                return (
+                  <View
+                    key={group.id}
+                    className="bg-white rounded-2xl px-4 py-3 mb-3 border border-cream-200">
+                    <Text className="text-base font-semibold text-gray-800">{group.name}</Text>
+                    {group.description && (
+                      <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
+                        {group.description}
+                      </Text>
+                    )}
+                    <View className="flex-row items-center justify-between mt-2">
+                      <Text className="text-xs text-gray-500">
+                        초대 코드: {group.invite_code ?? '-'} ·{' '}
+                        {format(new Date(group.created_at), 'yyyy.MM.dd', { locale: ko })}
+                      </Text>
+                      <View className="flex-row items-center gap-2">
+                        {group.invite_code ? (
+                          <Pressable
+                            onPress={() => shareInviteCode(group.invite_code!)}
+                            className="px-3 py-1.5 bg-happy-200 rounded-lg"
+                            accessibilityLabel="초대 코드 공유"
+                            disabled={isDeleting}>
+                            <Text className="text-xs font-semibold text-gray-700">공유</Text>
+                          </Pressable>
+                        ) : null}
+                        <Pressable
+                          onPress={() => handleDeleteGroup(group)}
+                          className="px-3 py-1.5 bg-coral-100 rounded-lg"
+                          accessibilityLabel="그룹 삭제"
+                          disabled={isDeleting}>
+                          <Text className="text-xs font-semibold text-coral-600">
+                            {isDeleting ? '삭제 중…' : '삭제'}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
                   </View>
-                </View>
-              ))
+                );
+              })
             )}
           </View>
         </ScrollView>

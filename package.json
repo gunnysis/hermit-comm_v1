@@ -24,7 +24,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "update:preview": "eas update --channel preview",
-    "update:production": "eas update --channel production"
+    "update:production": "eas update --channel production",
+    "db:migration-list": "supabase migration list",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@10play/tentap-editor": "^1.0.1",

@@ -1,24 +1,19 @@
 # 공통: 앱 포그라운드 후 홈 화면 대기 (앱 미리 실행 권장)
+# Dev Client 사용 시 서버 선택/Continue는 수동 처리 후 실행
 appId: com.gns.hermitcomm.dev
 ---
 - launchApp
 
-# Expo Dev Client 런처에서 서버 선택 (필요시)
-- tapOn:
-    text: "http://10.0.2.2:8081"
-    optional: true
-
-# Expo Dev Menu의 Continue 버튼 (필요시)
-- tapOn:
-    text: "Continue"
-    optional: true
-
-# 두 번째 Continue (서버 연결 후 dev menu가 다시 나올 수 있음)
-- tapOn:
-    text: "Continue"
-    optional: true
-
-# 홈 화면 대기 (제목 또는 부제목)
+# 탭 바 노출 대기 (어느 탭이 활성화돼도 "설정" 등 라벨은 보임)
+- extendedWaitUntil:
+    visible: "설정"
+    timeout: 45000
+# 홈 탭으로 이동 (앱이 마지막 탭으로 복원되면 "은둔마을"이 안 보이므로)
+- tapOn: "홈"
+# 홈 화면 제목/부제목 대기
+- extendedWaitUntil:
+    visible: "은둔마을"
+    timeout: 15000
 - extendedWaitUntil:
     visible: "따뜻한 이야기가 있는 곳"
-    timeout: 30000
+    timeout: 5000
