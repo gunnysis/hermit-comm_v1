@@ -26,22 +26,24 @@
 
 ## 3. 데이터베이스 스키마 생성
 
-**권장**: Supabase CLI를 사용하는 경우 프로젝트 루트에서 `supabase db migrate up`으로 001~008 마이그레이션을 순서대로 적용할 수 있습니다.
+**권장**: Supabase CLI를 사용하는 경우 프로젝트 루트에서 `supabase db push` 또는 `supabase migration up`으로 001~003 마이그레이션을 순서대로 적용할 수 있습니다.
 
 ### SQL Editor에서 수동 실행
 
 CLI를 쓰지 않을 경우, **SQL Editor**에서 아래 순서대로 각 파일 내용을 복사·실행하세요.
 
 1. 왼쪽 메뉴에서 **SQL Editor**로 이동
-2. `supabase/migrations/001_initial_schema.sql` ~ `008_admin_rls.sql`을 **번호 순서대로** 각각 새 쿼리로 붙여넣고 "Run" 실행
+2. `supabase/migrations/001_schema.sql` → `002_rls.sql` → `003_grants.sql`을 **번호 순서대로** 각각 새 쿼리로 붙여넣고 "Run" 실행
 
 마이그레이션 목록과 요약은 [supabase/migrations/README.md](../supabase/migrations/README.md)를 참고하세요.
 
-### 001 적용 시 생성되는 테이블
+### 001_schema 적용 시 생성되는 테이블
 
-- **posts**: 게시글 정보 (id, title, content, author, created_at)
-- **comments**: 댓글 정보 (id, post_id, content, author, created_at)
-- **reactions**: 반응 정보 (id, post_id, reaction_type, count)
+- **groups**, **boards**, **group_members**: 그룹·게시판·멤버십
+- **posts**: 게시글 (author_id, board_id, group_id, 소프트 삭제 등)
+- **comments**: 댓글
+- **reactions**: 반응
+- **app_admin**: 관리자
 
 ## 4. Realtime 활성화
 
@@ -114,12 +116,7 @@ npx expo start --clear
 
 ### 마이그레이션 실행
 
-새로운 RLS 정책을 적용하려면 다음 마이그레이션을 실행하세요:
-
-1. Supabase 대시보드의 **SQL Editor**로 이동
-2. `supabase/migrations/002_add_auth_and_rls.sql` 파일의 내용을 복사
-3. SQL Editor에 붙여넣기
-4. "Run" 버튼 클릭
+스키마·RLS·권한은 `001_schema.sql` → `002_rls.sql` → `003_grants.sql` 순서로 실행하세요. (RLS만 따로 적용하려면 `002_rls.sql`만 실행)
 
 ### 스키마 변경사항
 
@@ -215,43 +212,25 @@ delete from posts where id = 1;
 
 ## 8. 익명 게시판 스키마 및 마이그레이션
 
-### 8.1 신규 테이블 및 컬럼
+### 8.1 스키마·RLS 요약
 
-익명 그룹 게시판 기능을 위해 다음 마이그레이션이 추가되었습니다.
+익명 그룹 게시판 관련 스키마와 RLS는 통합 마이그레이션에 포함되어 있습니다.
 
-- `supabase/migrations/004_anonymous_board_schema.sql`
-  - `boards` 테이블
-    - `name`, `description`, `visibility`, `anon_mode`, `created_at`, `updated_at`
-  - `groups`, `group_members` 테이블 (향후 비공개 그룹 기능용 틀)
-  - `posts`, `comments` 확장
-    - `board_id`, `group_id`
-    - `is_anonymous` (기본값 `true`)
-    - `display_name` (기본값 `'익명'`)
-- `supabase/migrations/005_board_enums_and_indexes.sql`
-  - TEXT 컬럼에 대한 CHECK 제약 추가:
-    - `boards.visibility` ∈ (`'public'`, `'private'`)
-    - `boards.anon_mode` ∈ (`'always_anon'`, `'allow_choice'`, `'require_name'`)
-    - `groups.join_mode` ∈ (`'invite_only'`, `'request_approve'`, `'code_join'`)
-    - `group_members.role` ∈ (`'owner'`, `'member'`, `'moderator'`)
-    - `group_members.status` ∈ (`'pending'`, `'approved'`, `'rejected'`)
-  - 인덱스:
-    - `idx_posts_board_created_at` (`posts(board_id, created_at DESC)`)
+- **001_schema.sql**: `boards`, `groups`, `group_members`, `posts`/`comments` 확장 컬럼, CHECK 제약, 인덱스, 뷰, 스팸 방지·정리 함수
+- **002_rls.sql**: 그룹 멤버십 기반 읽기, 관리자만 groups/boards 생성 등 RLS 정책
+
+상세 목록은 [supabase/migrations/README.md](../supabase/migrations/README.md)를 참고하세요.
 
 ### 8.2 적용 순서
 
-1. 기존 001–003 마이그레이션이 적용된 상태에서,
-2. `supabase/migrations/004_anonymous_board_schema.sql` 실행
-3. 이어서 `supabase/migrations/005_board_enums_and_indexes.sql` 실행
-4. `supabase/migrations/006_group_board_rls.sql` 실행 (그룹 게시판 RLS)
-5. `supabase/migrations/007_boards_group_id.sql` 실행 — `boards`에 `group_id` 추가
-6. `supabase/migrations/008_admin_rls.sql` 실행 — `app_admin` 테이블 및 그룹/보드 생성 RLS 제한
+`001_schema.sql` → `002_rls.sql` → `003_grants.sql`을 **번호 순서대로** 적용하세요.
 
-Supabase CLI를 사용하는 경우, 프로젝트 루트에서:
+Supabase CLI 사용 시:
 
 ```bash
-supabase db reset        # 개발 환경 초기화 (주의: 데이터 초기화)
+supabase db push        # 원격에 마이그레이션 적용
 # 또는
-supabase db migrate up   # 신규 마이그레이션만 순차 적용
+supabase db reset       # 로컬 개발 환경 초기화 (주의: 데이터 초기화)
 ```
 
 ### 8.3 기본 게시판 레코드 생성 예시

@@ -6,9 +6,9 @@
 supabase/
 ├── config.toml          # 로컬/CLI 설정
 ├── migrations/           # DB 마이그레이션 (순서대로 적용)
-│   ├── 001_initial_schema.sql
-│   ├── 002_add_auth_and_rls.sql
-│   └── 003_add_update_policies_and_views.sql
+│   ├── 001_schema.sql    # 통합 스키마
+│   ├── 002_rls.sql       # RLS 정책
+│   └── 003_grants.sql    # 권한 부여
 └── README.md
 ```
 
@@ -45,9 +45,9 @@ supabase stop   # 종료 시
 
 1. **대시보드 SQL Editor**
    - [Supabase Dashboard](https://app.supabase.com) → 프로젝트 → SQL Editor
-   - `001_initial_schema.sql` 내용 붙여넣기 → Run
-   - 그다음 `002_add_auth_and_rls.sql` 실행
-   - 그다음 `003_add_update_policies_and_views.sql` 실행
+   - `001_schema.sql` 내용 붙여넣기 → Run
+   - 그다음 `002_rls.sql` 실행
+   - 그다음 `003_grants.sql` 실행
 
 2. **CLI로 푸시 (연결 후)**
 
@@ -75,8 +75,8 @@ supabase start
 
 | 파일 | 내용 |
 |------|------|
-| 001_initial_schema.sql | posts, comments, reactions 테이블 + RLS(전체 허용) |
-| 002_add_auth_and_rls.sql | author_id 추가, 익명 인증 기반 RLS로 변경 |
-| 003_add_update_policies_and_views.sql | posts/comments UPDATE 정책, posts_with_like_count 뷰(인기순 정렬용) |
+| 001_schema.sql | groups, boards, group_members, posts, comments, reactions, app_admin, 인덱스·트리거·뷰·함수 |
+| 002_rls.sql | RLS 정책 (auth.uid() 캐싱, 그룹 멤버십, 관리자 제한) |
+| 003_grants.sql | anon/authenticated 권한 + posts_with_like_count SELECT |
 
-**주의:** 002 실행 전에 기존 데이터가 있으면 `author_id`용 UPDATE를 먼저 실행한 뒤 `NOT NULL` 제약을 걸어야 합니다.
+자세한 요약은 [migrations/README.md](migrations/README.md)를 참고하세요.

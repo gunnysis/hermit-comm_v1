@@ -109,7 +109,7 @@ npm run update:production
 
 ## 6. DB·마이그레이션
 
-`supabase/migrations/` 001~012 **순서 필수**. 요약은 `supabase/migrations/README.md`.
+`supabase/migrations/` 001~003 **순서 필수**. 요약은 `supabase/migrations/README.md`.
 
 - **관리자 등록**: Supabase Auth에 이메일 사용자 생성 후 `INSERT INTO app_admin (user_id) VALUES (...)`.
 - **RLS**: 글/댓글 읽기는 공개 또는 그룹 승인 멤버만. groups/boards INSERT는 `app_admin` 등록자만.
