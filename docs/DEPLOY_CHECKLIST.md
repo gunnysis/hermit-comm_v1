@@ -14,15 +14,26 @@
   eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR_PROJECT.supabase.co" --scope project
   eas secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "YOUR_ANON_KEY" --scope project
   ```
+  eas 환경변수 데이터를 .env 파일로 관리 및 저장
+  ```eas secret:push --scope project --env-file .env```
 
   또는 EAS 대시보드 → 프로젝트 → Secrets에서 동일한 이름으로 등록합니다.
 
+등록이 잘 되었는지 확인하려면 다음 명령어를 사용하세요:
+
+  ```bash
+  eas secret:list
+  ```
+
 - **Sentry (선택)**  
   프로덕션에서 `logger.error` 및 `AppErrorBoundary` 예외가 Sentry로 전송되도록 하려면  
-  `EXPO_PUBLIC_SENTRY_DSN`을 설정해 두세요.  
+  `EXPO_PUBLIC_SENTRY_DSN`을 EAS Secrets에 설정하세요.  
+  앱에서는 `environment`(EAS 빌드 프로필/APP_ENV), `release`(앱 버전)를 자동 전송하며, 이메일·본문 등 PII는 beforeSend에서 제거됩니다.  
   빌드 시 소스맵 업로드와 “Missing config for organization, project” 경고 제거를 위해  
   EAS Secrets 또는 로컬 env에 `SENTRY_ORG`, `SENTRY_PROJECT`(및 필요 시 `SENTRY_AUTH_TOKEN`)를 설정할 수 있습니다.  
-  미설정 시 로그 전송은 건너뛰며 앱 동작에는 영향 없습니다.
+  미설정 시 로그 전송은 건너뛰며 앱 동작에는 영향 없습니다.  
+  **프로덕션 빌드**: `eas.json`에 `SENTRY_DISABLE_AUTO_UPLOAD: "true"`가 설정되어 있어 Sentry 미설정 시에도 Android 빌드가 실패하지 않습니다.  
+**소스맵 사용 시** EAS Secrets 4개 설정: `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_DISABLE_AUTO_UPLOAD=false`. 상세는 [docs/SENTRY.md](SENTRY.md) 참고.
 
 ---
 
@@ -45,6 +56,8 @@ npm run test:e2e
 # 관리자 시나리오: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env)
 npm run test:e2e:admin
 ```
+
+- **E2E 추천**: `MAESTRO_ADMIN_*`는 실제 운영자 계정이 아닌 **E2E 전용 관리자 계정** 하나를 `app_admin`에 등록해 사용하세요. 가능하면 스테이징/테스트 전용 Supabase 프로젝트를 두고 E2E는 그 프로젝트 URL·키를 쓰도록 하면 프로덕션 DB를 건드리지 않습니다.
 
 ---
 

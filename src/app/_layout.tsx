@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
+import Constants from 'expo-constants';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppState, View, Text, ActivityIndicator } from 'react-native';
@@ -13,10 +14,42 @@ import Toast from 'react-native-toast-message';
 import '@/global.css';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+const appEnv = Constants.expoConfig?.extra?.appEnv as string | undefined;
+const appVersion = Constants.expoConfig?.version;
+
 if (!__DEV__ && SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
     enabled: true,
+    environment: appEnv ?? 'development',
+    release: appVersion ? `gns-hermit-comm@${appVersion}` : undefined,
+    beforeSend(event, hint) {
+      // 이메일·본문 등 PII 제거 (에러 메시지/extra에서)
+      const message = event.message;
+      if (message) {
+        event.message = message.replace(
+          /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+          '[email]',
+        );
+      }
+      if (event.extra && typeof event.extra === 'object') {
+        const safe: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(event.extra)) {
+          if (
+            k.toLowerCase().includes('email') ||
+            k.toLowerCase().includes('password') ||
+            k === 'author' ||
+            k === 'display_name'
+          ) {
+            safe[k] = '[redacted]';
+          } else {
+            safe[k] = v;
+          }
+        }
+        event.extra = safe;
+      }
+      return event;
+    },
   });
 }
 

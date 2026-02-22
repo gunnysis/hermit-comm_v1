@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 
+// 환경별 URL/키: 로컬은 .env, EAS 빌드는 EAS Secrets(프로필별)로 주입.
+// app.config.js의 extra.appEnv(EAS_BUILD_PROFILE | APP_ENV)로 development/preview/production 구분.
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL || Constants.expoConfig?.extra?.supabaseUrl;
 

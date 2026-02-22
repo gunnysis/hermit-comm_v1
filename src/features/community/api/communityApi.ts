@@ -1,6 +1,7 @@
 import { supabase } from '@/shared/lib/supabase';
 import { api } from '@/shared/lib/api';
 import { logger } from '@/shared/utils/logger';
+import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import type { Board, Post } from '@/types';
 
 export type BoardSortOrder = 'latest' | 'popular';
@@ -135,6 +136,7 @@ export async function joinGroupByInviteCode(
       throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
     }
 
+    addBreadcrumb('group', '그룹 참여 성공', { group_id: group.id, alreadyMember: false });
     return {
       group: {
         id: group.id,
@@ -158,6 +160,7 @@ export async function joinGroupByInviteCode(
     }
   }
 
+  addBreadcrumb('group', '그룹 참여 성공', { group_id: group.id, alreadyMember: true });
   return {
     group: {
       id: group.id,

@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { logger } from '@/shared/utils/logger';
+import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import { APIError } from './error';
 import type {
   Post,
@@ -128,6 +129,7 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
   const { data, error } = await supabase.from('posts').insert([insertRow]).select().single();
 
   if (!error) {
+    addBreadcrumb('post', '게시글 작성 성공', { board_id: postData.board_id });
     return data as Post;
   }
 
@@ -148,6 +150,7 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
     );
   }
 
+  addBreadcrumb('post', '게시글 작성 성공', { board_id: postData.board_id });
   return { ...insertRow, id: 0, created_at: new Date().toISOString() } as unknown as Post;
 }
 

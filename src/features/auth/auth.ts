@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 import { logger } from '@/shared/utils/logger';
+import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import { User } from '@supabase/supabase-js';
 
 /**
@@ -37,6 +38,7 @@ export const auth = {
     }
 
     logger.log('[Auth] 익명 로그인 성공:', data.user.id);
+    addBreadcrumb('auth', '익명 로그인 성공');
     return data.user;
   },
 
@@ -56,6 +58,7 @@ export const auth = {
       throw new Error('로그인 성공했으나 사용자 정보가 없습니다.');
     }
 
+    addBreadcrumb('auth', '이메일 로그인 성공');
     return data.user;
   },
 
@@ -100,5 +103,6 @@ export const auth = {
       logger.error('[Auth] 로그아웃 실패:', error);
       throw error;
     }
+    addBreadcrumb('auth', '로그아웃 성공');
   },
 };
