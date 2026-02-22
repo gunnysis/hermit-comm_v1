@@ -1,5 +1,5 @@
 import React, { Component, memo, useCallback, useMemo, type ReactNode } from 'react';
-import { Linking, useWindowDimensions } from 'react-native';
+import { Linking, useWindowDimensions, Image } from 'react-native';
 import { Text } from 'react-native';
 import RenderHTML, { type CustomRendererProps } from 'react-native-render-html';
 import type { TBlock } from '@native-html/transient-render-engine';
@@ -32,6 +32,7 @@ const IGNORED_DOM_TAGS = [
 
 interface PostBodyProps {
   content: string;
+  imageUrl?: string | null;
 }
 
 /** RenderHTML 렌더 실패 시 plain 텍스트로 fallback */
@@ -117,7 +118,7 @@ function SafeImageRenderer(props: CustomRendererProps<TBlock>): React.ReactEleme
   return <InternalRenderer {...props} />;
 }
 
-function PostBodyComponent({ content }: PostBodyProps) {
+function PostBodyComponent({ content, imageUrl }: PostBodyProps) {
   const { width } = useWindowDimensions();
   const contentWidth = Math.min(Math.max(0, width - 32), CONTENT_MAX_WIDTH);
 
@@ -144,19 +145,15 @@ function PostBodyComponent({ content }: PostBodyProps) {
 
   const renderers = useMemo(() => ({ img: SafeImageRenderer }), []);
 
-  if (!content || !content.trim()) {
-    return (
+  const bodyContent =
+    !content || !content.trim() ? (
       <Text
-        className="text-base text-gray-500"
+        className="text-base text-gray-500 dark:text-stone-400"
         style={{ lineHeight: 24 }}
         accessibilityLabel="게시글 본문 없음">
         내용 없음
       </Text>
-    );
-  }
-
-  if (isLikelyHtml(content)) {
-    return (
+    ) : isLikelyHtml(content) ? (
       <PostBodyHtmlErrorBoundary content={content}>
         <RenderHTML
           source={{ html: content }}
@@ -168,13 +165,27 @@ function PostBodyComponent({ content }: PostBodyProps) {
           renderersProps={renderersProps}
         />
       </PostBodyHtmlErrorBoundary>
+    ) : (
+      <Text
+        className="text-base text-gray-800 dark:text-stone-100"
+        style={{ lineHeight: 24 }}
+        selectable>
+        {content}
+      </Text>
     );
-  }
 
   return (
-    <Text className="text-base text-gray-800" style={{ lineHeight: 24 }} selectable>
-      {content}
-    </Text>
+    <>
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          className="w-full aspect-video rounded-xl mb-3 bg-stone-100 dark:bg-stone-800"
+          resizeMode="cover"
+          accessibilityLabel="게시글 첨부 이미지"
+        />
+      ) : null}
+      {bodyContent}
+    </>
   );
 }
 

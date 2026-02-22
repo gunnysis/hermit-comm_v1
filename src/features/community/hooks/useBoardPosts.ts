@@ -1,13 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import type { BoardSortOrder } from '../api/communityApi';
 import { getBoardPosts } from '../api/communityApi';
 import type { Post } from '@/types';
 
+const PAGE_SIZE = 20;
+
 export function useBoardPosts(boardId: number, sortOrder: BoardSortOrder) {
-  return useQuery<Post[], Error>({
+  return useInfiniteQuery<Post[], Error>({
     queryKey: ['boardPosts', boardId, sortOrder],
-    queryFn: () => getBoardPosts(boardId, { sortOrder, limit: 20, offset: 0 }),
+    queryFn: ({ pageParam }) =>
+      getBoardPosts(boardId, { sortOrder, limit: PAGE_SIZE, offset: Number(pageParam) }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return allPages.length * PAGE_SIZE;
+    },
     staleTime: 1000 * 60,
   });
 }
-

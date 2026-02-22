@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { ErrorView } from './ErrorView';
+import { logger } from '@/shared/utils/logger';
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -21,7 +22,15 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('[AppErrorBoundary]', error, errorInfo);
+    logger.error('[AppErrorBoundary]', error, errorInfo);
+    if (!__DEV__) {
+      try {
+        const Sentry = require('@sentry/react-native');
+        Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
+      } catch {
+        // Sentry 미설정 시 무시
+      }
+    }
   }
 
   handleRetry = (): void => {

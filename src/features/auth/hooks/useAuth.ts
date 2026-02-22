@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { auth } from '../auth';
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 
 /**
  * 인증 상태 관리 훅
@@ -21,12 +22,12 @@ export function useAuth() {
 
     const initAuth = async () => {
       try {
-        console.log('[useAuth] 인증 초기화 시작');
+        logger.log('[useAuth] 인증 초기화 시작');
 
         // 1. 기존 세션 확인
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData.session?.user && mounted) {
-          console.log('[useAuth] 기존 세션 발견:', sessionData.session.user.id);
+          logger.log('[useAuth] 기존 세션 발견:', sessionData.session.user.id);
           setUser(sessionData.session.user);
           setLoading(false);
           return;
@@ -37,14 +38,14 @@ export function useAuth() {
         if (mounted) {
           setUser(user);
           setError(null);
-          console.log('[useAuth] 인증 초기화 완료:', user.id);
+          logger.log('[useAuth] 인증 초기화 완료:', user.id);
         }
       } catch (err) {
-        console.error('[useAuth] 인증 초기화 실패:', err);
+        logger.error('[useAuth] 인증 초기화 실패:', err);
 
         if (mounted && retryCount < MAX_RETRIES) {
           retryCount++;
-          console.log(`[useAuth] 재시도 ${retryCount}/${MAX_RETRIES}`);
+          logger.log(`[useAuth] 재시도 ${retryCount}/${MAX_RETRIES}`);
           setTimeout(() => initAuth(), 1000 * retryCount);
         } else if (mounted) {
           setError('인증에 실패했습니다. 앱을 재시작해주세요.');
@@ -60,7 +61,7 @@ export function useAuth() {
 
     // 인증 상태 변화 감지 (무한 루프 방지)
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[useAuth] 인증 상태 변경:', event);
+      logger.log('[useAuth] 인증 상태 변경:', event);
 
       if (!mounted) return;
 

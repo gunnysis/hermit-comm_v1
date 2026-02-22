@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Comment } from '@/types';
 import { CommentItem } from './CommentItem';
+import { EmptyState } from '@/shared/components/EmptyState';
 
 interface CommentListProps {
   comments: Comment[];
@@ -10,27 +11,29 @@ interface CommentListProps {
   currentUserId?: string;
 }
 
+function CommentListEmpty() {
+  return <EmptyState icon="💬" title="아직 댓글이 없습니다." description="첫 댓글을 남겨주세요." />;
+}
+
 export function CommentList({ comments, onDelete, onEdit, currentUserId }: CommentListProps) {
   if (comments.length === 0) {
-    return (
-      <View className="p-8 items-center">
-        <Text className="text-5xl mb-3">💬</Text>
-        <Text className="text-base text-gray-500">아직 댓글이 없습니다.</Text>
-      </View>
-    );
+    return <CommentListEmpty />;
   }
 
   return (
-    <View className="px-4">
-      {comments.map((comment) => (
+    <FlashList
+      data={comments}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
         <CommentItem
-          key={comment.id}
-          comment={comment}
+          comment={item}
           onDelete={onDelete}
           onEdit={onEdit}
-          canEdit={currentUserId === comment.author_id}
+          canEdit={currentUserId === item.author_id}
         />
-      ))}
-    </View>
+      )}
+      ListEmptyComponent={CommentListEmpty}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+    />
   );
 }

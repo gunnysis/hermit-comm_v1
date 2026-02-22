@@ -1,11 +1,9 @@
 # E2E: 관리자 로그인 → 관리자 페이지 진입 확인
-# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조)
-# 사전 조건: 에뮬레이터의 키보드가 영문 모드여야 합니다.
-#   한글 IME가 기본이면 이메일/비밀번호가 한글로 입력됩니다.
-#   해결: 에뮬레이터 Settings > System > Languages > English(US) 추가 후 1순위로 이동
+# 전제: 익명 세션에서 시작 (launch-app-fresh로 앱 재시작 후 실행)
+# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조, run-maestro.js에서 로드)
 appId: com.gns.hermitcomm.dev
 ---
-- runFlow: common/launch-app.yaml
+- runFlow: common/launch-app-fresh.yaml
 
 # 설정 탭 이동
 - tapOn: "설정"
@@ -17,18 +15,24 @@ appId: com.gns.hermitcomm.dev
 # 관리자 페이지 진입
 - tapOn: "운영자 관리 페이지"
 
+# 로그인 화면 로드 대기 (제목 또는 입력 필드)
 - extendedWaitUntil:
     visible: "관리자 로그인"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "이메일"
     timeout: 5000
 
-# 이메일 입력
+# 이메일 입력 (영어 키보드로 전환 후 입력)
 - tapOn: "admin@example.com"
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "${MAESTRO_ADMIN_EMAIL}"
 
-# 비밀번호 입력
+# 비밀번호 입력 (영어 키보드로 전환 후 입력)
 - tapOn:
     text: "비밀번호"
     index: 1
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "${MAESTRO_ADMIN_PASSWORD}"
 
 # 로그인 버튼 스크롤 후 클릭

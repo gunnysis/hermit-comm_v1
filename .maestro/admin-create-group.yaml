@@ -1,14 +1,9 @@
 # E2E: 관리자 로그인 → 그룹 생성 플로우
+# 전제: 익명 세션에서 시작 (launch-app-fresh)
 # 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env 참조)
-# 사전 조건: 에뮬레이터 키보드가 영문 모드여야 합니다 (admin-login.yaml 주석 참조)
 appId: com.gns.hermitcomm.dev
 ---
-- stopApp
-- launchApp
-
-- extendedWaitUntil:
-    visible: "은둔마을"
-    timeout: 15000
+- runFlow: common/launch-app-fresh.yaml
 
 # 설정 → 관리자 로그인
 - tapOn: "설정"
@@ -19,35 +14,46 @@ appId: com.gns.hermitcomm.dev
 
 - tapOn: "운영자 관리 페이지"
 
+# 로그인 화면 로드 대기 (익명 세션 보장으로 로그인 화면 기대)
 - extendedWaitUntil:
     visible: "관리자 로그인"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "이메일"
     timeout: 5000
 
+# 로그인 (영어 키보드 전환 후 입력)
 - tapOn: "admin@example.com"
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "${MAESTRO_ADMIN_EMAIL}"
-
 - tapOn:
     text: "비밀번호"
     index: 1
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "${MAESTRO_ADMIN_PASSWORD}"
-
-- tapOn:
-    text: "로그인"
+- scrollUntilVisible:
+    element: "로그인"
+    direction: DOWN
+    timeout: 5000
+- tapOn: "로그인"
 
 - extendedWaitUntil:
     visible: "그룹 게시판 생성"
     timeout: 10000
 
-# 그룹 생성 폼 입력
+# 그룹 생성 폼 입력 (영어 키보드로 전환 후 입력)
 - tapOn: "예: 2025 봄 프로그램"
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "E2E 테스트 그룹"
 
 - tapOn: "예: WELCOME2025"
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "E2ETEST"
 
 - tapOn:
     text: "그룹에 대한 간단한 설명"
     optional: true
+- runFlow: common/ensure-english-keyboard.yaml
 - inputText: "E2E 테스트용 그룹입니다"
 
 # 그룹 생성 버튼

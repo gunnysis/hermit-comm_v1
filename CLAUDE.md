@@ -78,7 +78,8 @@ npm run lint:fix              # 자동 수정
 # E2E 테스트 (Maestro)
 npm run test:e2e              # 전체 E2E
 npm run test:e2e:admin        # 관리자 시나리오만
-# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env에 설정)
+npm run test:e2e:invite       # 초대 코드 "테스트" 그룹 생성 후 참여 시나리오
+# 환경 변수: MAESTRO_ADMIN_EMAIL, MAESTRO_ADMIN_PASSWORD (.env에 설정, run-maestro.js에서 로드)
 
 # EAS 빌드
 eas build --platform android --profile development
@@ -109,7 +110,7 @@ npm run update:production
 
 ## 6. DB·마이그레이션
 
-`supabase/migrations/` 001~003 **순서 필수**. 요약은 `supabase/migrations/README.md`.
+`supabase/migrations/` 내 파일은 **번호 순서대로** 적용 (001, 002, 003, 009, 010, 011 등). 요약은 `supabase/migrations/README.md`.
 
 - **관리자 등록**: Supabase Auth에 이메일 사용자 생성 후 `INSERT INTO app_admin (user_id) VALUES (...)`.
 - **RLS**: 글/댓글 읽기는 공개 또는 그룹 승인 멤버만. groups/boards INSERT는 `app_admin` 등록자만.
@@ -177,6 +178,8 @@ npm run update:production
 
 ## 11. E2E 테스트 (Maestro)
 
+Maestro CLI 설치: [Windows](https://docs.maestro.dev/getting-started/installing-maestro/windows) 등 환경별 설치 후 `maestro --help`로 확인. 실행 전에 앱을 에뮬레이터/기기에서 띄워 두어야 함.
+
 `.maestro/` 폴더에 시나리오 파일:
 
 | 파일 | 테스트 내용 |
@@ -185,8 +188,15 @@ npm run update:production
 | `admin-login.yaml` | 설정 → 관리자 로그인 → 관리자 페이지 진입 |
 | `admin-create-group.yaml` | 관리자 로그인 → 그룹 생성 → 목록 확인 |
 | `admin-logout.yaml` | 관리자 로그인 → 로그아웃 → 익명 세션 복구 |
+| `admin-create-group-invite-test.yaml` | 관리자 로그인 → 초대 코드 **"테스트"** 그룹 생성 |
+| `groups-join-by-invite.yaml` | 그룹 탭에서 초대 코드 **"테스트"**로 참여 → 목록 확인 |
 
-관리자 자격증명은 `.env`의 `MAESTRO_ADMIN_EMAIL`, `MAESTRO_ADMIN_PASSWORD`로 관리. 코드에 직접 하드코딩 금지.
+**스크립트**
+- `npm run test:e2e` — 전체 시나리오
+- `npm run test:e2e:admin` — 관리자 로그인/그룹 생성/로그아웃만
+- `npm run test:e2e:invite` — 위 초대코드 그룹 생성 후, 초대 코드 "테스트"로 참여 시나리오 (순서대로 실행)
+
+관리자 자격증명은 `.env`의 `MAESTRO_ADMIN_EMAIL`, `MAESTRO_ADMIN_PASSWORD`로 관리. 코드에 직접 하드코딩 금지. 에뮬레이터는 한국어/영어 키보드 설정 가정하며, 영어 입력 전에는 `common/ensure-english-keyboard.yaml`, 한글 입력 전에는 `common/ensure-korean-keyboard.yaml`로 키보드를 전환한 뒤 입력함. **앱 로직**: 이미 관리자로 로그인된 상태에서 "운영자 관리 페이지"를 탭하면 로그인 화면이 아닌 관리자 페이지로 이동함. 관리자 시나리오는 `common/launch-app-fresh.yaml`(stopApp + launchApp)으로 익명 세션을 보장한 뒤 실행함. 설계 상세: `.maestro/README_E2E_DESIGN.md`.
 
 ---
 

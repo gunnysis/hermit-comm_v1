@@ -26,6 +26,17 @@ export interface Post {
   display_name: string;
   /** 목록 조회 시 댓글 수 (선택) */
   comment_count?: number;
+  /** 감정 분석 결과 (posts_with_like_count 뷰 또는 post_analysis JOIN) */
+  emotions?: string[];
+  /** 첨부 이미지 URL */
+  image_url?: string | null;
+}
+
+export interface PostAnalysis {
+  id: number;
+  post_id: number;
+  emotions: string[];
+  analyzed_at: string;
 }
 
 export interface Comment {
@@ -58,6 +69,8 @@ export interface CreatePostRequest {
   /** 선택: 클라이언트에서 직접 익명 여부/표시 이름을 정하고 싶을 때 */
   is_anonymous?: boolean;
   display_name?: string;
+  /** 선택: 첨부 이미지 URL (Supabase Storage 등) */
+  image_url?: string | null;
 }
 
 export interface CreateCommentRequest {
@@ -77,6 +90,7 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
   author?: string;
+  image_url?: string | null;
 }
 
 export interface UpdateCommentRequest {

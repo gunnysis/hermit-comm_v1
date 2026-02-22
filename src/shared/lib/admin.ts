@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 
 /**
  * 현재 사용자가 app_admin 테이블에 등록되어 있는지 조회
@@ -14,7 +15,7 @@ export async function checkAppAdmin(userId: string | undefined): Promise<boolean
     .maybeSingle();
 
   if (error) {
-    console.error('[admin] app_admin 조회 에러:', error);
+    logger.error('[admin] app_admin 조회 에러:', error);
     return false;
   }
 

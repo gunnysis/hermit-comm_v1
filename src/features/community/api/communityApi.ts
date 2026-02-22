@@ -189,12 +189,12 @@ export async function getBoardPosts(
 ): Promise<Post[]> {
   const { limit = 20, offset = 0, sortOrder = 'latest' } = options;
 
-  // 현재는 게시판 단위 조회는 posts 테이블 기준으로만 정렬 (최신순 우선)
+  const orderCol = sortOrder === 'popular' ? 'like_count' : 'created_at';
   const { data, error } = await supabase
-    .from('posts')
-    .select('*, comments(count)')
+    .from('posts_with_like_count')
+    .select('*')
     .eq('board_id', boardId)
-    .order(sortOrder === 'popular' ? 'created_at' : 'created_at', { ascending: false })
+    .order(orderCol, { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) {
@@ -202,16 +202,7 @@ export async function getBoardPosts(
     throw error;
   }
 
-  const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
-  return rows.map((row) => {
-    const { comments: commentCount, ...rest } = row;
-    const comment_count = Array.isArray(commentCount)
-      ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
-      : typeof commentCount === 'number'
-        ? commentCount
-        : undefined;
-    return { ...rest, comment_count } as Post;
-  });
+  return (data || []) as Post[];
 }
 
 export async function createBoardPost(input: CreateAnonymousPostInput): Promise<Post> {

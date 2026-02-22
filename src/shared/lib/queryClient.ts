@@ -10,10 +10,15 @@ const persister = experimental_createQueryPersister({
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60, // 1분
-      retry: 1,
-      gcTime: 1000 * 30, // 30초 (메모리 GC, 지속화와 별개)
+      staleTime: 1000 * 60 * 5, // 5분
+      gcTime: 1000 * 60 * 30, // 30분
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      refetchOnWindowFocus: false,
       persister: persister.persisterFn,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });

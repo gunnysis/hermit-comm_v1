@@ -1,7 +1,6 @@
-# 공통: 앱 실행 → dev client 연결 → 홈 화면 대기
+# 공통: 앱 포그라운드 후 홈 화면 대기 (앱 미리 실행 권장)
 appId: com.gns.hermitcomm.dev
 ---
-- stopApp
 - launchApp
 
 # Expo Dev Client 런처에서 서버 선택 (필요시)
@@ -19,7 +18,7 @@ appId: com.gns.hermitcomm.dev
     text: "Continue"
     optional: true
 
-# 홈 화면 대기
+# 홈 화면 대기 (제목 또는 부제목)
 - extendedWaitUntil:
-    visible: "은둔마을"
-    timeout: 20000
+    visible: "따뜻한 이야기가 있는 곳"
+    timeout: 30000

@@ -37,7 +37,7 @@ module.exports = ({ config }) => {
       ...config.expo,
       name: currentEnv.name,
       slug: 'gns-hermit-comm',
-      version: '1.2.0',
+      version: '1.5.0',
       orientation: 'portrait',
       icon: './assets/icon.png',
       scheme: currentEnv.scheme,
@@ -83,6 +83,13 @@ module.exports = ({ config }) => {
       },
       plugins: [
         'expo-router',
+        [
+          '@sentry/react-native',
+          {
+            organization: process.env.SENTRY_ORG ?? '',
+            project: process.env.SENTRY_PROJECT ?? '',
+          },
+        ],
       ],
       experiments: {
         typedRoutes: true,

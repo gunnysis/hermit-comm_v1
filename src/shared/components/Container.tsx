@@ -11,9 +11,9 @@ export function Container({ children }: ContainerProps) {
   const { isWide } = useResponsiveLayout();
 
   return (
-    <SafeAreaView className="flex-1 bg-cream-100">
+    <SafeAreaView className="flex-1 bg-cream-100 dark:bg-stone-950">
       <View
-        className="flex-1 bg-cream-50"
+        className="flex-1 bg-cream-50 dark:bg-stone-900"
         style={
           isWide
             ? {

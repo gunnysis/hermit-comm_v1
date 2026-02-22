@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 import type { Comment } from '@/types';
 import { isComment } from '@/types';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -26,7 +27,7 @@ export function useRealtimeComments({
 
     const subscribe = async () => {
       try {
-        console.log('[Realtime] 댓글 구독 시작:', postId);
+        logger.log('[Realtime] 댓글 구독 시작:', postId);
 
         channel = supabase
           .channel(`comments_${postId}`)
@@ -40,17 +41,17 @@ export function useRealtimeComments({
             },
             (payload) => {
               if (!mounted) return;
-              console.log('[Realtime] 댓글 추가:', payload.new);
+              logger.log('[Realtime] 댓글 추가:', payload.new);
               try {
                 if (onInsert && payload.new) {
                   if (isComment(payload.new)) {
                     onInsert(payload.new);
                   } else {
-                    console.error('[Realtime] 잘못된 Comment 데이터:', payload.new);
+                    logger.error('[Realtime] 잘못된 Comment 데이터:', payload.new);
                   }
                 }
               } catch (error) {
-                console.error('[Realtime] INSERT 콜백 에러:', error);
+                logger.error('[Realtime] INSERT 콜백 에러:', error);
               }
             },
           )
@@ -64,35 +65,35 @@ export function useRealtimeComments({
             },
             (payload) => {
               if (!mounted) return;
-              console.log('[Realtime] 댓글 삭제:', payload.old);
+              logger.log('[Realtime] 댓글 삭제:', payload.old);
               try {
                 if (onDelete && payload.old) {
                   if (isComment(payload.old)) {
                     onDelete(payload.old.id);
                   } else {
-                    console.error('[Realtime] 잘못된 Comment 데이터:', payload.old);
+                    logger.error('[Realtime] 잘못된 Comment 데이터:', payload.old);
                   }
                 }
               } catch (error) {
-                console.error('[Realtime] DELETE 콜백 에러:', error);
+                logger.error('[Realtime] DELETE 콜백 에러:', error);
               }
             },
           )
           .subscribe((status, err) => {
             if (!mounted) return;
 
-            console.log('[Realtime] 구독 상태:', status);
+            logger.log('[Realtime] 구독 상태:', status);
 
             if (status === 'CHANNEL_ERROR') {
-              console.error('[Realtime] 채널 에러:', err);
+              logger.error('[Realtime] 채널 에러:', err);
             } else if (status === 'TIMED_OUT') {
-              console.error('[Realtime] 타임아웃');
+              logger.error('[Realtime] 타임아웃');
             } else if (status === 'CLOSED') {
-              console.warn('[Realtime] 채널 닫힘');
+              logger.warn('[Realtime] 채널 닫힘');
             }
           });
       } catch (error) {
-        console.error('[Realtime] 구독 설정 실패:', error);
+        logger.error('[Realtime] 구독 설정 실패:', error);
       }
     };
 
@@ -102,9 +103,9 @@ export function useRealtimeComments({
     return () => {
       mounted = false;
       if (channel) {
-        console.log('[Realtime] 댓글 구독 해제');
+        logger.log('[Realtime] 댓글 구독 해제');
         supabase.removeChannel(channel).catch((err) => {
-          console.error('[Realtime] 채널 제거 실패:', err);
+          logger.error('[Realtime] 채널 제거 실패:', err);
         });
       }
     };

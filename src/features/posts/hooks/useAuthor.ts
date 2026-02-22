@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { storage } from '@/shared/lib/storage';
+import { logger } from '@/shared/utils/logger';
 
 export function useAuthor() {
   const [author, setAuthor] = useState<string>('');
@@ -14,7 +15,7 @@ export function useAuthor() {
           setAuthor(saved);
         }
       } catch (error) {
-        console.error('작성자 불러오기 실패:', error);
+        logger.error('작성자 불러오기 실패:', error);
       } finally {
         setIsLoading(false);
       }

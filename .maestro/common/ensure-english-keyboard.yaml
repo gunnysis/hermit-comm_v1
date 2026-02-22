@@ -1,0 +1,10 @@
+# 영어 입력 전: 키보드가 한국어일 때 한/영 또는 ABC 키 탭으로 영어로 전환 (optional)
+# runFlow로만 호출됨 (appId는 상위 플로우와 동일하게)
+appId: com.gns.hermitcomm.dev
+---
+- tapOn:
+    text: "한/영"
+    optional: true
+- tapOn:
+    text: "ABC"
+    optional: true

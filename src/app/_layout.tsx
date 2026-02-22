@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -8,7 +9,16 @@ import { queryClient } from '@/shared/lib/queryClient';
 import { supabase } from '@/shared/lib/supabase';
 import { AppErrorBoundary } from '@/shared/components/AppErrorBoundary';
 import { NetworkBanner } from '@/shared/components/NetworkBanner';
+import Toast from 'react-native-toast-message';
 import '@/global.css';
+
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+if (!__DEV__ && SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    enabled: true,
+  });
+}
 
 async function checkAndApplyUpdate() {
   if (__DEV__) return;
@@ -95,6 +105,7 @@ export default function RootLayout() {
                 <Stack.Screen name="settings/index" />
               </Stack>
             </View>
+            <Toast />
           </View>
         </AppErrorBoundary>
       </SafeAreaProvider>

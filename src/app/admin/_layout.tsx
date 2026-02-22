@@ -13,6 +13,32 @@ export default function AdminLayout() {
 
   const isLoginScreen = segments[segments.length - 1] === 'login';
 
+  // #region agent log
+  if (typeof fetch === 'function') {
+    const payload = {
+      sessionId: 'd0d0af',
+      runId: 'e2e-debug',
+      hypothesisId: 'A',
+      location: 'admin/_layout.tsx',
+      message: 'admin layout state',
+      data: {
+        isLoginScreen,
+        hasUser: !!user,
+        isAdmin: isAdmin === true,
+        authLoading,
+        isAdminLoading,
+        willRedirect: isLoginScreen && !!user && isAdmin === true && !isAdminLoading,
+      },
+      timestamp: Date.now(),
+    };
+    fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  }
+  // #endregion
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -44,6 +70,23 @@ export default function AdminLayout() {
 
   // 로그인 화면은 별도 처리 없이 Stack에 맡김 (login.tsx에서 이미 관리자면 replace 처리)
   if (isLoginScreen) {
+    // #region agent log
+    if (typeof fetch === 'function') {
+      fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
+        body: JSON.stringify({
+          sessionId: 'd0d0af',
+          runId: 'e2e-debug',
+          hypothesisId: 'B',
+          location: 'admin/_layout.tsx',
+          message: 'rendering login stack (login screen will show)',
+          data: {},
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+    }
+    // #endregion
     return (
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
@@ -54,6 +97,23 @@ export default function AdminLayout() {
 
   // 관리자 영역: 인증 로딩
   if (authLoading) {
+    // #region agent log
+    if (typeof fetch === 'function') {
+      fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
+        body: JSON.stringify({
+          sessionId: 'd0d0af',
+          runId: 'e2e-debug',
+          hypothesisId: 'B',
+          location: 'admin/_layout.tsx',
+          message: 'showing auth loading (확인 중...)',
+          data: {},
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+    }
+    // #endregion
     return (
       <View className="flex-1 items-center justify-center bg-cream-50">
         <ActivityIndicator size="large" color="#FFC300" />
@@ -69,6 +129,23 @@ export default function AdminLayout() {
 
   // 관리자 여부 조회 중
   if (isAdminLoading) {
+    // #region agent log
+    if (typeof fetch === 'function') {
+      fetch('http://127.0.0.1:7253/ingest/90f7134e-6d97-4475-aa60-bbd05c5333c0', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd0d0af' },
+        body: JSON.stringify({
+          sessionId: 'd0d0af',
+          runId: 'e2e-debug',
+          hypothesisId: 'B',
+          location: 'admin/_layout.tsx',
+          message: 'showing isAdmin loading (권한 확인 중...)',
+          data: {},
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+    }
+    // #endregion
     return (
       <View className="flex-1 items-center justify-center bg-cream-50">
         <ActivityIndicator size="large" color="#FFC300" />

@@ -12,12 +12,8 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       },
-      "env": {
-        "APP_ENV": "development"
-      },
-      "cache": {
-        "disabled": false
-      }
+      "env": { "APP_ENV": "development" },
+      "cache": { "disabled": false }
     },
     "preview": {
       "channel": "preview",
@@ -26,12 +22,8 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
       },
-      "env": {
-        "APP_ENV": "preview"
-      },
-      "cache": {
-        "disabled": false
-      }
+      "env": { "APP_ENV": "preview" },
+      "cache": { "disabled": false }
     },
     "production": {
       "channel": "production",
@@ -41,14 +33,8 @@
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
       },
-      "env": {
-        "APP_ENV": "production",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://ygyfxdpxkpubidwaenzq.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_gTb4t7VlouKir9O4MlZKKA_J9JL50nj"
-      },
-      "cache": {
-        "disabled": false
-      }
+      "env": { "APP_ENV": "production" },
+      "cache": { "disabled": false }
     }
   },
   "submit": {

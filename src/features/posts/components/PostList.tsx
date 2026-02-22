@@ -3,6 +3,7 @@ import { RefreshControl, View, Pressable, Text } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Post } from '@/types';
 import { PostCard } from './PostCard';
+import { PostCardSkeleton } from '@/shared/components/Skeleton';
 import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
 
@@ -75,7 +76,13 @@ export function PostList({
   }, [loading, hasMore, posts.length, onLoadMore, handleLoadMorePress]);
 
   if (loading && posts.length === 0) {
-    return <Loading skeleton />;
+    return (
+      <View className="p-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <PostCardSkeleton key={i} />
+        ))}
+      </View>
+    );
   }
 
   if (error && posts.length === 0) {

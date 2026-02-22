@@ -25,9 +25,10 @@ export function Button({
   const isDisabled = disabled || loading;
 
   const variantClasses = {
-    primary: 'bg-happy-500 shadow-lg active:opacity-80',
-    secondary: 'bg-white border-2 border-happy-300 active:bg-cream-50 shadow-md',
-    danger: 'bg-coral-500 shadow-lg active:opacity-80',
+    primary: 'bg-happy-500 dark:bg-happy-600 shadow-lg active:opacity-80',
+    secondary:
+      'bg-white dark:bg-stone-800 border-2 border-happy-300 dark:border-stone-600 active:bg-cream-50 dark:active:bg-stone-700 shadow-md',
+    danger: 'bg-coral-500 dark:bg-coral-600 shadow-lg active:opacity-80',
   };
 
   const sizeClasses = {
@@ -44,7 +45,7 @@ export function Button({
 
   const textColorClasses = {
     primary: 'text-white',
-    secondary: 'text-happy-700',
+    secondary: 'text-happy-700 dark:text-stone-200',
     danger: 'text-white',
   };
 

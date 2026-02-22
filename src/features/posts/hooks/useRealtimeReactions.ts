@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 /**
@@ -60,7 +61,7 @@ export function useRealtimeReactions({
           )
           .subscribe();
       } catch (e) {
-        console.error('[Realtime] 반응 구독 실패:', e);
+        logger.error('[Realtime] 반응 구독 실패:', e);
       }
     };
 

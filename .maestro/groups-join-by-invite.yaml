@@ -1,0 +1,34 @@
+# E2E: 그룹 탭에서 초대 코드 "테스트"로 그룹 참여
+# 사전 조건: 초대 코드가 "테스트"인 그룹 존재 (admin-create-group-invite-test.yaml 선행 실행 권장)
+# 키보드: 에뮬레이터 한국어/영어 키보드 설정. "테스트"는 한글 키보드로 입력.
+appId: com.gns.hermitcomm.dev
+---
+- runFlow: common/launch-app.yaml
+
+# 그룹 탭 이동
+- tapOn: "그룹"
+- extendedWaitUntil:
+    visible: "초대 코드로 참여"
+    timeout: 8000
+
+# 초대 코드 입력란 터치 후 한글 키보드로 전환, "테스트" 입력
+- tapOn:
+    text: "초대 코드 입력"
+    optional: true
+- runFlow: common/ensure-korean-keyboard.yaml
+- inputText: "테스트"
+
+# 참여하기
+- tapOn: "참여하기"
+
+# 완료 알림 대기 후 확인
+- extendedWaitUntil:
+    visible: "확인"
+    timeout: 10000
+- tapOn: "확인"
+
+# 참여한 그룹이 목록에 보이는지 확인
+- extendedWaitUntil:
+    visible: "E2E 초대테스트"
+    timeout: 5000
+- assertVisible: "E2E 초대테스트"

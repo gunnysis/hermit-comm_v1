@@ -1,0 +1,7 @@
+# 한글 입력 전: 키보드가 영어일 때 한/영 키 1회 탭으로 한글로 전환 (optional)
+# runFlow로만 호출됨
+appId: com.gns.hermitcomm.dev
+---
+- tapOn:
+    text: "한/영"
+    optional: true

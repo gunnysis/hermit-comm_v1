@@ -13,29 +13,23 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
 import { ContentEditor } from '@/shared/components/ContentEditor';
+import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { Button } from '@/shared/components/Button';
 import { api } from '@/shared/lib/api';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
+import { useDraft } from '@/features/posts/hooks/useDraft';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { resolveDisplayName } from '@/shared/lib/anonymous';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
+import { postSchema, type PostFormValues } from '@/shared/lib/schemas';
 
-const createPostSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내로 입력해주세요.'),
-  content: z
-    .string()
-    .min(1, '내용을 입력해주세요.')
-    .max(5000, '내용은 5000자 이내로 입력해주세요.'),
-  author: z.string().max(50, '작성자 이름은 50자 이내로 입력해주세요.').optional(),
-});
-
-type CreatePostForm = z.infer<typeof createPostSchema>;
+type CreatePostForm = PostFormValues;
 
 export default function CreateScreen() {
   const BOARD_ID = 1;
@@ -47,14 +41,16 @@ export default function CreateScreen() {
   const { isWide } = useResponsiveLayout();
   const { data: boards } = useBoards();
   const [showName, setShowName] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreatePostForm>({
-    resolver: zodResolver(createPostSchema),
+    resolver: zodResolver(postSchema),
     defaultValues: {
       title: '',
       content: '',
@@ -62,9 +58,35 @@ export default function CreateScreen() {
     },
   });
 
+  const watched = watch();
+  const { loadDraft, clearDraft } = useDraft(BOARD_ID, {
+    title: watched.title ?? '',
+    content: watched.content ?? '',
+    author: watched.author ?? '',
+  });
+
   useEffect(() => {
     if (savedAuthor) setValue('author', savedAuthor);
   }, [savedAuthor, setValue]);
+
+  const draftCheckedRef = React.useRef(false);
+  useEffect(() => {
+    if (draftCheckedRef.current) return;
+    draftCheckedRef.current = true;
+    const draft = loadDraft();
+    if (!draft) return;
+    Alert.alert('임시저장된 글', '임시저장된 글이 있습니다. 복원할까요?', [
+      { text: '취소', style: 'cancel', onPress: () => clearDraft() },
+      {
+        text: '복원',
+        onPress: () => {
+          setValue('title', draft.title);
+          setValue('content', draft.content);
+          setValue('author', draft.author);
+        },
+      },
+    ]);
+  }, [loadDraft, clearDraft, setValue]);
 
   const handleContentChange = useCallback(
     (html: string) => {
@@ -95,6 +117,7 @@ export default function CreateScreen() {
         board_id: BOARD_ID,
         is_anonymous: isAnonymous,
         display_name: displayName,
+        image_url: imageUrl ?? undefined,
       });
 
       if (rawAuthor && rawAuthor !== (savedAuthor ?? '')) {
@@ -102,13 +125,9 @@ export default function CreateScreen() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['boardPosts', BOARD_ID] });
-
-      Alert.alert('완료', '게시글이 작성되었습니다.', [
-        {
-          text: '확인',
-          onPress: () => router.push('/(tabs)'),
-        },
-      ]);
+      clearDraft();
+      Toast.show({ type: 'success', text1: '게시글이 작성되었습니다. ✓' });
+      router.push('/(tabs)' as Parameters<typeof router.push>[0]);
     } catch {
       Alert.alert('오류', '게시글 작성에 실패했습니다.');
     }
@@ -144,6 +163,11 @@ export default function CreateScreen() {
           </View>
 
           <View className="p-4 pb-2">
+            <ImagePicker
+              imageUrl={imageUrl}
+              onImageUrlChange={setImageUrl}
+              disabled={isSubmitting}
+            />
             <Controller
               control={control}
               name="title"

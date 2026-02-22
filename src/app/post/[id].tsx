@@ -6,6 +6,7 @@ import { Input } from '@/shared/components/Input';
 import { Loading } from '@/shared/components/Loading';
 import { ReactionBar } from '@/features/posts/components/ReactionBar';
 import { PostBody } from '@/features/posts/components/PostBody';
+import { EmotionTags } from '@/features/posts/components/EmotionTags';
 import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
@@ -19,6 +20,7 @@ import { formatDate } from '@/shared/utils/format';
 import { validateCommentContent } from '@/shared/utils/validate';
 import { resolveDisplayName } from '@/shared/lib/anonymous';
 import * as Linking from 'expo-linking';
+import Toast from 'react-native-toast-message';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -94,6 +96,20 @@ export default function PostDetailScreen() {
     enabled: postId > 0,
   });
 
+  const { data: postAnalysis, isLoading: analysisLoading } = useQuery({
+    queryKey: ['postAnalysis', postId],
+    queryFn: () => api.getPostAnalysis(postId),
+    enabled: postId > 0,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data !== undefined && data !== null) return false;
+      const updated = query.state.dataUpdatedAt;
+      if (updated && Date.now() - updated > 12000) return false;
+      return 1500;
+    },
+    refetchIntervalInBackground: false,
+  });
+
   useRealtimeComments({
     postId,
     onInsert: useCallback(
@@ -149,6 +165,7 @@ export default function PostDetailScreen() {
       });
       setCommentContent('');
       await refetchComments();
+      Toast.show({ type: 'success', text1: '댓글을 남겼어요 ✓' });
     } catch {
       Alert.alert('오류', '댓글 작성에 실패했습니다.');
     } finally {
@@ -335,8 +352,12 @@ export default function PostDetailScreen() {
                 <Text className="text-xs text-gray-400">{formatDate(post.created_at)}</Text>
               </View>
               <View className="mb-6" accessibilityLabel="게시글 본문">
-                <PostBody content={post.content} />
+                <PostBody content={post.content} imageUrl={post.image_url} />
               </View>
+              <EmotionTags
+                emotions={postAnalysis?.emotions ?? []}
+                isLoading={analysisLoading && postAnalysis == null}
+              />
               <View className="border-t border-cream-200 pt-4 items-start">
                 <ReactionBar
                   reactions={reactions}
