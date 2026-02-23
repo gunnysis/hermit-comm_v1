@@ -32,18 +32,15 @@ export async function getPostAnalysis(postId: number): Promise<PostAnalysis | nu
 
 /**
  * smart-service Edge Function을 직접 호출하여 게시글 감정 분석을 수동 트리거.
- * 일반적으로는 DB Webhook이 자동 호출하므로 직접 호출은 보조적 용도로 사용.
- * 배포 URL: https://qwrjebpsjjdxhhhllqcw.supabase.co/functions/v1/smart-service
+ * DB Webhook 실패·지연 시 fallback으로 사용. 앱에서 14초 후 자동 호출됨.
  */
-export async function invokeSmartService(postId: number, content: string): Promise<string[]> {
+export async function invokeSmartService(
+  postId: number,
+  content: string,
+  title?: string,
+): Promise<string[]> {
   const { data, error } = await supabase.functions.invoke(SMART_SERVICE_FUNCTION, {
-    body: {
-      type: 'INSERT',
-      table: 'posts',
-      schema: 'public',
-      record: { id: postId, content },
-      old_record: null,
-    },
+    body: { postId, content, title },
   });
 
   if (error) {
