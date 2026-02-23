@@ -4,6 +4,7 @@ import { supabase } from '@/shared/lib/supabase';
 jest.mock('@/shared/lib/supabase', () => ({
   supabase: {
     from: jest.fn(),
+    rpc: jest.fn(),
     auth: { getUser: jest.fn() },
   },
 }));
@@ -17,6 +18,7 @@ describe('api', () => {
       range: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       single: jest.fn(),
+      maybeSingle: jest.fn(),
       insert: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
       delete: jest.fn().mockReturnThis(),
@@ -88,6 +90,79 @@ describe('api', () => {
       });
 
       expect(result.id).toBe(1);
+    });
+  });
+
+  describe('getPostAnalysis', () => {
+    it('게시글 분석 결과를 반환한다', async () => {
+      const mockAnalysis = {
+        id: 1,
+        post_id: 1,
+        emotions: ['슬픔', '외로움'],
+        analyzed_at: '2025-01-01T00:00:00Z',
+      };
+      (supabase.from as jest.Mock)().select().eq().maybeSingle.mockResolvedValue({
+        data: mockAnalysis,
+        error: null,
+      });
+
+      const result = await api.getPostAnalysis(1);
+
+      expect(result?.emotions).toEqual(['슬픔', '외로움']);
+    });
+
+    it('분석 결과 없으면 null을 반환한다', async () => {
+      (supabase.from as jest.Mock)().select().eq().maybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const result = await api.getPostAnalysis(1);
+
+      expect(result).toBeNull();
+    });
+
+    it('에러 시 null을 반환한다', async () => {
+      (supabase.from as jest.Mock)()
+        .select()
+        .eq()
+        .maybeSingle.mockResolvedValue({
+          data: null,
+          error: { message: '조회 실패' },
+        });
+
+      const result = await api.getPostAnalysis(1);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getEmotionTrend', () => {
+    it('감정 트렌드를 반환한다', async () => {
+      const mockTrend = [
+        { emotion: '슬픔', cnt: 5 },
+        { emotion: '외로움', cnt: 3 },
+      ];
+      (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: mockTrend,
+        error: null,
+      });
+
+      const result = await api.getEmotionTrend(7);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].emotion).toBe('슬픔');
+    });
+
+    it('에러 시 빈 배열을 반환한다', async () => {
+      (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: null,
+        error: { message: 'RPC 에러' },
+      });
+
+      const result = await api.getEmotionTrend(7);
+
+      expect(result).toEqual([]);
     });
   });
 

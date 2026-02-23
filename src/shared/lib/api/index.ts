@@ -20,5 +20,6 @@ export const api = {
   createReaction: reactions.createReaction,
   getEmotionTrend: analysis.getEmotionTrend,
   getPostAnalysis: analysis.getPostAnalysis,
+  invokeSmartService: analysis.invokeSmartService,
   healthCheck: health.healthCheck,
 };

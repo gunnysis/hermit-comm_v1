@@ -91,5 +91,12 @@ enabled = true
 policy = "per_worker"
 inspector_port = 8083
 
+# Edge Functions
+[functions.analyze-post]
+verify_jwt = false
+
+[functions.smart-service]
+verify_jwt = false
+
 [analytics]
 enabled = false

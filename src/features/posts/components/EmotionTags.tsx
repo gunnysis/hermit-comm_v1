@@ -26,7 +26,7 @@ export function EmotionTags({ emotions, isLoading, className = '' }: EmotionTags
   if (isLoading) {
     return (
       <View className={`mb-4 ${className}`.trim()}>
-        <Text className="text-sm text-stone-500 dark:text-stone-400 mb-2">🏷 오늘의 감정</Text>
+        <Text className="text-sm text-stone-500 dark:text-stone-400 mb-2">🏷 이 글의 감정</Text>
         <EmotionTagsSkeleton />
       </View>
     );
@@ -40,7 +40,7 @@ export function EmotionTags({ emotions, isLoading, className = '' }: EmotionTags
     <View
       className={`mb-4 ${className}`.trim()}
       accessibilityLabel={`감정 태그: ${emotions.join(', ')}`}>
-      <Text className="text-sm text-stone-500 dark:text-stone-400 mb-2">🏷 오늘의 감정</Text>
+      <Text className="text-sm text-stone-500 dark:text-stone-400 mb-2">🏷 이 글의 감정</Text>
       <View className="flex-row flex-wrap gap-2">
         {emotions.map((emotion) => (
           <View key={emotion} className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1">
