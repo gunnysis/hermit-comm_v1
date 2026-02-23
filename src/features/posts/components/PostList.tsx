@@ -6,6 +6,7 @@ import { PostCard } from './PostCard';
 import { PostCardSkeleton } from '@/shared/components/Skeleton';
 import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
+import { EmptyState } from '@/shared/components/EmptyState';
 
 interface PostListProps {
   posts: Post[];
@@ -14,6 +15,9 @@ interface PostListProps {
   onRefresh: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
+  /** 빈 목록 시 표시 (홈/그룹별 문구) */
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 export function PostList({
@@ -23,6 +27,8 @@ export function PostList({
   onRefresh,
   onLoadMore,
   hasMore = true,
+  emptyTitle,
+  emptyDescription,
 }: PostListProps) {
   const [refreshing, setRefreshing] = useState(false);
   const onEndReachedFired = useRef(false);
@@ -75,6 +81,17 @@ export function PostList({
     return null;
   }, [loading, hasMore, posts.length, onLoadMore, handleLoadMorePress]);
 
+  const ListEmpty = useCallback(
+    () => (
+      <EmptyState
+        icon="📝"
+        title={emptyTitle ?? '아직 글이 없어요'}
+        description={emptyDescription ?? '첫 번째 글을 남겨보세요.'}
+      />
+    ),
+    [emptyTitle, emptyDescription],
+  );
+
   if (loading && posts.length === 0) {
     return (
       <View className="p-4">
@@ -90,25 +107,28 @@ export function PostList({
   }
 
   return (
-    <FlashList
-      data={posts}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={({ item }) => <PostCard post={item} />}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#FFC300"
-          colors={['#FFC300', '#FF7366', '#C39BFF']}
-        />
-      }
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.3}
-      onMomentumScrollBegin={() => {
-        onEndReachedFired.current = false;
-      }}
-      ListFooterComponent={ListFooter}
-      contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
-    />
+    <View style={{ flex: 1 }} className="min-h-0">
+      <FlashList
+        data={posts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <PostCard post={item} />}
+        ListEmptyComponent={ListEmpty}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFC300"
+            colors={['#FFC300', '#FF7366', '#C39BFF']}
+          />
+        }
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        onMomentumScrollBegin={() => {
+          onEndReachedFired.current = false;
+        }}
+        ListFooterComponent={ListFooter}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
+      />
+    </View>
   );
 }

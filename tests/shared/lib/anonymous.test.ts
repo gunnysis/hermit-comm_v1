@@ -1,7 +1,8 @@
 import { generateAlias, resolveDisplayName } from '@/shared/lib/anonymous';
+import { ALIAS_ADJECTIVES, ALIAS_ANIMALS } from '@/shared/lib/constants';
 
-const ADJECTIVES = ['따뜻한', '조용한', '빛나는', '단단한', '부드러운'];
-const ANIMALS = ['고래', '여우', '부엉이', '고양이', '새'];
+const ADJECTIVES: readonly string[] = ALIAS_ADJECTIVES;
+const ANIMALS: readonly string[] = ALIAS_ANIMALS;
 
 describe('generateAlias', () => {
   it('seed가 null이면 "익명"을 반환한다', () => {

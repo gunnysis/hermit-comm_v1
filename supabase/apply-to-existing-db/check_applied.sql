@@ -31,3 +31,15 @@ SELECT '011_emotion_trend_rpc' AS migration,
 -- 012_group_delete_rls (groups DELETE 정책)
 SELECT '012_group_delete_rls' AS migration,
        EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'groups' AND policyname = 'Only app_admin owner can delete own group') AS group_delete_policy_exists;
+
+-- 013_fix_view_image_url (뷰에 image_url 컬럼 존재)
+SELECT '013_fix_view_image_url' AS migration,
+       EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'posts_with_like_count' AND column_name = 'image_url') AS view_has_image_url;
+
+-- 014_recommend_posts_by_emotion (RPC 존재)
+SELECT '014_recommend_posts_by_emotion' AS migration,
+       EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'get_recommended_posts_by_emotion') AS rpc_exists;
+
+-- 015_webhook_analyze_post_trigger (트리거 존재)
+SELECT '015_webhook_analyze_post_trigger' AS migration,
+       EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trigger_analyze_post_on_insert' AND tgrelid = 'public.posts'::regclass) AS trigger_exists;

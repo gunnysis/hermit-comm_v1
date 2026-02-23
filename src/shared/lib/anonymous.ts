@@ -1,4 +1,7 @@
-export type AnonMode = 'always_anon' | 'allow_choice' | 'require_name';
+import type { AnonMode } from '@/types';
+import { ALIAS_ADJECTIVES, ALIAS_ANIMALS } from './constants';
+
+export type { AnonMode };
 
 export interface ResolveDisplayNameParams {
   anonMode: AnonMode;
@@ -15,9 +18,6 @@ export interface ResolveDisplayNameResult {
   displayName: string;
 }
 
-const ADJECTIVES = ['따뜻한', '조용한', '빛나는', '단단한', '부드러운'];
-const ANIMALS = ['고래', '여우', '부엉이', '고양이', '새'];
-
 function hashString(input: string): number {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {
@@ -29,8 +29,8 @@ function hashString(input: string): number {
 export function generateAlias(seed: string | null | undefined): string {
   if (!seed) return '익명';
   const hash = hashString(seed);
-  const adj = ADJECTIVES[hash % ADJECTIVES.length];
-  const animal = ANIMALS[(hash >>> 8) % ANIMALS.length];
+  const adj = ALIAS_ADJECTIVES[hash % ALIAS_ADJECTIVES.length];
+  const animal = ALIAS_ANIMALS[(hash >>> 8) % ALIAS_ANIMALS.length];
   const num = (hash % 9) + 1;
   return `${adj} ${animal} ${num}`;
 }

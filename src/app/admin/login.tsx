@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { replaceAdmin } from '@/shared/lib/navigation';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
 import { Button } from '@/shared/components/Button';
@@ -43,7 +44,7 @@ export default function AdminLoginScreen() {
     setSubmitting(true);
     try {
       await auth.signInWithPassword(trimmedEmail, trimmedPassword);
-      router.replace('/admin' as Parameters<typeof router.replace>[0]);
+      replaceAdmin(router);
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'message' in err
@@ -62,7 +63,7 @@ export default function AdminLoginScreen() {
   // 이미 로그인된 관리자면 /admin으로 (훅 호출 순서 유지를 위해 useEffect 사용)
   useEffect(() => {
     if (user && isAdmin === true && !isAdminLoading) {
-      router.replace('/admin' as Parameters<typeof router.replace>[0]);
+      replaceAdmin(router);
     }
   }, [user, isAdmin, isAdminLoading, router]);
 

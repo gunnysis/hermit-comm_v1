@@ -23,7 +23,7 @@ if (!__DEV__ && SENTRY_DSN) {
     enabled: true,
     environment: appEnv ?? 'development',
     release: appVersion ? `gns-hermit-comm@${appVersion}` : undefined,
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // 이메일·본문 등 PII 제거 (에러 메시지/extra에서)
       const message = event.message;
       if (message) {

@@ -10,6 +10,7 @@ import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { pushGroup } from '@/shared/lib/navigation';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
@@ -91,7 +92,10 @@ export default function MyGroupsScreen() {
     return (
       <Container>
         <StatusBar style="dark" />
-        <ErrorView message="그룹 목록을 불러오지 못했습니다." onRetry={refetch} />
+        <ErrorView
+          message={toFriendlyErrorMessage(error, '그룹 목록을 불러오지 못했습니다.')}
+          onRetry={refetch}
+        />
       </Container>
     );
   }
@@ -151,9 +155,7 @@ export default function MyGroupsScreen() {
                   key={group.id}
                   className="bg-white rounded-2xl border border-cream-200 overflow-hidden">
                   <Pressable
-                    onPress={() =>
-                      router.push(`/groups/${group.id}` as Parameters<typeof router.push>[0])
-                    }
+                    onPress={() => pushGroup(router, group.id)}
                     className="px-4 py-4 active:opacity-80">
                     <View className="flex-row items-center justify-between">
                       <View className="flex-1">

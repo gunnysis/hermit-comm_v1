@@ -1,43 +1,21 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
-import { createBoardPost } from '@/features/community/api/communityApi';
+import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
+import { AnonModeInfo } from '@/features/posts/components/AnonModeInfo';
 import { Button } from '@/shared/components/Button';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
 import { ContentEditor } from '@/shared/components/ContentEditor';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
-import { resolveDisplayName } from '@/shared/lib/anonymous';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useMemo, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import React, { useMemo } from 'react';
+import { Controller } from 'react-hook-form';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
-
-const createPostSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내로 입력해주세요.'),
-  content: z
-    .string()
-    .min(1, '내용을 입력해주세요.')
-    .max(5000, '내용은 5000자 이내로 입력해주세요.'),
-});
-
-type CreatePostForm = z.infer<typeof createPostSchema>;
 
 export default function GroupCreatePostScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { groupId: groupIdParam, boardId: boardIdParam } = useLocalSearchParams<{
@@ -56,61 +34,27 @@ export default function GroupCreatePostScreen() {
   const boardId = boardIdFromParam ?? board?.id ?? null;
   const anonMode = board?.anon_mode ?? 'always_anon';
 
-  const [showName, setShowName] = useState(false);
-
   const {
     control,
     handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<CreatePostForm>({
-    resolver: zodResolver(createPostSchema),
-    defaultValues: { title: '', content: '' },
-  });
-
-  const handleContentChange = useCallback(
-    (html: string) => {
-      setValue('content', html);
-    },
-    [setValue],
-  );
-
-  const onSubmit = async (data: CreatePostForm) => {
-    if (!boardId || Number.isNaN(groupId)) {
-      Alert.alert('오류', '게시판 정보를 불러오지 못했습니다.');
-      return;
-    }
-
-    try {
-      const { isAnonymous, displayName } = resolveDisplayName({
-        anonMode,
-        rawAuthorName: '',
-        userId: user?.id ?? null,
-        boardId,
-        groupId,
-        wantNameOverride: showName,
-      });
-
-      await createBoardPost({
-        title: data.title.trim(),
-        content: data.content.trim(),
-        author: '',
-        boardId,
-        groupId,
-        isAnonymous,
-        displayName,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['groupPosts', groupId, boardId] });
-
+    handleContentChange,
+    errors,
+    isSubmitting,
+    showName,
+    setShowName,
+    onSubmit: handleFormSubmit,
+  } = useCreatePost({
+    boardId,
+    groupId,
+    user,
+    anonMode,
+    onSuccess: () => {
       Alert.alert('완료', '게시글이 작성되었습니다.', [
         { text: '확인', onPress: () => router.back() },
       ]);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : '게시글 작성에 실패했습니다.';
-      Alert.alert('오류', msg);
-    }
-  };
+    },
+    onError: (message) => Alert.alert('오류', message),
+  });
 
   return (
     <Container>
@@ -163,26 +107,11 @@ export default function GroupCreatePostScreen() {
             />
 
             <View className="mt-2 mb-2">
-              {anonMode === 'always_anon' ? (
-                <Text className="text-xs text-gray-500">
-                  이 게시판의 글은 항상 익명으로 표시됩니다.
-                </Text>
-              ) : anonMode === 'allow_choice' ? (
-                <Pressable
-                  onPress={() => setShowName((prev) => !prev)}
-                  className="flex-row items-center gap-2 py-1 active:opacity-80">
-                  <View
-                    className={`w-4 h-4 rounded border ${
-                      showName ? 'bg-happy-400 border-happy-400' : 'border-cream-400'
-                    }`}
-                  />
-                  <Text className="text-xs text-gray-600">이번 글에 내 닉네임을 함께 표시하기</Text>
-                </Pressable>
-              ) : (
-                <Text className="text-xs text-gray-500">
-                  이 게시판의 글은 닉네임으로 표시됩니다.
-                </Text>
-              )}
+              <AnonModeInfo
+                anonMode={anonMode}
+                showName={showName}
+                onToggle={() => setShowName((prev) => !prev)}
+              />
             </View>
           </View>
         </ScrollView>
@@ -190,7 +119,7 @@ export default function GroupCreatePostScreen() {
         <View className="px-4 pb-4 pt-2 bg-cream-50 border-t border-cream-200">
           <Button
             title="작성하기"
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(handleFormSubmit)}
             loading={isSubmitting}
             disabled={isSubmitting}
             accessibilityLabel="게시글 작성하기"

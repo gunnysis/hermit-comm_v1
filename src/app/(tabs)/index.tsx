@@ -3,6 +3,8 @@ import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Container } from '@/shared/components/Container';
+import { DEFAULT_PUBLIC_BOARD_ID } from '@/shared/lib/constants';
+import { pushAdmin, pushSearch, pushCreate } from '@/shared/lib/navigation';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
@@ -16,7 +18,6 @@ import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 import type { Post } from '@/types';
 
 export default function HomeScreen() {
-  const BOARD_ID = 1;
   const router = useRouter();
   useResponsiveLayout();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
@@ -31,7 +32,7 @@ export default function HomeScreen() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useBoardPosts(BOARD_ID, sortOrder);
+  } = useBoardPosts(DEFAULT_PUBLIC_BOARD_ID, sortOrder);
 
   const posts = useMemo(
     () => (data?.pages.flatMap((p: Post[]) => p) ?? []) as Post[],
@@ -66,14 +67,14 @@ export default function HomeScreen() {
   const adminButton =
     !isAdminLoading && isAdmin === true ? (
       <Pressable
-        onPress={() => router.push('/admin' as Parameters<typeof router.push>[0])}
+        onPress={() => pushAdmin(router)}
         className="ml-3 px-2 py-1.5 rounded-lg"
         accessibilityLabel="관리자 페이지">
         <Text className="text-xs font-semibold text-gray-600">관리자</Text>
       </Pressable>
     ) : undefined;
 
-  const boardDescription = boards?.find((b) => b.id === BOARD_ID)?.description;
+  const boardDescription = boards?.find((b) => b.id === DEFAULT_PUBLIC_BOARD_ID)?.description;
 
   return (
     <Container>
@@ -90,7 +91,7 @@ export default function HomeScreen() {
           )}
           <View className="flex-row items-center gap-2 mt-3">
             <Pressable
-              onPress={() => router.push('/search' as Parameters<typeof router.push>[0])}
+              onPress={() => pushSearch(router)}
               className="flex-1 flex-row items-center rounded-2xl border-2 border-cream-200 dark:border-stone-600 bg-cream-50 dark:bg-stone-800 px-4 py-3"
               accessibilityLabel="검색"
               accessibilityRole="button"
@@ -112,12 +113,11 @@ export default function HomeScreen() {
           onRefresh={handleRefresh}
           onLoadMore={handleLoadMore}
           hasMore={!!hasNextPage}
+          emptyTitle="아직 글이 없어요"
+          emptyDescription="따뜻한 이야기를 남겨주세요."
         />
 
-        <FloatingActionButton
-          onPress={() => router.push('/create' as Parameters<typeof router.push>[0])}
-          accessibilityLabel="새 글 작성"
-        />
+        <FloatingActionButton onPress={() => pushCreate(router)} accessibilityLabel="새 글 작성" />
       </View>
     </Container>
   );

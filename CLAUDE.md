@@ -47,7 +47,7 @@ src/
 │   └── comments/     # CommentList, useRealtimeComments
 ├── shared/
 │   ├── components/   # 공통 UI (Button, Input, Container, ContentEditor, Loading, ErrorView, ScreenHeader, SortTabs, FloatingActionButton)
-│   ├── lib/          # supabase, api, queryClient, admin, anonymous, errors, storage
+│   ├── lib/          # supabase, api, queryClient, admin, anonymous, errors, constants, navigation, storage
 │   ├── hooks/        # useNetworkStatus, useResponsiveLayout
 │   └── utils/        # validate, format, logger, html(stripHtml, getExcerpt, isLikelyHtml)
 └── types/            # Post, Comment, Board, Reaction 등 전역 타입
@@ -110,11 +110,12 @@ npm run update:production
 
 ## 6. DB·마이그레이션
 
-`supabase/migrations/` 내 파일은 **번호 순서대로** 적용 (001, 002, 003, 009, 010, 011 등). 요약은 `supabase/migrations/README.md`.
+`supabase/migrations/` 내 파일은 **번호 순서대로** 적용 (001, 002, 003, 009 … 015, 016). 요약은 `supabase/migrations/README.md`.
 
 - **관리자 등록**: Supabase Auth에 이메일 사용자 생성 후 `INSERT INTO app_admin (user_id) VALUES (...)`.
 - **RLS**: 글/댓글 읽기는 공개 또는 그룹 승인 멤버만. groups/boards INSERT는 `app_admin` 등록자만.
 - **로컬 Supabase**: `supabase start` → 마이그레이션 자동 적용.
+- **감정 분석 자동 호출**: 마이그레이션 016부터 DB 트리거는 제거됨. **Supabase Dashboard → Database → Webhooks**에서 **posts / Insert** → `analyze-post` Webhook을 반드시 추가해야 새 글 작성 시 감정 분석이 호출됨. Edge Functions 배포·시크릿(`ANTHROPIC_API_KEY`)은 `supabase/functions/CONSOLE_SETUP.md` 참고.
 
 ---
 
@@ -127,10 +128,14 @@ npm run update:production
 | 관리자 판단 함수 | `src/shared/lib/admin.ts` → `checkAppAdmin(userId)` |
 | 익명 표시명 결정 | `src/shared/lib/anonymous.ts` → `resolveDisplayName`, `generateAlias` |
 | Supabase 클라이언트 | `src/shared/lib/supabase.ts` |
-| 공통 API | `src/shared/lib/api.ts` |
+| 상수 | `src/shared/lib/constants.ts` → `DEFAULT_PUBLIC_BOARD_ID` |
+| 라우팅 헬퍼 | `src/shared/lib/navigation.ts` → `pushAdmin`, `pushPost`, `pushGroup` 등 |
+| 공통 API | `src/shared/lib/api.ts` (및 `api/` 하위 모듈) |
+| 감정 분석 API | `src/shared/lib/api/analysis.ts` → `getPostAnalysis`, `invokeSmartService`(analyze-post-on-demand) |
 | HTML 유틸 | `src/shared/utils/html.ts` → `stripHtml`, `getExcerpt`, `isLikelyHtml` |
 | 글 작성 에디터 | `src/shared/components/ContentEditor.tsx` |
 | 글 본문 표시 | `src/features/posts/components/PostBody.tsx` |
+| 감정 분석 훅·UI | `src/features/posts/hooks/usePostDetailAnalysis.ts`, `src/features/posts/components/EmotionTags.tsx` |
 | 전역 타입 | `src/types/index.ts` |
 
 ---
@@ -165,6 +170,7 @@ npm run update:production
 - **작성**: `ContentEditor`(TenTap 래퍼) 사용. 공개/그룹 작성·수정 화면에서 본문은 HTML로 저장됨. 글자 수 표시(N/5000자), `validatePostContent`로 stripHtml 기반 실제 텍스트 검사.
 - **보기**: `PostBody`가 `isLikelyHtml(content)`로 HTML 여부 판단 후, HTML이면 `react-native-render-html`로 렌더(script/iframe 등 제한), 실패 시 plain 텍스트 fallback. 빈 본문은 "내용 없음" + 접근성 라벨.
 - **목록 미리보기**: `PostCard`에서 `getExcerpt(post.content, 120)`으로 요약 표시.
+- **감정 분석**: `post_analysis` 테이블·`posts_with_like_count` 뷰의 `emotions` 컬럼. 상세 화면은 `usePostDetailAnalysis` → `getPostAnalysis`로 조회 후 `EmotionTags`로 표시. 자동 분석은 Edge Function `analyze-post`(Webhook 호출). 수동 재분석은 `invokeSmartService(..., 'analyze-post-on-demand')`. 설정·배포: `supabase/functions/CONSOLE_SETUP.md`.
 
 ---
 
@@ -208,4 +214,5 @@ Maestro CLI 설치: [Windows](https://docs.maestro.dev/getting-started/installin
 - **캐시 무효화**: 게시글/댓글 생성·수정·삭제 후 반드시 관련 쿼리 키(`boardPosts`, `groupPosts`, `post` 등) `invalidateQueries` 호출.
 - **OTA vs Production 빌드**: 네이티브 의존성 추가/변경(예: TenTap, react-native-webview) 시에는 **Production 빌드 후 스토어 제출**이 필요. OTA는 JS 번들만 갱신하므로 새 네이티브 모듈이 포함되지 않음.
 - **EAS 의존성 설치**: 루트 `.npmrc`에 `legacy-peer-deps=true` 설정. TenTap 등 React 18 peer와의 호환용.
+- **Edge Functions·감정 분석**: 배포는 `supabase functions deploy analyze-post` 등. `ANTHROPIC_API_KEY` 시크릿 및 **Database Webhook(posts INSERT → analyze-post)** 설정은 `supabase/functions/CONSOLE_SETUP.md` 참고.
 - **상세 문서**: `docs/ARCHITECTURE.md`, `docs/supabase_setup.md`, `dev.md` 참고.

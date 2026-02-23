@@ -79,6 +79,14 @@ src/
 
 ---
 
+## 5.1 상수·라우팅·캐시 무효화
+
+- **상수**: `shared/lib/constants.ts`에 `DEFAULT_PUBLIC_BOARD_ID` 정의. 홈·작성 화면에서만 참조.
+- **라우팅 헬퍼**: `shared/lib/navigation.ts`에 `pushAdmin`, `pushPost`, `pushGroup` 등. 타입 단언은 헬퍼 내부에만 두고, 화면에서는 헬퍼 호출만.
+- **캐시 무효화**: 댓글 작성/삭제 시 `post.board_id`/`post.group_id`가 있으면 `boardPosts`, `groupPosts` 무효화. 글 삭제 시에도 동일 규칙 적용.
+
+---
+
 ## 6. 인증·익명 정책 요약
 
 - **인증**: 앱 시작 시 Supabase 익명 로그인(`signInAnonymously`). `useAuth`로 세션·로딩·에러 관리.

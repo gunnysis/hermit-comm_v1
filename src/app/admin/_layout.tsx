@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { replaceAdmin, replaceAdminLogin } from '@/shared/lib/navigation';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
@@ -19,14 +20,14 @@ export default function AdminLayout() {
     if (isLoginScreen) {
       // 로그인 화면: 이미 관리자로 로그인된 경우 /admin으로
       if (user && isAdmin === true && !isAdminLoading) {
-        router.replace('/admin' as Parameters<typeof router.replace>[0]);
+        replaceAdmin(router);
       }
       return;
     }
 
     // 관리자 홈 등: 로그인 필요
     if (!user) {
-      router.replace('/admin/login' as Parameters<typeof router.replace>[0]);
+      replaceAdminLogin(router);
       return;
     }
 

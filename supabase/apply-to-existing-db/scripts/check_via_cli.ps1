@@ -7,5 +7,5 @@ Write-Host "Running: supabase migration list" -ForegroundColor Cyan
 Write-Host ""
 supabase migration list 2>&1
 Write-Host ""
-Write-Host "Apply these repo migrations in order: 001, 002, 003, 009, 010, 011, 012" -ForegroundColor Yellow
+Write-Host "Apply these repo migrations in order: 001, 002, 003, 009, 010, 011, 012, 013, 014, 015" -ForegroundColor Yellow
 Write-Host "If any show only under Local (not Remote), run: supabase db push" -ForegroundColor Yellow

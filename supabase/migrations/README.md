@@ -12,6 +12,10 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 | 3 | `003_grants.sql` | anon/authenticated 권한 부여 + posts_with_like_count SELECT |
 | … | `009`–`011` | (기존 마이그레이션) |
 | 12 | `012_group_delete_rls.sql` | groups DELETE RLS(본인 소유+app_admin), posts/comments board_id ON DELETE CASCADE |
+| 13 | `013_fix_view_image_url.sql` | posts_with_like_count 뷰에 image_url 추가 |
+| 14 | `014_recommend_posts_by_emotion.sql` | get_recommended_posts_by_emotion(post_id, limit) RPC — 감정 기반 추천 |
+| 15 | `015_webhook_analyze_post_trigger.sql` | posts INSERT 시 analyze-post Edge Function 호출 트리거 (CONSOLE_SETUP §4 대체) |
+| 16 | `016_analyze_post_trigger_auth.sql` | 트리거 제거. 감정 분석 자동 호출은 Database Webhook(posts INSERT → analyze-post)으로 설정 |
 
 ## 최종 스키마 요약
 

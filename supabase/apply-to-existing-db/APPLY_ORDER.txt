@@ -9,3 +9,6 @@
 5. ../migrations/010_image_attachment.sql
 6. ../migrations/011_emotion_trend_rpc.sql
 7. ../migrations/012_group_delete_rls.sql
+8. ../migrations/013_fix_view_image_url.sql
+9. ../migrations/014_recommend_posts_by_emotion.sql
+10. ../migrations/015_webhook_analyze_post_trigger.sql

@@ -2,6 +2,7 @@ import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { pushGroupCreate } from '@/shared/lib/navigation';
 import { Container } from '@/shared/components/Container';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
@@ -13,7 +14,7 @@ import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useGroupPosts } from '@/features/community/hooks/useGroupPosts';
-import { getGroupPosts, searchGroupPosts } from '@/features/community/api/communityApi';
+import { searchGroupPosts } from '@/features/community/api/communityApi';
 import type { Post } from '@/types';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 
@@ -24,8 +25,6 @@ export default function GroupBoardScreen() {
 
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
   const [selectedBoardIndex, setSelectedBoardIndex] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,25 +41,24 @@ export default function GroupBoardScreen() {
   const currentBoardId = board?.id ?? null;
 
   const {
-    data: queryData,
+    data: infiniteData,
     isLoading: postsLoading,
     error: postsError,
     refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useGroupPosts(Number.isNaN(groupId) ? null : groupId, currentBoardId, sortOrder);
 
   useEffect(() => {
-    if (queryData !== undefined && !isSearchMode) {
-      setPosts(queryData);
-      setOffset(queryData.length);
-      setHasMore(queryData.length === 20);
+    if (infiniteData && !isSearchMode) {
+      setPosts(infiniteData.pages.flat());
     }
-  }, [queryData, isSearchMode]);
+  }, [infiniteData, isSearchMode]);
 
   useEffect(() => {
     setSearchInput('');
     setSearchQuery('');
-    setOffset(0);
-    setHasMore(true);
   }, [selectedBoardIndex]);
 
   useRealtimePosts({
@@ -90,7 +88,6 @@ export default function GroupBoardScreen() {
       try {
         const result = await searchGroupPosts(groupId, currentBoardId, searchQuery);
         setPosts(result);
-        setHasMore(false);
       } catch {
         // 무시
       } finally {
@@ -102,27 +99,9 @@ export default function GroupBoardScreen() {
   }, [isSearchMode, currentBoardId, groupId, searchQuery, refetch]);
 
   const handleLoadMore = useCallback(async () => {
-    if (!hasMore || loading || !currentBoardId || !groupId || isSearchMode) return;
-
-    try {
-      const result = await getGroupPosts(groupId, currentBoardId, {
-        sortOrder,
-        limit: 20,
-        offset,
-      });
-      if (result.length < 20) {
-        setHasMore(false);
-      }
-      setPosts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const newItems = result.filter((p) => !existingIds.has(p.id));
-        return newItems.length > 0 ? [...prev, ...newItems] : prev;
-      });
-      setOffset((prev) => prev + result.length);
-    } catch {
-      setHasMore(false);
-    }
-  }, [hasMore, loading, currentBoardId, groupId, sortOrder, offset, isSearchMode]);
+    if (!hasNextPage || isFetchingNextPage || isSearchMode) return;
+    await fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, isSearchMode, fetchNextPage]);
 
   const handleSearch = useCallback(async () => {
     const q = searchInput.trim();
@@ -137,7 +116,6 @@ export default function GroupBoardScreen() {
       const result = await searchGroupPosts(groupId, currentBoardId, q);
       setSearchQuery(q);
       setPosts(result);
-      setHasMore(false);
     } catch {
       // 무시
     } finally {
@@ -153,11 +131,7 @@ export default function GroupBoardScreen() {
 
   const handleCreatePost = useCallback(() => {
     if (currentBoardId) {
-      router.push(
-        `/groups/create?groupId=${groupId}&boardId=${currentBoardId}` as Parameters<
-          typeof router.push
-        >[0],
-      );
+      pushGroupCreate(router, groupId, currentBoardId);
     }
   }, [router, groupId, currentBoardId]);
 
@@ -265,7 +239,9 @@ export default function GroupBoardScreen() {
             error={error ? '게시글을 불러오지 못했습니다.' : null}
             onRefresh={handleRefresh}
             onLoadMore={handleLoadMore}
-            hasMore={!isSearchMode && hasMore}
+            hasMore={!isSearchMode && !!hasNextPage}
+            emptyTitle="이 그룹에 아직 글이 없어요"
+            emptyDescription="첫 글을 남겨보세요."
           />
         )}
 

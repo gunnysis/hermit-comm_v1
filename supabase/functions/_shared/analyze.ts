@@ -57,11 +57,13 @@ export async function analyzeAndSave(params: {
 
   const anthropic = new Anthropic({ apiKey: anthropicApiKey });
 
+  const MODEL = Deno.env.get('ANTHROPIC_MODEL') ?? 'claude-haiku-4-5-20251001';
+
   // 제목이 있으면 포함해 분석 정확도 향상 (최대 2000자 유지)
   const inputText = title ? `제목: ${title}\n\n내용: ${text.slice(0, 1900)}` : text.slice(0, 2000);
 
   const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL,
     max_tokens: 256,
     messages: [
       {

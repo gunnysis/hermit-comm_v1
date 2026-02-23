@@ -11,6 +11,7 @@ import { ContentEditor } from '@/shared/components/ContentEditor';
 import { Button } from '@/shared/components/Button';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { api } from '@/shared/lib/api';
+import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
@@ -98,8 +99,8 @@ export default function EditPostScreen() {
       Alert.alert('완료', '게시글이 수정되었습니다.', [
         { text: '확인', onPress: () => router.back() },
       ]);
-    } catch {
-      Alert.alert('오류', '게시글 수정에 실패했습니다.');
+    } catch (e) {
+      Alert.alert('오류', toFriendlyErrorMessage(e, '게시글 수정에 실패했습니다.'));
     } finally {
       setLoading(false);
     }

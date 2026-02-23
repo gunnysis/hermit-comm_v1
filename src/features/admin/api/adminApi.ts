@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabase';
+import { APIError } from '@/shared/lib/api/error';
 import { logger } from '@/shared/utils/logger';
 
 export interface CreateGroupWithBoardInput {
@@ -31,14 +32,14 @@ export async function createGroupWithBoard(
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (userError) throw userError;
-  if (!user) throw new Error('로그인이 필요합니다.');
+  if (userError) throw new APIError(500, userError.message, undefined, userError);
+  if (!user) throw new APIError(401, '로그인이 필요합니다.');
 
   const { name, inviteCode, description } = input;
   const trimmedName = name.trim();
   const trimmedCode = inviteCode.trim();
-  if (!trimmedName) throw new Error('그룹명을 입력해주세요.');
-  if (!trimmedCode) throw new Error('초대 코드를 입력해주세요.');
+  if (!trimmedName) throw new APIError(400, '그룹명을 입력해주세요.');
+  if (!trimmedCode) throw new APIError(400, '초대 코드를 입력해주세요.');
 
   const { data: group, error: groupError } = await supabase
     .from('groups')
@@ -54,9 +55,9 @@ export async function createGroupWithBoard(
 
   if (groupError) {
     logger.error('[adminApi] groups INSERT 에러:', groupError.message);
-    throw groupError;
+    throw new APIError(500, groupError.message, groupError.code, groupError);
   }
-  if (!group) throw new Error('그룹 생성 결과를 받지 못했습니다.');
+  if (!group) throw new APIError(500, '그룹 생성 결과를 받지 못했습니다.');
 
   const { error: memberError } = await supabase.from('group_members').insert({
     group_id: group.id,
@@ -66,7 +67,7 @@ export async function createGroupWithBoard(
   });
   if (memberError) {
     logger.error('[adminApi] group_members INSERT 에러:', memberError.message);
-    throw memberError;
+    throw new APIError(500, memberError.message, memberError.code, memberError);
   }
 
   const { error: boardError } = await supabase.from('boards').insert({
@@ -77,7 +78,7 @@ export async function createGroupWithBoard(
   });
   if (boardError) {
     logger.error('[adminApi] boards INSERT 에러:', boardError.message);
-    throw boardError;
+    throw new APIError(500, boardError.message, boardError.code, boardError);
   }
 
   return { groupId: group.id, inviteCode: trimmedCode };
@@ -92,7 +93,7 @@ export async function getMyManagedGroups(): Promise<ManagedGroup[]> {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  if (userError) throw new APIError(500, userError.message, undefined, userError);
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -103,7 +104,7 @@ export async function getMyManagedGroups(): Promise<ManagedGroup[]> {
 
   if (error) {
     logger.error('[adminApi] my managed groups 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
   return (data || []) as ManagedGroup[];
 }
@@ -117,8 +118,8 @@ export async function deleteGroup(groupId: number): Promise<void> {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (userError) throw userError;
-  if (!user) throw new Error('로그인이 필요합니다.');
+  if (userError) throw new APIError(500, userError.message, undefined, userError);
+  if (!user) throw new APIError(401, '로그인이 필요합니다.');
 
   const { data, error } = await supabase
     .from('groups')
@@ -130,9 +131,9 @@ export async function deleteGroup(groupId: number): Promise<void> {
 
   if (error) {
     logger.error('[adminApi] groups DELETE 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
   if (!data) {
-    throw new Error('삭제할 수 없는 그룹이거나 이미 삭제되었습니다.');
+    throw new APIError(404, '삭제할 수 없는 그룹이거나 이미 삭제되었습니다.');
   }
 }

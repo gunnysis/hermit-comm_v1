@@ -2,11 +2,21 @@
  * HTML/텍스트 유틸 — 목록 미리보기·글 보기 본문 분기용
  */
 
-/** HTML 태그 제거, 순수 텍스트 반환 (O(n)) */
+const HTML_ENTITIES: Record<string, string> = {
+  '&nbsp;': ' ',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#39;': "'",
+};
+
+/** HTML 태그 제거, 엔티티 디코딩 후 순수 텍스트 반환 (O(n)) */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';
   return html
     .replace(/<[^>]*>/g, ' ')
+    .replace(/&\w+;|&#\d+;/g, (e) => HTML_ENTITIES[e] ?? ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -22,5 +32,5 @@ export function getExcerpt(text: string, maxLen: number): string {
 /** content가 HTML(리치)인지 여부 — PostBody에서 렌더 방식 분기용 */
 export function isLikelyHtml(content: string): boolean {
   if (!content || typeof content !== 'string') return false;
-  return /<(?:\w+|[\w-]+)[\s>]/.test(content);
+  return /<(?:\w[\w-]*|\/\w[\w-]*)[\s/>]/.test(content);
 }

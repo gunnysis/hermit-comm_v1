@@ -98,5 +98,11 @@ verify_jwt = false
 [functions.smart-service]
 verify_jwt = false
 
+[functions.analyze-post-on-demand]
+verify_jwt = false
+
+[functions.recommend-posts-by-emotion]
+verify_jwt = false
+
 [analytics]
 enabled = false

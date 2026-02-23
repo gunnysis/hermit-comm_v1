@@ -1,11 +1,17 @@
 // API 타입 정의 (api_memo.md 기반)
 
+/** 게시판 익명 모드 */
+export type AnonMode = 'always_anon' | 'allow_choice' | 'require_name';
+
+/** 감정 분석 상태 */
+export type AnalysisStatus = 'pending' | 'completed' | 'failed' | 'skipped';
+
 export interface Board {
   id: number;
   name: string;
   description?: string | null;
   visibility: 'public' | 'private';
-  anon_mode: 'always_anon' | 'allow_choice' | 'require_name';
+  anon_mode: AnonMode;
   /** 그룹 전용 게시판일 때 설정 (007 마이그레이션) */
   group_id?: number | null;
   created_at: string;
@@ -37,6 +43,10 @@ export interface PostAnalysis {
   post_id: number;
   emotions: string[];
   analyzed_at: string;
+  /** 분석 상태 (DB 컬럼이 없는 경우 undefined) */
+  status?: AnalysisStatus;
+  /** 분석 신뢰도 0~1 (DB 컬럼이 없는 경우 undefined) */
+  confidence?: number;
 }
 
 export interface Comment {

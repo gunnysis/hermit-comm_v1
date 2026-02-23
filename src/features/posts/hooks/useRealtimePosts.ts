@@ -9,12 +9,17 @@ export function useRealtimePosts({
   onInsert,
   onDelete,
   onUpdate,
+  enabled = true,
 }: {
   onInsert?: (post: Post) => void;
   onDelete?: (postId: number) => void;
   onUpdate?: (post: Post) => void;
+  /** 구독 활성화 여부 (기본값: true) */
+  enabled?: boolean;
 }) {
   useEffect(() => {
+    if (!enabled) return;
+
     let channel: RealtimeChannel | null = null;
     let mounted = true;
 
@@ -87,5 +92,5 @@ export function useRealtimePosts({
         supabase.removeChannel(channel).catch(() => {});
       }
     };
-  }, [onInsert, onDelete, onUpdate]);
+  }, [onInsert, onDelete, onUpdate, enabled]);
 }

@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabase';
 import { api } from '@/shared/lib/api';
+import { APIError } from '@/shared/lib/api/error';
 import { logger } from '@/shared/utils/logger';
 import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import type { Board, Post } from '@/types';
@@ -44,7 +45,7 @@ export async function getBoards(): Promise<Board[]> {
     .order('id', { ascending: true });
   if (error) {
     logger.error('[API] boards 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
   return (data || []) as Board[];
 }
@@ -56,7 +57,7 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
   } = await supabase.auth.getUser();
   if (userError) {
     logger.error('[API] 사용자 조회 에러:', userError.message);
-    throw userError;
+    throw new APIError(500, userError.message, undefined, userError);
   }
   if (!user) return [];
 
@@ -68,7 +69,7 @@ export async function getMyGroups(): Promise<GroupSummary[]> {
 
   if (error) {
     logger.error('[API] my groups 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
 
   const rows = (data || []) as unknown as { groups: GroupSummary | null }[];
@@ -81,7 +82,7 @@ export async function joinGroupByInviteCode(
 ): Promise<JoinGroupByInviteCodeResult> {
   const trimmed = inviteCode.trim();
   if (!trimmed) {
-    throw new Error('코드를 입력해주세요.');
+    throw new APIError(400, '코드를 입력해주세요.');
   }
 
   const {
@@ -91,10 +92,10 @@ export async function joinGroupByInviteCode(
 
   if (userError) {
     logger.error('[API] 사용자 조회 에러:', userError.message);
-    throw new Error('잠시 후 다시 시도해주세요.');
+    throw new APIError(500, '잠시 후 다시 시도해주세요.', undefined, userError);
   }
   if (!user) {
-    throw new Error('로그인이 필요합니다.');
+    throw new APIError(401, '로그인이 필요합니다.');
   }
 
   const { data: group, error: groupError } = await supabase
@@ -105,10 +106,10 @@ export async function joinGroupByInviteCode(
 
   if (groupError) {
     logger.error('[API] groups 초대 코드 조회 에러:', groupError.message);
-    throw new Error('잠시 후 다시 시도해주세요.');
+    throw new APIError(500, '잠시 후 다시 시도해주세요.', groupError.code, groupError);
   }
   if (!group) {
-    throw new Error('존재하지 않는 초대 코드입니다.');
+    throw new APIError(404, '존재하지 않는 초대 코드입니다.');
   }
 
   const { data: member, error: memberError } = await supabase
@@ -120,7 +121,7 @@ export async function joinGroupByInviteCode(
 
   if (memberError) {
     logger.error('[API] group_members 조회 에러:', memberError.message);
-    throw new Error('잠시 후 다시 시도해주세요.');
+    throw new APIError(500, '잠시 후 다시 시도해주세요.', memberError.code, memberError);
   }
 
   if (!member) {
@@ -133,7 +134,12 @@ export async function joinGroupByInviteCode(
 
     if (insertError) {
       logger.error('[API] group_members INSERT 에러:', insertError.message);
-      throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
+      throw new APIError(
+        500,
+        '그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.',
+        insertError.code,
+        insertError,
+      );
     }
 
     addBreadcrumb('group', '그룹 참여 성공', { group_id: group.id, alreadyMember: false });
@@ -156,7 +162,12 @@ export async function joinGroupByInviteCode(
 
     if (updateError) {
       logger.error('[API] group_members UPDATE 에러:', updateError.message);
-      throw new Error('그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.');
+      throw new APIError(
+        500,
+        '그룹에 참여하지 못했습니다. 잠시 후 다시 시도해주세요.',
+        updateError.code,
+        updateError,
+      );
     }
   }
 
@@ -181,7 +192,7 @@ export async function getGroupBoards(groupId: number): Promise<GroupBoard[]> {
 
   if (error) {
     logger.error('[API] group boards 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
   return (data || []) as GroupBoard[];
 }
@@ -202,7 +213,7 @@ export async function getBoardPosts(
 
   if (error) {
     logger.error('[API] board posts 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
 
   return (data || []) as Post[];
@@ -228,29 +239,21 @@ export async function getGroupPosts(
 ): Promise<Post[]> {
   const { limit = 20, offset = 0, sortOrder = 'latest' } = options;
 
+  const orderCol = sortOrder === 'popular' ? 'like_count' : 'created_at';
   const { data, error } = await supabase
-    .from('posts')
-    .select('*, comments(count)')
+    .from('posts_with_like_count')
+    .select('*')
     .eq('group_id', groupId)
     .eq('board_id', boardId)
-    .order(sortOrder === 'popular' ? 'created_at' : 'created_at', { ascending: false })
+    .order(orderCol, { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) {
     logger.error('[API] group posts 조회 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
 
-  const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
-  return rows.map((row) => {
-    const { comments: commentCount, ...rest } = row;
-    const comment_count = Array.isArray(commentCount)
-      ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
-      : typeof commentCount === 'number'
-        ? commentCount
-        : undefined;
-    return { ...rest, comment_count } as Post;
-  });
+  return (data || []) as Post[];
 }
 
 export async function searchGroupPosts(
@@ -264,8 +267,8 @@ export async function searchGroupPosts(
 
   const escaped = q.replace(/'/g, "''");
   const { data, error } = await supabase
-    .from('posts')
-    .select('*, comments(count)')
+    .from('posts_with_like_count')
+    .select('*')
     .eq('group_id', groupId)
     .eq('board_id', boardId)
     .or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`)
@@ -274,19 +277,10 @@ export async function searchGroupPosts(
 
   if (error) {
     logger.error('[API] group posts 검색 에러:', error.message);
-    throw error;
+    throw new APIError(500, error.message, error.code, error);
   }
 
-  const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
-  return rows.map((row) => {
-    const { comments: commentCount, ...rest } = row;
-    const comment_count = Array.isArray(commentCount)
-      ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
-      : typeof commentCount === 'number'
-        ? commentCount
-        : undefined;
-    return { ...rest, comment_count } as Post;
-  });
+  return (data || []) as Post[];
 }
 
 export async function leaveGroup(groupId: number): Promise<void> {
@@ -297,10 +291,10 @@ export async function leaveGroup(groupId: number): Promise<void> {
 
   if (userError) {
     logger.error('[API] 사용자 조회 에러:', userError.message);
-    throw new Error('잠시 후 다시 시도해주세요.');
+    throw new APIError(500, '잠시 후 다시 시도해주세요.', undefined, userError);
   }
   if (!user) {
-    throw new Error('로그인이 필요합니다.');
+    throw new APIError(401, '로그인이 필요합니다.');
   }
 
   const { error } = await supabase
@@ -311,6 +305,11 @@ export async function leaveGroup(groupId: number): Promise<void> {
 
   if (error) {
     logger.error('[API] group leave 에러:', error.message);
-    throw new Error('그룹에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.');
+    throw new APIError(
+      500,
+      '그룹에서 나가지 못했습니다. 잠시 후 다시 시도해주세요.',
+      error.code,
+      error,
+    );
   }
 }

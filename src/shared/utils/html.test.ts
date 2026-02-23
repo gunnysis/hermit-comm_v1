@@ -14,6 +14,14 @@ describe('stripHtml', () => {
   it('연속 공백은 하나로', () => {
     expect(stripHtml('  a   b  ').trim()).toBe('a b');
   });
+
+  it('HTML 엔티티를 디코딩한다', () => {
+    expect(stripHtml('a&nbsp;b')).toBe('a b');
+    expect(stripHtml('&lt;script&gt;')).toBe('<script>');
+    expect(stripHtml('&amp;')).toBe('&');
+    expect(stripHtml('&quot;text&quot;')).toBe('"text"');
+    expect(stripHtml('&#39;')).toBe("'");
+  });
 });
 
 describe('getExcerpt', () => {
@@ -47,6 +55,18 @@ describe('isLikelyHtml', () => {
     expect(isLikelyHtml('<p>text</p>')).toBe(true);
     expect(isLikelyHtml('<strong>bold</strong>')).toBe(true);
     expect(isLikelyHtml('앞 <em>기울임</em> 뒤')).toBe(true);
+  });
+
+  it('<br> 및 자기닫힘 태그를 감지한다', () => {
+    expect(isLikelyHtml('<br>')).toBe(true);
+    expect(isLikelyHtml('<br/>')).toBe(true);
+    expect(isLikelyHtml('<br />')).toBe(true);
+    expect(isLikelyHtml('<img src="x"/>')).toBe(true);
+  });
+
+  it('닫는 태그도 감지한다', () => {
+    expect(isLikelyHtml('</p>')).toBe(true);
+    expect(isLikelyHtml('</strong>')).toBe(true);
   });
 
   it('태그가 없으면 false', () => {

@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { pushAdminLogin } from '@/shared/lib/navigation';
 import Constants from 'expo-constants';
 import { Container } from '@/shared/components/Container';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
@@ -32,12 +33,33 @@ function SettingsItem({ icon, label, onPress, detail, destructive }: SettingsIte
   );
 }
 
+/** 정보 전용 행 — 클릭 불가, 버전 등 표시용 */
+function SettingsInfoItem({
+  icon,
+  label,
+  detail,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  detail?: string;
+}) {
+  return (
+    <View
+      className="flex-row items-center px-4 py-3.5 bg-white"
+      accessibilityLabel={detail ? `${label} ${detail}` : label}>
+      <Ionicons name={icon} size={20} color="#6B7280" />
+      <Text className="flex-1 ml-3 text-base text-gray-800">{label}</Text>
+      {detail && <Text className="text-sm text-gray-400">{detail}</Text>}
+    </View>
+  );
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   const handleAdminAccess = useCallback(() => {
-    router.push('/admin/login' as Parameters<typeof router.push>[0]);
+    pushAdminLogin(router);
   }, [router]);
 
   return (
@@ -47,11 +69,10 @@ export default function SettingsScreen() {
         <ScreenHeader title="설정" />
 
         <View className="mt-4 mx-4 rounded-2xl overflow-hidden border border-cream-200">
-          <SettingsItem
+          <SettingsInfoItem
             icon="information-circle-outline"
             label="앱 버전"
             detail={`v${appVersion}`}
-            onPress={() => {}}
           />
         </View>
 

@@ -2,8 +2,9 @@ import { supabase } from '../supabase';
 import { logger } from '@/shared/utils/logger';
 import type { PostAnalysis } from '@/types';
 
-// 배포된 Edge Function 이름
-const SMART_SERVICE_FUNCTION = 'smart-service';
+// 배포된 Edge Function 이름 (수동/fallback 감정 분석).
+// 권장: analyze-post-on-demand. smart-service만 배포된 경우 'smart-service'로 변경.
+const SMART_SERVICE_FUNCTION = 'analyze-post-on-demand';
 
 export async function getEmotionTrend(
   days: number = 7,
