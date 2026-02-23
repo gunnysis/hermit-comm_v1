@@ -2,6 +2,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
 import { AnonModeInfo } from '@/features/posts/components/AnonModeInfo';
+import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { Button } from '@/shared/components/Button';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
@@ -9,7 +10,7 @@ import { ContentEditor } from '@/shared/components/ContentEditor';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ export default function GroupCreatePostScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const { groupId: groupIdParam, boardId: boardIdParam } = useLocalSearchParams<{
     groupId: string;
     boardId: string;
@@ -48,6 +50,7 @@ export default function GroupCreatePostScreen() {
     groupId,
     user,
     anonMode,
+    getExtraPostData: () => ({ image_url: imageUrl ?? undefined }),
     onSuccess: () => {
       Alert.alert('완료', '게시글이 작성되었습니다.', [
         { text: '확인', onPress: () => router.back() },
@@ -75,6 +78,11 @@ export default function GroupCreatePostScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 16 }}>
           <View className="p-4 pb-2">
+            <ImagePicker
+              imageUrl={imageUrl}
+              onImageUrlChange={setImageUrl}
+              disabled={isSubmitting}
+            />
             <Controller
               control={control}
               name="title"

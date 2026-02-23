@@ -8,6 +8,7 @@ import { Loading } from '@/shared/components/Loading';
 import { ErrorView } from '@/shared/components/ErrorView';
 import { Input } from '@/shared/components/Input';
 import { ContentEditor } from '@/shared/components/ContentEditor';
+import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { Button } from '@/shared/components/Button';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { api } from '@/shared/lib/api';
@@ -28,6 +29,7 @@ export default function EditPostScreen() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ title: '', content: '' });
 
@@ -62,6 +64,7 @@ export default function EditPostScreen() {
     if (post) {
       setTitle(post.title);
       setContent(post.content);
+      setImageUrl(post.image_url ?? null);
     }
   }, [post]);
 
@@ -86,6 +89,7 @@ export default function EditPostScreen() {
         title: title.trim(),
         content: content.trim(),
         author: savedAuthor ?? '',
+        image_url: imageUrl,
       });
 
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
@@ -146,6 +150,7 @@ export default function EditPostScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 16 }}>
           <View className="p-4 pb-2">
+            <ImagePicker imageUrl={imageUrl} onImageUrlChange={setImageUrl} disabled={loading} />
             <Input
               label="제목"
               value={title}
