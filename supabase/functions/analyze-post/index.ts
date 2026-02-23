@@ -1,17 +1,14 @@
-// Supabase Edge Function: posts INSERT 시 Webhook으로 호출되어 감정 분석 후 post_analysis INSERT
+// Supabase Edge Function: analyze-post
+// 역할: Supabase DB Webhook이 posts INSERT 이벤트 발생 시 자동 호출.
+//       게시글 감정을 분석하여 post_analysis 테이블에 저장.
+//
+// 로컬 개발:  supabase functions serve analyze-post
+// 배포:       supabase functions deploy analyze-post
+// Webhook 설정: Supabase Dashboard → Database → Webhooks
+//   - Table: posts, Events: INSERT
+//   - URL: https://<project>.supabase.co/functions/v1/analyze-post
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Anthropic from 'npm:@anthropic-ai/sdk@0.32.1';
-
-const EMOTIONS_LIST =
-  '고립감, 무기력, 불안, 외로움, 슬픔, 그리움, 두려움, 답답함, 설렘, 기대감, 안도감, 평온함, 즐거움';
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+import { analyzeAndSave } from '../_shared/analyze.ts';
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -28,82 +25,40 @@ Deno.serve(async (req: Request) => {
     };
 
     if (payload.type !== 'INSERT' || payload.table !== 'posts' || payload.schema !== 'public') {
-      return new Response(JSON.stringify({ ok: false, reason: 'invalid event' }), {
+      return new Response(JSON.stringify({ ok: false, reason: 'invalid_event' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     const postId = payload.record?.id;
-    const rawContent = payload.record?.content ?? '';
-    const text = stripHtml(rawContent);
-    if (text.length < 10) {
-      return new Response(JSON.stringify({ ok: true, skipped: 'content_too_short' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const content = payload.record?.content ?? '';
+    const title = payload.record?.title;
 
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!apiKey) {
-      console.error('ANTHROPIC_API_KEY not set');
+    const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicApiKey) {
+      console.error('[analyze-post] ANTHROPIC_API_KEY 미설정');
       return new Response(JSON.stringify({ ok: false, reason: 'missing_api_key' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const anthropic = new Anthropic({ apiKey });
-    const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [
-        {
-          role: 'user',
-          content: `다음 게시글 내용에서 느껴지는 감정을 아래 목록에서만 골라 JSON 배열로만 답해줘. 다른 말 없이 ["감정1", "감정2"] 형태로만. 최대 3개.
-감정 목록: ${EMOTIONS_LIST}
-
-게시글 내용:
-${text.slice(0, 2000)}`,
-        },
-      ],
+    const result = await analyzeAndSave({
+      supabaseUrl: Deno.env.get('SUPABASE_URL')!,
+      supabaseServiceKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      anthropicApiKey,
+      postId,
+      content,
+      title,
     });
 
-    const textBlock = message.content.find((c) => c.type === 'text');
-    const raw = textBlock && 'text' in textBlock ? textBlock.text : '';
-    let emotions: string[] = [];
-    try {
-      const parsed = JSON.parse(raw.trim()) as unknown;
-      emotions = Array.isArray(parsed)
-        ? parsed.filter((e): e is string => typeof e === 'string').slice(0, 3)
-        : [];
-    } catch {
-      // 파싱 실패 시 빈 배열
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { error } = await supabase.from('post_analysis').insert({
-      post_id: postId,
-      emotions,
-    });
-
-    if (error) {
-      console.error('post_analysis insert error:', error);
-      return new Response(JSON.stringify({ ok: false, reason: error.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify({ ok: true, emotions }), {
-      status: 200,
+    return new Response(JSON.stringify(result), {
+      status: result.ok ? 200 : 500,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('analyze-post error:', err);
+    console.error('[analyze-post] 오류:', err);
     return new Response(
       JSON.stringify({ ok: false, reason: err instanceof Error ? err.message : 'unknown' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },

@@ -23,7 +23,7 @@ import * as Linking from 'expo-linking';
 import Toast from 'react-native-toast-message';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -109,6 +109,32 @@ export default function PostDetailScreen() {
     },
     refetchIntervalInBackground: false,
   });
+
+  // DB Webhook 실패·지연 대비: 14초 후에도 분석 결과 없으면 smart-service 직접 호출
+  const fallbackCalledRef = useRef(false);
+  useEffect(() => {
+    if (postId <= 0) return;
+    fallbackCalledRef.current = false;
+
+    const timer = setTimeout(async () => {
+      if (fallbackCalledRef.current) return;
+      const cached = queryClient.getQueryData<{ emotions: string[] } | null>([
+        'postAnalysis',
+        postId,
+      ]);
+      const currentPost = queryClient.getQueryData<{ content?: string; title?: string }>([
+        'post',
+        postId,
+      ]);
+      if (cached === null && currentPost?.content) {
+        fallbackCalledRef.current = true;
+        await api.invokeSmartService(postId, currentPost.content, currentPost.title);
+        queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
+      }
+    }, 14000);
+
+    return () => clearTimeout(timer);
+  }, [postId, queryClient]);
 
   useRealtimeComments({
     postId,

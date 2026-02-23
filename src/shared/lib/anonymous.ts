@@ -30,7 +30,7 @@ export function generateAlias(seed: string | null | undefined): string {
   if (!seed) return '익명';
   const hash = hashString(seed);
   const adj = ADJECTIVES[hash % ADJECTIVES.length];
-  const animal = ANIMALS[(hash >> 8) % ANIMALS.length];
+  const animal = ANIMALS[(hash >>> 8) % ANIMALS.length];
   const num = (hash % 9) + 1;
   return `${adj} ${animal} ${num}`;
 }
@@ -70,4 +70,3 @@ export function resolveDisplayName(params: ResolveDisplayNameParams): ResolveDis
       return anonymous();
   }
 }
-
