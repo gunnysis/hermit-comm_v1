@@ -6,6 +6,7 @@ jest.mock('@/shared/lib/supabase', () => ({
     from: jest.fn(),
     rpc: jest.fn(),
     auth: { getUser: jest.fn() },
+    functions: { invoke: jest.fn() },
   },
 }));
 
@@ -161,6 +162,58 @@ describe('api', () => {
       });
 
       const result = await api.getEmotionTrend(7);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('invokeSmartService', () => {
+    it('분석 성공 시 감정 배열을 반환한다', async () => {
+      (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+        data: { ok: true, emotions: ['슬픔', '외로움'] },
+        error: null,
+      });
+
+      const result = await api.invokeSmartService(1, '오늘 너무 힘들었다', '제목');
+
+      expect(result).toEqual(['슬픔', '외로움']);
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('smart-service', {
+        body: { postId: 1, content: '오늘 너무 힘들었다', title: '제목' },
+      });
+    });
+
+    it('title 없이도 호출할 수 있다', async () => {
+      (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+        data: { ok: true, emotions: ['불안'] },
+        error: null,
+      });
+
+      const result = await api.invokeSmartService(2, '내용만 있는 글');
+
+      expect(result).toEqual(['불안']);
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('smart-service', {
+        body: { postId: 2, content: '내용만 있는 글', title: undefined },
+      });
+    });
+
+    it('Edge Function 에러 시 빈 배열을 반환한다', async () => {
+      (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+        data: null,
+        error: { message: 'Function error' },
+      });
+
+      const result = await api.invokeSmartService(3, '내용');
+
+      expect(result).toEqual([]);
+    });
+
+    it('분석 결과가 없으면 빈 배열을 반환한다', async () => {
+      (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+        data: { ok: true, skipped: 'content_too_short' },
+        error: null,
+      });
+
+      const result = await api.invokeSmartService(4, '짧');
 
       expect(result).toEqual([]);
     });
