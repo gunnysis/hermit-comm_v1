@@ -21,6 +21,8 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 | 19 | `019_post_analysis_service_role_grant.sql` | post_analysis 테이블 service_role 쓰기 권한 부여 |
 | 20 | `020_service_role_full_grant.sql` | public 스키마 전체 테이블·시퀀스 service_role 권한 부여 |
 | 21 | `021_user_reactions.sql` | user_reactions 테이블 (사용자별 반응 추적, 연타 방지·취소 기능용) |
+| 22 | `022_reactions_delete_policy.sql` | reactions 테이블 DELETE RLS 정책 추가 (반응 취소 시 count=0 행 삭제 허용) |
+| — | `20260223110128_remote_commit.sql` | Supabase CLI 자동 생성 스냅샷 (원격 DB 상태 기록용, 수동 적용 불필요) |
 
 ## 최종 스키마 요약
 
@@ -28,7 +30,7 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 posts           — 게시글 (소프트 삭제, updated_at 자동 갱신)
 comments        — 댓글 (소프트 삭제, updated_at 자동 갱신)
 reactions       — 반응 (좋아요/하트/웃음) 집계
-user_reactions  — 사용자별 반응 기록 (연타 방지·취소용, 021)
+user_reactions  — 사용자별 반응 기록 (연타 방지·취소용, 021 / DELETE RLS 022)
 boards          — 게시판 (공개/비공개, 익명 모드, group_id)
 groups          — 그룹 (초대 코드 기반)
 group_members   — 그룹 멤버십 (역할, 상태, 닉네임, 소프트 탈퇴 left_at)

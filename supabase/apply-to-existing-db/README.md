@@ -32,7 +32,7 @@ npm run db:push
 supabase migration list
 ```
 
-- **Local**: 이 저장소 `migrations/` 에 있는 파일 (001~003, 009~021. 004~008은 없음)
+- **Local**: 이 저장소 `migrations/` 에 있는 파일 (001~003, 009~022 + 20260223110128 스냅샷. 004~008은 없음)
 - **Remote**: 원격 DB에 적용된 마이그레이션
 - Local과 Remote 모두에 같은 번호가 있으면 **이미 적용됨**. Remote에 없으면 `supabase db push`로 적용 가능.
 
@@ -60,8 +60,10 @@ supabase migration list
 | 14 | `019_post_analysis_service_role_grant.sql` | post_analysis service_role 쓰기 권한 |
 | 15 | `020_service_role_full_grant.sql` | public 스키마 전체 service_role 권한 |
 | 16 | `021_user_reactions.sql` | user_reactions 테이블 (사용자별 반응) |
+| 17 | `022_reactions_delete_policy.sql` | reactions DELETE RLS 정책 (반응 취소 시 count=0 행 삭제) |
+| — | `20260223110128_remote_commit.sql` | Supabase CLI 자동 생성 스냅샷 — **수동 적용 불필요** |
 
-**의존 관계**: 002는 001 이후, 003은 002 이후(뷰 필요), 009는 001·002 이후, 011은 009 이후, 012는 001·002 이후, 013은 009·010 이후, 014는 009·013(뷰) 이후, **015는 pg_net 확장 및 public.posts 존재 시**. 016은 015 적용 후 트리거 제거. 017~021은 순서대로.
+**의존 관계**: 002는 001 이후, 003은 002 이후(뷰 필요), 009는 001·002 이후, 011은 009 이후, 012는 001·002 이후, 013은 009·010 이후, 014는 009·013(뷰) 이후, **015는 pg_net 확장 및 public.posts 존재 시**. 016은 015 적용 후 트리거 제거. 017~022는 순서대로.
 
 ---
 
@@ -115,9 +117,11 @@ CLI를 쓰지 않을 때는 아래 **순서**대로 SQL Editor에서 실행합�
 13. `migrations/018_posts_webhook_trigger.sql` 전체 실행 (선택)  
 14. `migrations/019_post_analysis_service_role_grant.sql` 전체 실행  
 15. `migrations/020_service_role_full_grant.sql` 전체 실행  
-16. `migrations/021_user_reactions.sql` 전체 실행  
+16. `migrations/021_user_reactions.sql` 전체 실행
+17. `migrations/022_reactions_delete_policy.sql` 전체 실행
 
 - 001·002·003이 이미 적용된 DB라면 **4번부터** 진행하면 됩니다.
+- `20260223110128_remote_commit.sql`은 Supabase CLI 자동 생성 스냅샷으로, 수동 적용하지 않아도 됩니다.
 - 전체 순서는 [APPLY_ORDER.txt](./APPLY_ORDER.txt) 참고.
 
 ---
@@ -133,7 +137,7 @@ CLI를 쓰지 않을 때는 아래 **순서**대로 SQL Editor에서 실행합�
 ## 5. 요약
 
 - **현재 DB 확인**: CLI `supabase migration list` 또는 SQL Editor에서 `check_applied.sql` 실행.
-- **적용 순서**: 001 → 002 → 003 → 009 → … → 021 (이 repo에 있는 파일만). 상세 목록은 [APPLY_ORDER.txt](./APPLY_ORDER.txt).
+- **적용 순서**: 001 → 002 → 003 → 009 → … → 022 (이 repo에 있는 파일만). 상세 목록은 [APPLY_ORDER.txt](./APPLY_ORDER.txt).
 - **적용 방법**: CLI 사용 시 `supabase db push`(이미 적용된 건 자동 건너뜀). 수동 시 [APPLY_ORDER.txt](./APPLY_ORDER.txt) 순서대로 각 SQL 파일 실행.
 
 ---
