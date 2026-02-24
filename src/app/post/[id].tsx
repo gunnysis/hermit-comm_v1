@@ -67,7 +67,8 @@ export default function PostDetailScreen() {
   const anonMode = board?.anon_mode ?? 'always_anon';
 
   const { postAnalysis, analysisLoading } = usePostDetailAnalysis(postId);
-  const { reactions, handleReaction, reactionLoading } = usePostDetailReactions(postId);
+  const { reactions, userReactedTypes, handleReaction, pendingTypes } =
+    usePostDetailReactions(postId);
   const {
     comments,
     commentsLoading,
@@ -220,8 +221,9 @@ export default function PostDetailScreen() {
             postAnalysis={postAnalysis}
             analysisLoading={analysisLoading}
             reactions={reactions}
+            userReactedTypes={userReactedTypes}
             onReaction={handleReaction}
-            reactionLoading={reactionLoading}
+            pendingTypes={pendingTypes}
           />
 
           <PostDetailCommentList

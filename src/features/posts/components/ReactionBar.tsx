@@ -13,8 +13,9 @@ export type ReactionType = (typeof REACTION_TYPES)[number]['type'];
 
 interface ReactionBarProps {
   reactions: Reaction[];
+  userReactedTypes: string[];
   onReaction: (reactionType: string) => void;
-  loading?: boolean;
+  pendingTypes?: Set<string>;
 }
 
 function getCount(reactions: Reaction[], type: string): number {
@@ -22,27 +23,48 @@ function getCount(reactions: Reaction[], type: string): number {
   return r?.count ?? 0;
 }
 
-export function ReactionBar({ reactions, onReaction, loading = false }: ReactionBarProps) {
+export function ReactionBar({
+  reactions,
+  userReactedTypes,
+  onReaction,
+  pendingTypes = new Set(),
+}: ReactionBarProps) {
   const handlePress = (type: string) => {
-    if (loading) return;
+    if (pendingTypes.has(type)) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onReaction(type);
   };
 
   return (
     <View className="flex-row flex-wrap gap-2">
-      {REACTION_TYPES.map(({ type, emoji, label }) => (
-        <Pressable
-          key={type}
-          onPress={() => handlePress(type)}
-          disabled={loading}
-          className="flex-row items-center px-4 py-2 rounded-full bg-white border-2 border-cream-300 active:opacity-80 active:scale-95"
-          accessibilityLabel={`${label} ${getCount(reactions, type)}개, 누르면 추가`}
-          accessibilityRole="button">
-          <Text className="text-xl mr-1.5">{emoji}</Text>
-          <Text className="text-sm font-semibold text-gray-700">{getCount(reactions, type)}</Text>
-        </Pressable>
-      ))}
+      {REACTION_TYPES.map(({ type, emoji, label }) => {
+        const isActive = userReactedTypes.includes(type);
+        const isPending = pendingTypes.has(type);
+
+        return (
+          <Pressable
+            key={type}
+            onPress={() => handlePress(type)}
+            disabled={isPending}
+            className={[
+              'flex-row items-center px-4 py-2 rounded-full border-2 active:opacity-80 active:scale-95',
+              isActive ? 'bg-happy-100 border-happy-400' : 'bg-white border-cream-300',
+              isPending ? 'opacity-60' : '',
+            ].join(' ')}
+            accessibilityLabel={`${label} ${getCount(reactions, type)}개, ${isActive ? '누르면 취소' : '누르면 추가'}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive, disabled: isPending }}>
+            <Text className="text-xl mr-1.5">{emoji}</Text>
+            <Text
+              className={[
+                'text-sm font-semibold',
+                isActive ? 'text-happy-700' : 'text-gray-700',
+              ].join(' ')}>
+              {getCount(reactions, type)}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

@@ -11,8 +11,9 @@ interface PostDetailBodyProps {
   postAnalysis: { emotions: string[] } | undefined | null;
   analysisLoading: boolean;
   reactions: Reaction[];
+  userReactedTypes: string[];
   onReaction: (reactionType: string) => void;
-  reactionLoading: boolean;
+  pendingTypes: Set<string>;
 }
 
 export function PostDetailBody({
@@ -20,8 +21,9 @@ export function PostDetailBody({
   postAnalysis,
   analysisLoading,
   reactions,
+  userReactedTypes,
   onReaction,
-  reactionLoading,
+  pendingTypes,
 }: PostDetailBodyProps) {
   return (
     <View className="mx-4 mt-4 rounded-2xl border border-cream-200 bg-white shadow-md overflow-hidden">
@@ -43,7 +45,12 @@ export function PostDetailBody({
           isLoading={analysisLoading && postAnalysis == null}
         />
         <View className="border-t border-cream-200 pt-4 items-start">
-          <ReactionBar reactions={reactions} onReaction={onReaction} loading={reactionLoading} />
+          <ReactionBar
+            reactions={reactions}
+            userReactedTypes={userReactedTypes}
+            onReaction={onReaction}
+            pendingTypes={pendingTypes}
+          />
         </View>
       </View>
     </View>

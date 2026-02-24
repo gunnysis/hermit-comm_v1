@@ -1,11 +1,6 @@
 import { supabase } from '../supabase';
 import { APIError } from './error';
-import type {
-  Reaction,
-  CreateReactionRequest,
-  GetReactionsResponse,
-  CreateReactionResponse,
-} from '@/types';
+import type { Reaction, GetReactionsResponse, ToggleReactionResponse } from '@/types';
 
 export async function getReactions(postId: number): Promise<GetReactionsResponse> {
   const { data, error } = await supabase
@@ -20,47 +15,95 @@ export async function getReactions(postId: number): Promise<GetReactionsResponse
   return (data || []) as Reaction[];
 }
 
-export async function createReaction(
-  postId: number,
-  reactionData: CreateReactionRequest,
-): Promise<CreateReactionResponse> {
-  const { reaction_type } = reactionData;
+/** 현재 로그인 사용자가 해당 게시글에 남긴 반응 타입 목록 */
+export async function getUserReactions(postId: number): Promise<string[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
 
-  const { data: existingReaction } = await supabase
-    .from('reactions')
-    .select('*')
+  const { data } = await supabase
+    .from('user_reactions')
+    .select('reaction_type')
     .eq('post_id', postId)
-    .eq('reaction_type', reaction_type)
+    .eq('user_id', user.id);
+
+  return (data || []).map((r: { reaction_type: string }) => r.reaction_type);
+}
+
+/**
+ * 반응 토글: 이미 반응했으면 취소, 아니면 추가.
+ * reactions(집계) + user_reactions(개인 기록)를 함께 갱신.
+ */
+export async function toggleReaction(
+  postId: number,
+  reactionType: string,
+): Promise<ToggleReactionResponse> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new APIError(401, '로그인이 필요합니다.');
+
+  // 이미 반응했는지 확인
+  const { data: existing } = await supabase
+    .from('user_reactions')
+    .select('id')
+    .eq('post_id', postId)
+    .eq('reaction_type', reactionType)
+    .eq('user_id', user.id)
     .single();
 
-  let result;
+  if (existing) {
+    // 취소: user_reactions 삭제 + 집계 카운트 감소
+    await supabase.from('user_reactions').delete().eq('id', existing.id);
 
-  if (existingReaction) {
-    const { data, error } = await supabase
+    const { data: aggRow } = await supabase
       .from('reactions')
-      .update({ count: existingReaction.count + 1 })
-      .eq('id', existingReaction.id)
-      .select('reaction_type, count')
+      .select('id, count')
+      .eq('post_id', postId)
+      .eq('reaction_type', reactionType)
       .single();
 
-    if (error) {
-      throw new APIError(500, '반응 업데이트에 실패했습니다.', error.code, error);
+    if (aggRow) {
+      if (aggRow.count <= 1) {
+        await supabase.from('reactions').delete().eq('id', aggRow.id);
+      } else {
+        await supabase
+          .from('reactions')
+          .update({ count: aggRow.count - 1 })
+          .eq('id', aggRow.id);
+      }
     }
 
-    result = data;
+    return { reacted: false, reaction_type: reactionType };
   } else {
-    const { data, error } = await supabase
-      .from('reactions')
-      .insert([{ post_id: postId, reaction_type, count: 1 }])
-      .select('reaction_type, count')
-      .single();
+    // 추가: user_reactions 삽입 + 집계 카운트 증가
+    const { error: insertError } = await supabase
+      .from('user_reactions')
+      .insert([{ user_id: user.id, post_id: postId, reaction_type: reactionType }]);
 
-    if (error) {
-      throw new APIError(500, '반응 생성에 실패했습니다.', error.code, error);
+    if (insertError) {
+      throw new APIError(500, '반응 추가에 실패했습니다.', insertError.code, insertError);
     }
 
-    result = data;
-  }
+    const { data: aggRow } = await supabase
+      .from('reactions')
+      .select('id, count')
+      .eq('post_id', postId)
+      .eq('reaction_type', reactionType)
+      .single();
 
-  return result as Reaction;
+    if (aggRow) {
+      await supabase
+        .from('reactions')
+        .update({ count: aggRow.count + 1 })
+        .eq('id', aggRow.id);
+    } else {
+      await supabase
+        .from('reactions')
+        .insert([{ post_id: postId, reaction_type: reactionType, count: 1 }]);
+    }
+
+    return { reacted: true, reaction_type: reactionType };
+  }
 }

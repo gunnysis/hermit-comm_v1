@@ -68,6 +68,11 @@ export interface Reaction {
   count: number;
 }
 
+export interface ToggleReactionResponse {
+  reacted: boolean;
+  reaction_type: string;
+}
+
 // 요청 타입
 export interface CreatePostRequest {
   title: string;
