@@ -42,11 +42,10 @@ export async function getPosts(
   return rows.map((row) => {
     const {
       comments: commentCount,
-      like_count: _likeCount,
+      like_count: likeCount,
       comment_count: viewCommentCount,
       ...rest
     } = row;
-    void _likeCount;
     const comment_count =
       viewCommentCount !== undefined
         ? viewCommentCount
@@ -55,7 +54,11 @@ export async function getPosts(
           : typeof commentCount === 'number'
             ? commentCount
             : undefined;
-    return { ...rest, comment_count } as Post;
+    return {
+      ...rest,
+      comment_count,
+      ...(likeCount !== undefined && { like_count: likeCount }),
+    } as Post;
   });
 }
 

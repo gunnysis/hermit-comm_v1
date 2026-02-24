@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { pushPost } from '@/shared/lib/navigation';
 import { Post } from '@/types';
-import { formatDate } from '@/shared/utils/format';
+import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { getExcerpt } from '@/shared/utils/html';
 
 interface PostCardProps {
@@ -13,8 +13,10 @@ interface PostCardProps {
 function buildAccessibilityLabel(post: Post): string {
   const author = post.display_name ?? post.author;
   const commentCount = post.comment_count ?? 0;
+  const likeCount = post.like_count ?? 0;
+  const reactions = likeCount > 0 ? `, 좋아요 ${likeCount}개` : '';
   const emotions = post.emotions?.length ? `, 감정: ${post.emotions.slice(0, 2).join(', ')}` : '';
-  const label = `제목: ${post.title}, 작성자 ${author}, 댓글 ${commentCount}개${emotions}`;
+  const label = `제목: ${post.title}, 작성자 ${author}, 댓글 ${commentCount}개${reactions}${emotions}`;
   return label.length > 80 ? label.slice(0, 77) + '…' : label;
 }
 
@@ -73,6 +75,13 @@ const PostCardComponent = ({ post }: PostCardProps) => {
                   {post.display_name ?? post.author}
                 </Text>
               </View>
+              {post.like_count !== undefined && post.like_count > 0 && (
+                <View className="bg-cream-100 dark:bg-stone-700 px-2.5 py-1 rounded-full">
+                  <Text className="text-xs font-medium text-gray-600 dark:text-stone-300">
+                    👍 {formatReactionCount(post.like_count)}
+                  </Text>
+                </View>
+              )}
               {post.comment_count !== undefined && (
                 <View className="bg-mint-100 dark:bg-mint-900/40 px-2.5 py-1 rounded-full">
                   <Text className="text-xs font-medium text-mint-700 dark:text-mint-300">

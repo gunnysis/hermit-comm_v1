@@ -32,6 +32,8 @@ export interface Post {
   display_name: string;
   /** 목록 조회 시 댓글 수 (선택) */
   comment_count?: number;
+  /** 목록 조회 시 좋아요 수 (posts_with_like_count 뷰) */
+  like_count?: number;
   /** 감정 분석 결과 (posts_with_like_count 뷰 또는 post_analysis JOIN) */
   emotions?: string[];
   /** 첨부 이미지 URL */

@@ -53,7 +53,11 @@ export function PostDetailBody({
           emotions={postAnalysis?.emotions ?? []}
           isLoading={analysisLoading && postAnalysis == null}
         />
-        <View className="border-t border-cream-200 dark:border-stone-700 pt-4 items-start">
+        <View
+          className="border-t border-cream-200 dark:border-stone-700 pt-4 items-start"
+          accessibilityLabel="반응"
+          accessibilityRole="none">
+          <Text className="text-xs font-medium text-gray-500 dark:text-stone-400 mb-2">반응</Text>
           <ReactionBar
             reactions={reactions}
             userReactedTypes={userReactedTypes}

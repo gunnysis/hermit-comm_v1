@@ -1,1 +1,15 @@
+#!/bin/sh
+# 원격보다 뒤처져 있으면 push 막기
+git fetch origin 2>/dev/null || true
+while read local_ref local_sha remote_ref remote_sha; do
+  branch=$(echo "$remote_ref" | sed 's#refs/heads/##')
+  [ -z "$branch" ] && continue
+  upstream=$(git rev-parse "origin/$branch" 2>/dev/null) || continue
+  behind=$(git rev-list "$local_sha..$upstream" 2>/dev/null | wc -l)
+  if [ "$behind" -gt 0 ]; then
+    echo "원격이 앞서 있습니다. git pull 또는 git pull --rebase 후 다시 push하세요."
+    exit 1
+  fi
+done
+
 npm run test

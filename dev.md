@@ -49,10 +49,12 @@ npm install
 | | `eas build --platform android --profile preview` |
 | **스토어 배포** (버전 변경 후) | `eas build --platform all --profile production --auto-submit` |
 | | `eas build --platform android --profile production --auto-submit` |
-
+| **가장 최근에 성공한 빌드물(AAB)을 구글 플레이 스토어에 업로드** |
+| | `eas submit --platform android --profile production --non-interactive` |
+| | *빌드가 아직 진행 중이라면, 빌드가 끝날 때까지 기다렸다가 위 명령어를 입력하세요.* | |
+||
 - Android 에뮬레이터에서 실행 전: 해당 프로필로 빌드한 APK/IPA 설치 필요.
 - `--auto-submit`: 스토어 제출까지 수행 (submit 설정이 있을 때).
-
 **OTA vs Production 빌드**: JS/리소스만 바꾼 경우는 **OTA** (`npm run update:production` 또는 워크플로우 "Publish Update (Production)")로 배포. **네이티브 의존성 추가/변경**(예: TenTap, react-native-webview)이 있으면 **Production 빌드 후 스토어 제출**이 필요합니다. OTA는 기존 앱에 새 네이티브 모듈을 넣지 않습니다.
 
 ---
@@ -65,6 +67,12 @@ npm install
 ---
 
 ## Git
+
+- **작업 시작 전 권장**  
+  원격과의 충돌을 줄이려면 작업을 시작하기 전에 한 번 `git pull`(또는 `git pull --rebase`)로 최신 상태를 맞춘다.  
+  로컬에 커밋하지 않은 변경이 있으면: `git stash` → `git pull` → `git stash pop` 순서를 권장한다.
+- **push 전**  
+  push 전에 원격과 동기화해 둔다: `git fetch` 후 `git pull` 또는 `git pull --rebase`. 충돌이 나면 해결한 뒤 다시 push.
 
 ```bash
 # 새 브랜치

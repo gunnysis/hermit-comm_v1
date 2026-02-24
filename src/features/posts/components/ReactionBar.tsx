@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, Text, Pressable, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { Reaction } from '@/types';
+import { formatReactionCount } from '@/shared/utils/format';
 
 export const REACTION_TYPES = [
   { type: 'like', emoji: '👍', label: '좋아요' },
@@ -25,7 +26,7 @@ function getCount(reactions: Reaction[], type: string): number {
   return r?.count ?? 0;
 }
 
-/** 개별 반응 버튼 — 누를 때 짧은 확대 애니메이션, 활성/비활성 스타일 */
+/** 개별 반응 버튼 — 누를 때 짧은 확대 애니메이션, 활성/비활성 스타일, 44pt 최소 터치 영역 */
 function ReactionButton({
   type,
   emoji,
@@ -63,7 +64,7 @@ function ReactionButton({
         onPress={handlePress}
         disabled={isPending}
         className={[
-          'flex-row items-center px-4 py-2 rounded-full border-2 active:opacity-80',
+          'flex-row items-center min-h-[44px] px-4 py-2.5 rounded-full border-2 active:opacity-80',
           isActive
             ? 'bg-happy-100 dark:bg-happy-900/40 border-happy-400'
             : 'bg-white dark:bg-stone-800 border-cream-300 dark:border-stone-600',
@@ -72,13 +73,13 @@ function ReactionButton({
         accessibilityLabel={`${label} ${count}개, ${isActive ? '누르면 취소' : '누르면 추가'}`}
         accessibilityRole="button"
         accessibilityState={{ selected: isActive, disabled: isPending }}>
-        <Text className="text-xl mr-1.5">{emoji}</Text>
+        <Text className="text-xl mr-2">{emoji}</Text>
         <Text
           className={[
-            'text-sm font-semibold',
+            'text-sm font-semibold tabular-nums',
             isActive ? 'text-happy-700 dark:text-happy-300' : 'text-gray-700 dark:text-stone-200',
           ].join(' ')}>
-          {count}
+          {formatReactionCount(count)}
         </Text>
       </Pressable>
     </Animated.View>
@@ -91,9 +92,19 @@ export function ReactionBar({
   onReaction,
   pendingTypes = new Set(),
 }: ReactionBarProps) {
+  const sortedTypes = useMemo(() => {
+    return [...REACTION_TYPES].sort((a, b) => {
+      const countA = getCount(reactions, a.type);
+      const countB = getCount(reactions, b.type);
+      if (countA > 0 && countB === 0) return -1;
+      if (countA === 0 && countB > 0) return 1;
+      return countB - countA;
+    });
+  }, [reactions]);
+
   return (
-    <View className="flex-row flex-wrap gap-2">
-      {REACTION_TYPES.map(({ type, emoji, label }) => (
+    <View className="flex-row flex-wrap gap-3" accessibilityLabel="반응 버튼 목록">
+      {sortedTypes.map(({ type, emoji, label }) => (
         <ReactionButton
           key={type}
           type={type}
