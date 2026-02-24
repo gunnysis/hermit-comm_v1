@@ -68,6 +68,17 @@ export interface Reaction {
   count: number;
 }
 
+/** 감정 기반 추천 게시글 (get_recommended_posts_by_emotion RPC 반환 타입) */
+export interface RecommendedPost {
+  id: number;
+  title: string;
+  board_id: number;
+  like_count: number;
+  comment_count: number;
+  emotions: string[];
+  created_at: string;
+}
+
 // 요청 타입
 export interface CreatePostRequest {
   title: string;
