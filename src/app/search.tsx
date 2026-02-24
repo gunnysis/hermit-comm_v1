@@ -102,7 +102,7 @@ export default function SearchScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <View className="flex-1">
         <View className="flex-row items-center gap-2 px-4 pt-4 pb-3 bg-cream-50 dark:bg-stone-900 border-b border-cream-200 dark:border-stone-700">
           <Pressable

@@ -6,6 +6,7 @@ import type { TBlock } from '@native-html/transient-render-engine';
 import { isLikelyHtml, stripHtml } from '@/shared/utils/html';
 import { logger } from '@/shared/utils/logger';
 import { CONTENT_MAX_WIDTH } from '@/shared/hooks/useResponsiveLayout';
+import { useThemeColors } from '@/shared/hooks/useThemeColors';
 
 /** http/https만 허용 (링크 열기·이미지 src) */
 function isAllowedUrl(url: string): boolean {
@@ -54,7 +55,10 @@ class PostBodyHtmlErrorBoundary extends Component<
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <Text className="text-base text-gray-800" style={{ lineHeight: 24 }} selectable>
+        <Text
+          className="text-base text-gray-800 dark:text-stone-100"
+          style={{ lineHeight: 24 }}
+          selectable>
           {stripHtml(this.props.content)}
         </Text>
       );
@@ -63,54 +67,53 @@ class PostBodyHtmlErrorBoundary extends Component<
   }
 }
 
-const IMG_PLACEHOLDER_STYLE = { fontSize: 14, color: '#9ca3af', fontStyle: 'italic' as const };
 const IMG_MAX_HEIGHT = 360;
 
-const HTML_STYLE = {
-  body: {
-    color: '#1f2937',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  p: {
-    marginTop: 0,
-    marginBottom: 12,
-    lineHeight: 24,
-  },
-  blockquote: {
-    backgroundColor: '#FFFCEB',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FFCF33',
-    marginVertical: 8,
-    paddingLeft: 12,
-    paddingVertical: 8,
-  },
-  code: {
-    backgroundColor: '#FFFCEB',
-    fontFamily: 'monospace',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  pre: {
-    backgroundColor: '#FFFCEB',
-    padding: 12,
-    marginVertical: 8,
-  },
-  h2: { fontSize: 20, fontWeight: '700' as const, marginVertical: 8 },
-  h3: { fontSize: 18, fontWeight: '600' as const, marginVertical: 6 },
-  a: { color: '#2563eb', textDecorationLine: 'underline' as const },
-  img: { maxWidth: '100%' as const, maxHeight: IMG_MAX_HEIGHT },
-};
+function useHtmlStyles() {
+  const { text, textMuted, codeBackground, link } = useThemeColors();
+
+  return useMemo(
+    () => ({
+      tagsStyles: {
+        body: { color: text, fontSize: 16, lineHeight: 24 },
+        p: { marginTop: 0, marginBottom: 12, lineHeight: 24 },
+        blockquote: {
+          backgroundColor: codeBackground,
+          borderLeftWidth: 4,
+          borderLeftColor: '#FFCF33',
+          marginVertical: 8,
+          paddingLeft: 12,
+          paddingVertical: 8,
+        },
+        code: {
+          backgroundColor: codeBackground,
+          fontFamily: 'monospace',
+          paddingHorizontal: 6,
+          paddingVertical: 2,
+        },
+        pre: { backgroundColor: codeBackground, padding: 12, marginVertical: 8 },
+        h2: { fontSize: 20, fontWeight: '700' as const, marginVertical: 8 },
+        h3: { fontSize: 18, fontWeight: '600' as const, marginVertical: 6 },
+        a: { color: link, textDecorationLine: 'underline' as const },
+        img: { maxWidth: '100%' as const, maxHeight: IMG_MAX_HEIGHT },
+      },
+      baseStyle: { color: text, fontSize: 16, lineHeight: 24 },
+      placeholderStyle: { fontSize: 14, color: textMuted, fontStyle: 'italic' as const },
+    }),
+    [text, textMuted, codeBackground, link],
+  );
+}
 
 /** img: http/https src만 렌더, 그 외는 placeholder */
 function SafeImageRenderer(props: CustomRendererProps<TBlock>): React.ReactElement {
   const { tnode, InternalRenderer } = props;
+  const { placeholderStyle } = useHtmlStyles();
   const attrs = tnode.attributes ?? {};
   const src = typeof attrs.src === 'string' ? attrs.src : '';
   if (!isAllowedUrl(src)) {
     if (__DEV__) logger.warn('[PostBody] 이미지 src 차단', String(src).slice(0, 80));
     return (
-      <Text style={IMG_PLACEHOLDER_STYLE} accessibilityLabel="표시할 수 없는 이미지">
+      <Text style={placeholderStyle} accessibilityLabel="표시할 수 없는 이미지">
         (이미지)
       </Text>
     );
@@ -121,6 +124,7 @@ function SafeImageRenderer(props: CustomRendererProps<TBlock>): React.ReactEleme
 function PostBodyComponent({ content, imageUrl }: PostBodyProps) {
   const { width } = useWindowDimensions();
   const contentWidth = Math.min(Math.max(0, width - 32), CONTENT_MAX_WIDTH);
+  const htmlStyles = useHtmlStyles();
 
   const handleLinkPress = useCallback((_event: unknown, href: string) => {
     const url = typeof href === 'string' ? href : '';
@@ -158,8 +162,8 @@ function PostBodyComponent({ content, imageUrl }: PostBodyProps) {
         <RenderHTML
           source={{ html: content }}
           contentWidth={contentWidth}
-          tagsStyles={HTML_STYLE}
-          baseStyle={{ color: '#1f2937', fontSize: 16, lineHeight: 24 }}
+          tagsStyles={htmlStyles.tagsStyles}
+          baseStyle={htmlStyles.baseStyle}
           ignoredDomTags={IGNORED_DOM_TAGS}
           renderers={renderers}
           renderersProps={renderersProps}

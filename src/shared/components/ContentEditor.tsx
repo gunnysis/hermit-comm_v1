@@ -71,26 +71,32 @@ export function ContentEditor({
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={accessibilityHint}
       accessibilityRole="none">
-      {label ? <Text className="text-sm font-semibold text-gray-700 mb-2">{label}</Text> : null}
+      {label ? (
+        <Text className="text-sm font-semibold text-gray-700 dark:text-stone-300 mb-2">
+          {label}
+        </Text>
+      ) : null}
       <View
         className={`
           rounded-2xl border-2 overflow-hidden
-          ${error ? 'border-coral-500' : 'border-cream-200'}
+          ${error ? 'border-coral-500' : 'border-cream-200 dark:border-stone-600'}
         `}
         style={{ minHeight }}>
-        <View className="bg-cream-100 border-b border-cream-200 px-2 py-1">
+        <View className="bg-cream-100 dark:bg-stone-800 border-b border-cream-200 dark:border-stone-600 px-2 py-1">
           <Toolbar editor={editor} />
         </View>
-        <View className="bg-cream-50 flex-1" style={{ minHeight: 160 }}>
+        <View className="bg-cream-50 dark:bg-stone-900 flex-1" style={{ minHeight: 160 }}>
           <RichText editor={editor} />
         </View>
       </View>
       <Text
-        className={`text-xs mt-1 ${currentLength > maxLength ? 'text-coral-500' : 'text-gray-500'}`}
+        className={`text-xs mt-1 ${currentLength > maxLength ? 'text-coral-500' : 'text-gray-500 dark:text-stone-400'}`}
         accessibilityLabel={`글자 수 ${currentLength}자, 최대 ${maxLength}자`}>
         {currentLength} / {maxLength}자
       </Text>
-      {error ? <Text className="text-xs text-coral-500 mt-2">{error}</Text> : null}
+      {error ? (
+        <Text className="text-xs text-coral-500 dark:text-coral-400 mt-2">{error}</Text>
+      ) : null}
     </View>
   );
 }

@@ -113,7 +113,7 @@ export default function EditPostScreen() {
   if (fetchLoading) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="게시글을 불러오는 중..." />
       </Container>
     );
@@ -122,7 +122,7 @@ export default function EditPostScreen() {
   if (fetchError || !post) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView
           message={(fetchError as Error)?.message ?? '게시글을 찾을 수 없습니다.'}
           onRetry={refetch}
@@ -133,7 +133,7 @@ export default function EditPostScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -172,15 +172,15 @@ export default function EditPostScreen() {
 
             <View className="mt-2 mb-2">
               {anonMode === 'always_anon' ? (
-                <Text className="text-xs text-gray-500">
+                <Text className="text-xs text-gray-500 dark:text-stone-400">
                   이 게시판의 글은 항상 익명으로 표시됩니다.
                 </Text>
               ) : anonMode === 'require_name' ? (
-                <Text className="text-xs text-gray-500">
+                <Text className="text-xs text-gray-500 dark:text-stone-400">
                   이 게시판의 글은 닉네임으로 표시됩니다.
                 </Text>
               ) : (
-                <Text className="text-xs text-gray-500">
+                <Text className="text-xs text-gray-500 dark:text-stone-400">
                   표시명은 게시판 설정에 따라 자동으로 결정됩니다.
                 </Text>
               )}
@@ -188,7 +188,7 @@ export default function EditPostScreen() {
           </View>
         </ScrollView>
 
-        <View className="px-4 pb-4 pt-2 bg-cream-50 border-t border-cream-200">
+        <View className="px-4 pb-4 pt-2 bg-cream-50 dark:bg-stone-900 border-t border-cream-200 dark:border-stone-700">
           <Button
             title="저장하기"
             onPress={handleSubmit}

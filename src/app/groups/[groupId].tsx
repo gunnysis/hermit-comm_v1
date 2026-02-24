@@ -138,7 +138,7 @@ export default function GroupBoardScreen() {
   if (!groupId || Number.isNaN(groupId)) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView message="유효하지 않은 그룹입니다." onRetry={() => router.back()} />
       </Container>
     );
@@ -147,7 +147,7 @@ export default function GroupBoardScreen() {
   if (loading && posts.length === 0 && !isSearchMode) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="그룹 게시판을 불러오는 중..." />
       </Container>
     );
@@ -156,7 +156,7 @@ export default function GroupBoardScreen() {
   if (error && posts.length === 0 && !isSearchMode) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView message="그룹 게시판을 불러오지 못했습니다." onRetry={refetch} />
       </Container>
     );
@@ -166,7 +166,7 @@ export default function GroupBoardScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <View className="flex-1 relative">
         <ScreenHeader
           title={board?.name ?? `그룹 #${groupId}`}
@@ -186,13 +186,15 @@ export default function GroupBoardScreen() {
                   className={`px-4 py-2 rounded-xl ${
                     index === selectedBoardIndex
                       ? 'bg-happy-400'
-                      : 'bg-white border border-cream-200'
+                      : 'bg-white dark:bg-stone-800 border border-cream-200 dark:border-stone-600'
                   }`}
                   accessibilityLabel={`${b.name} 게시판`}
                   accessibilityRole="button">
                   <Text
                     className={`text-sm font-semibold ${
-                      index === selectedBoardIndex ? 'text-white' : 'text-gray-600'
+                      index === selectedBoardIndex
+                        ? 'text-white'
+                        : 'text-gray-600 dark:text-stone-300'
                     }`}>
                     {b.name}
                   </Text>
@@ -227,7 +229,7 @@ export default function GroupBoardScreen() {
 
         {!board && !loading && !error ? (
           <View className="flex-1 items-center justify-center px-6 py-10">
-            <Text className="text-sm text-gray-500 text-center">
+            <Text className="text-sm text-gray-500 dark:text-stone-400 text-center">
               아직 이 그룹에는 게시판이 없습니다.{'\n'}운영자가 게시판을 생성하면 이곳에서 글을 볼
               수 있어요.
             </Text>

@@ -19,7 +19,7 @@ export function PostDetailCommentForm({
   disabled,
 }: PostDetailCommentFormProps) {
   return (
-    <View className="flex-row items-end gap-2 px-4 py-3 bg-white border-t border-cream-200 shadow-lg">
+    <View className="flex-row items-end gap-2 px-4 py-3 bg-white dark:bg-stone-900 border-t border-cream-200 dark:border-stone-700 shadow-lg">
       <View className="flex-1">
         <Input
           value={value}

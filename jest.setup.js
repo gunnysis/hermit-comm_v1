@@ -6,6 +6,11 @@ if (typeof global.structuredClone === 'undefined') {
   global.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
 }
 
+// Mock NativeWind
+jest.mock('nativewind', () => ({
+  useColorScheme: () => ({ colorScheme: 'light', setColorScheme: jest.fn(), toggleColorScheme: jest.fn() }),
+}));
+
 // Mock Expo modules
 jest.mock('expo-constants', () => ({
   default: {
