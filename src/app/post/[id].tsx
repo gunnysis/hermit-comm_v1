@@ -18,6 +18,7 @@ import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { usePostDetailAnalysis } from '@/features/posts/hooks/usePostDetailAnalysis';
 import { usePostDetailComments } from '@/features/posts/hooks/usePostDetailComments';
 import { usePostDetailReactions } from '@/features/posts/hooks/usePostDetailReactions';
+import { useRecommendedPosts } from '@/features/posts/hooks/useRecommendedPosts';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
@@ -68,6 +69,8 @@ export default function PostDetailScreen() {
 
   const { postAnalysis, analysisLoading } = usePostDetailAnalysis(postId);
   const { reactions, handleReaction, reactionLoading } = usePostDetailReactions(postId);
+  const { data: recommendedPosts = [], isLoading: recommendedPostsLoading } =
+    useRecommendedPosts(postId);
   const {
     comments,
     commentsLoading,
@@ -222,6 +225,8 @@ export default function PostDetailScreen() {
             reactions={reactions}
             onReaction={handleReaction}
             reactionLoading={reactionLoading}
+            recommendedPosts={recommendedPosts}
+            recommendedPostsLoading={recommendedPostsLoading}
           />
 
           <PostDetailCommentList

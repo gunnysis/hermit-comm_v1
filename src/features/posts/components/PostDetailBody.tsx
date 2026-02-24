@@ -3,8 +3,9 @@ import { View, Text } from 'react-native';
 import { PostBody } from './PostBody';
 import { EmotionTags } from './EmotionTags';
 import { ReactionBar } from './ReactionBar';
+import { RecommendedPosts } from './RecommendedPosts';
 import { formatDate } from '@/shared/utils/format';
-import type { Post, Reaction } from '@/types';
+import type { Post, Reaction, RecommendedPost } from '@/types';
 
 interface PostDetailBodyProps {
   post: Post;
@@ -13,6 +14,9 @@ interface PostDetailBodyProps {
   reactions: Reaction[];
   onReaction: (reactionType: string) => void;
   reactionLoading: boolean;
+  /** 감정 기반 추천 게시글 */
+  recommendedPosts?: RecommendedPost[];
+  recommendedPostsLoading?: boolean;
 }
 
 export function PostDetailBody({
@@ -22,6 +26,8 @@ export function PostDetailBody({
   reactions,
   onReaction,
   reactionLoading,
+  recommendedPosts = [],
+  recommendedPostsLoading = false,
 }: PostDetailBodyProps) {
   return (
     <View className="mx-4 mt-4 rounded-2xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-md overflow-hidden">
@@ -49,6 +55,7 @@ export function PostDetailBody({
         <View className="border-t border-cream-200 dark:border-stone-700 pt-4 items-start">
           <ReactionBar reactions={reactions} onReaction={onReaction} loading={reactionLoading} />
         </View>
+        <RecommendedPosts posts={recommendedPosts} isLoading={recommendedPostsLoading} />
       </View>
     </View>
   );
