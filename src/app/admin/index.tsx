@@ -144,7 +144,7 @@ export default function AdminIndexScreen() {
   if (isLoading) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="관리 그룹 목록을 불러오는 중..." />
       </Container>
     );
@@ -153,7 +153,7 @@ export default function AdminIndexScreen() {
   if (error) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView message="관리 그룹 목록을 불러오지 못했습니다." onRetry={refetch} />
       </Container>
     );
@@ -161,7 +161,7 @@ export default function AdminIndexScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">
@@ -170,24 +170,28 @@ export default function AdminIndexScreen() {
           contentContainerStyle={{ paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled">
           {/* 헤더 */}
-          <View className="bg-happy-100 px-4 pt-12 pb-6 border-b border-cream-200 shadow-sm">
+          <View className="bg-happy-100 dark:bg-stone-900 px-4 pt-12 pb-6 border-b border-cream-200 dark:border-stone-700 shadow-sm">
             <View className="flex-row items-center justify-between">
               <Pressable onPress={handleBack} className="py-2 pr-2" accessibilityLabel="뒤로 가기">
-                <Text className="text-base text-gray-600">← 뒤로</Text>
+                <Text className="text-base text-gray-600 dark:text-stone-400">← 뒤로</Text>
               </Pressable>
               <Pressable onPress={handleLogout} className="py-2 pl-2" accessibilityLabel="로그아웃">
-                <Text className="text-base text-gray-600">로그아웃</Text>
+                <Text className="text-base text-gray-600 dark:text-stone-400">로그아웃</Text>
               </Pressable>
             </View>
-            <Text className="text-2xl font-bold text-gray-800 mt-2">관리자</Text>
-            <Text className="text-sm text-gray-600 mt-1">
+            <Text className="text-2xl font-bold text-gray-800 dark:text-stone-100 mt-2">
+              관리자
+            </Text>
+            <Text className="text-sm text-gray-600 dark:text-stone-400 mt-1">
               그룹 게시판을 생성하고 초대 코드를 관리합니다.
             </Text>
           </View>
 
           {/* 그룹 생성 폼 */}
-          <View className="p-4 border-b border-cream-200">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">그룹 게시판 생성</Text>
+          <View className="p-4 border-b border-cream-200 dark:border-stone-700">
+            <Text className="text-lg font-semibold text-gray-800 dark:text-stone-100 mb-3">
+              그룹 게시판 생성
+            </Text>
             <Input
               label="그룹명"
               value={name}
@@ -223,9 +227,13 @@ export default function AdminIndexScreen() {
 
           {/* 내가 만든 그룹 목록 */}
           <View className="p-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">내가 만든 그룹</Text>
+            <Text className="text-lg font-semibold text-gray-800 dark:text-stone-100 mb-3">
+              내가 만든 그룹
+            </Text>
             {(groups ?? []).length === 0 ? (
-              <Text className="text-sm text-gray-500">아직 생성한 그룹이 없습니다.</Text>
+              <Text className="text-sm text-gray-500 dark:text-stone-400">
+                아직 생성한 그룹이 없습니다.
+              </Text>
             ) : (
               (groups ?? []).map((group) => {
                 const isDeleting =
@@ -233,15 +241,19 @@ export default function AdminIndexScreen() {
                 return (
                   <View
                     key={group.id}
-                    className="bg-white rounded-2xl px-4 py-3 mb-3 border border-cream-200">
-                    <Text className="text-base font-semibold text-gray-800">{group.name}</Text>
+                    className="bg-white dark:bg-stone-900 rounded-2xl px-4 py-3 mb-3 border border-cream-200 dark:border-stone-700">
+                    <Text className="text-base font-semibold text-gray-800 dark:text-stone-100">
+                      {group.name}
+                    </Text>
                     {group.description && (
-                      <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
+                      <Text
+                        className="text-xs text-gray-500 dark:text-stone-400 mt-1"
+                        numberOfLines={2}>
                         {group.description}
                       </Text>
                     )}
                     <View className="flex-row items-center justify-between mt-2">
-                      <Text className="text-xs text-gray-500">
+                      <Text className="text-xs text-gray-500 dark:text-stone-400">
                         초대 코드: {group.invite_code ?? '-'} ·{' '}
                         {format(new Date(group.created_at), 'yyyy.MM.dd', { locale: ko })}
                       </Text>
@@ -249,18 +261,20 @@ export default function AdminIndexScreen() {
                         {group.invite_code ? (
                           <Pressable
                             onPress={() => shareInviteCode(group.invite_code!)}
-                            className="px-3 py-1.5 bg-happy-200 rounded-lg"
+                            className="px-3 py-1.5 bg-happy-200 dark:bg-happy-800 rounded-lg"
                             accessibilityLabel="초대 코드 공유"
                             disabled={isDeleting}>
-                            <Text className="text-xs font-semibold text-gray-700">공유</Text>
+                            <Text className="text-xs font-semibold text-gray-700 dark:text-happy-200">
+                              공유
+                            </Text>
                           </Pressable>
                         ) : null}
                         <Pressable
                           onPress={() => handleDeleteGroup(group)}
-                          className="px-3 py-1.5 bg-coral-100 rounded-lg"
+                          className="px-3 py-1.5 bg-coral-100 dark:bg-coral-900/30 rounded-lg"
                           accessibilityLabel="그룹 삭제"
                           disabled={isDeleting}>
-                          <Text className="text-xs font-semibold text-coral-600">
+                          <Text className="text-xs font-semibold text-coral-600 dark:text-coral-400">
                             {isDeleting ? '삭제 중…' : '삭제'}
                           </Text>
                         </Pressable>

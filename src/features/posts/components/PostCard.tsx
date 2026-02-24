@@ -74,8 +74,8 @@ const PostCardComponent = ({ post }: PostCardProps) => {
                 </Text>
               </View>
               {post.comment_count !== undefined && (
-                <View className="bg-mint-100 px-2.5 py-1 rounded-full">
-                  <Text className="text-xs font-medium text-mint-700">
+                <View className="bg-mint-100 dark:bg-mint-900/40 px-2.5 py-1 rounded-full">
+                  <Text className="text-xs font-medium text-mint-700 dark:text-mint-300">
                     댓글 {post.comment_count}개
                   </Text>
                 </View>

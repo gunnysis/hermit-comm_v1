@@ -93,7 +93,7 @@ export default function CreateScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -103,14 +103,18 @@ export default function CreateScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 16 }}>
           <View
-            className={`bg-peach-100 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200`}>
+            className={`bg-peach-100 dark:bg-stone-900 px-4 ${isWide ? 'pt-6' : 'pt-12'} pb-6 border-b border-cream-200 dark:border-stone-700`}>
             <View className="flex-row items-center">
               <Text className="text-3xl mr-2">✍️</Text>
-              <Text className="text-3xl font-bold text-gray-800">게시글 작성</Text>
+              <Text className="text-3xl font-bold text-gray-800 dark:text-stone-100">
+                게시글 작성
+              </Text>
             </View>
-            <Text className="text-sm text-gray-600 mt-2">따뜻한 이야기를 나눠주세요</Text>
+            <Text className="text-sm text-gray-600 dark:text-stone-400 mt-2">
+              따뜻한 이야기를 나눠주세요
+            </Text>
             {board?.description ? (
-              <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
+              <Text className="text-xs text-gray-500 dark:text-stone-400 mt-1" numberOfLines={2}>
                 {board.description}
               </Text>
             ) : null}
@@ -179,7 +183,7 @@ export default function CreateScreen() {
           </View>
         </ScrollView>
 
-        <View className="px-4 pb-4 pt-2 bg-cream-50 border-t border-cream-200">
+        <View className="px-4 pb-4 pt-2 bg-cream-50 dark:bg-stone-900 border-t border-cream-200 dark:border-stone-700">
           <Button
             title="작성하기 🎨"
             onPress={handleSubmit(handleFormSubmit)}

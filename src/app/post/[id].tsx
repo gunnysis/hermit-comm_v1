@@ -176,7 +176,7 @@ export default function PostDetailScreen() {
   if (postLoading) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="게시글을 불러오는 중..." />
       </Container>
     );
@@ -185,7 +185,7 @@ export default function PostDetailScreen() {
   if (postError || !post) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView
           message={(postError as Error)?.message ?? '게시글을 찾을 수 없습니다.'}
           onRetry={refetchPost}
@@ -198,7 +198,7 @@ export default function PostDetailScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

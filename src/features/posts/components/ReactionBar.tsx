@@ -36,11 +36,13 @@ export function ReactionBar({ reactions, onReaction, loading = false }: Reaction
           key={type}
           onPress={() => handlePress(type)}
           disabled={loading}
-          className="flex-row items-center px-4 py-2 rounded-full bg-white border-2 border-cream-300 active:opacity-80 active:scale-95"
+          className="flex-row items-center px-4 py-2 rounded-full bg-white dark:bg-stone-800 border-2 border-cream-300 dark:border-stone-600 active:opacity-80 active:scale-95"
           accessibilityLabel={`${label} ${getCount(reactions, type)}개, 누르면 추가`}
           accessibilityRole="button">
           <Text className="text-xl mr-1.5">{emoji}</Text>
-          <Text className="text-sm font-semibold text-gray-700">{getCount(reactions, type)}</Text>
+          <Text className="text-sm font-semibold text-gray-700 dark:text-stone-200">
+            {getCount(reactions, type)}
+          </Text>
         </Pressable>
       ))}
     </View>

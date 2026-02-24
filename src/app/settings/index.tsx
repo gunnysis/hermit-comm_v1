@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import { Container } from '@/shared/components/Container';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/shared/hooks/useThemeColors';
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -17,18 +18,20 @@ interface SettingsItemProps {
 }
 
 function SettingsItem({ icon, label, onPress, detail, destructive }: SettingsItemProps) {
+  const { icon: iconColor, iconDestructive, chevron } = useThemeColors();
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center px-4 py-3.5 bg-white active:bg-cream-50"
+      className="flex-row items-center px-4 py-3.5 bg-white dark:bg-stone-900 active:bg-cream-50 dark:active:bg-stone-800"
       accessibilityLabel={label}
       accessibilityRole="button">
-      <Ionicons name={icon} size={20} color={destructive ? '#FF7366' : '#6B7280'} />
-      <Text className={`flex-1 ml-3 text-base ${destructive ? 'text-coral-500' : 'text-gray-800'}`}>
+      <Ionicons name={icon} size={20} color={destructive ? iconDestructive : iconColor} />
+      <Text
+        className={`flex-1 ml-3 text-base ${destructive ? 'text-coral-500' : 'text-gray-800 dark:text-stone-100'}`}>
         {label}
       </Text>
-      {detail && <Text className="text-sm text-gray-400 mr-1">{detail}</Text>}
-      <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+      {detail && <Text className="text-sm text-gray-400 dark:text-stone-500 mr-1">{detail}</Text>}
+      <Ionicons name="chevron-forward" size={16} color={chevron} />
     </Pressable>
   );
 }
@@ -43,13 +46,14 @@ function SettingsInfoItem({
   label: string;
   detail?: string;
 }) {
+  const { icon: iconColor } = useThemeColors();
   return (
     <View
-      className="flex-row items-center px-4 py-3.5 bg-white"
+      className="flex-row items-center px-4 py-3.5 bg-white dark:bg-stone-900"
       accessibilityLabel={detail ? `${label} ${detail}` : label}>
-      <Ionicons name={icon} size={20} color="#6B7280" />
-      <Text className="flex-1 ml-3 text-base text-gray-800">{label}</Text>
-      {detail && <Text className="text-sm text-gray-400">{detail}</Text>}
+      <Ionicons name={icon} size={20} color={iconColor} />
+      <Text className="flex-1 ml-3 text-base text-gray-800 dark:text-stone-100">{label}</Text>
+      {detail && <Text className="text-sm text-gray-400 dark:text-stone-500">{detail}</Text>}
     </View>
   );
 }
@@ -64,11 +68,11 @@ export default function SettingsScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
         <ScreenHeader title="설정" />
 
-        <View className="mt-4 mx-4 rounded-2xl overflow-hidden border border-cream-200">
+        <View className="mt-4 mx-4 rounded-2xl overflow-hidden border border-cream-200 dark:border-stone-700">
           <SettingsInfoItem
             icon="information-circle-outline"
             label="앱 버전"
@@ -76,7 +80,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <View className="mt-6 mx-4 rounded-2xl overflow-hidden border border-cream-200">
+        <View className="mt-6 mx-4 rounded-2xl overflow-hidden border border-cream-200 dark:border-stone-700">
           <SettingsItem
             icon="shield-outline"
             label="운영자 관리 페이지"
@@ -85,8 +89,10 @@ export default function SettingsScreen() {
         </View>
 
         <View className="items-center mt-8 px-4">
-          <Text className="text-xs text-gray-400 text-center">은둔마을 - 따뜻한 익명 커뮤니티</Text>
-          <Text className="text-xs text-gray-300 mt-1">v{appVersion}</Text>
+          <Text className="text-xs text-gray-400 dark:text-stone-500 text-center">
+            은둔마을 - 따뜻한 익명 커뮤니티
+          </Text>
+          <Text className="text-xs text-gray-300 dark:text-stone-600 mt-1">v{appVersion}</Text>
         </View>
       </ScrollView>
     </Container>

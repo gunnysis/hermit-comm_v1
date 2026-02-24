@@ -61,7 +61,7 @@ export default function GroupCreatePostScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -124,7 +124,7 @@ export default function GroupCreatePostScreen() {
           </View>
         </ScrollView>
 
-        <View className="px-4 pb-4 pt-2 bg-cream-50 border-t border-cream-200">
+        <View className="px-4 pb-4 pt-2 bg-cream-50 dark:bg-stone-900 border-t border-cream-200 dark:border-stone-700">
           <Button
             title="작성하기"
             onPress={handleSubmit(handleFormSubmit)}

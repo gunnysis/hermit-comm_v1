@@ -41,14 +41,16 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
   };
 
   return (
-    <View className="bg-cream-50 rounded-2xl p-4 mb-3 border border-cream-200">
+    <View className="bg-cream-50 dark:bg-stone-800 rounded-2xl p-4 mb-3 border border-cream-200 dark:border-stone-700">
       <View className="flex-row justify-between items-center mb-2">
-        <View className="bg-mint-100 px-3 py-1 rounded-full">
-          <Text className="text-sm font-semibold text-mint-700">
+        <View className="bg-mint-100 dark:bg-mint-900/40 px-3 py-1 rounded-full">
+          <Text className="text-sm font-semibold text-mint-700 dark:text-mint-300">
             {comment.display_name ?? comment.author}
           </Text>
         </View>
-        <Text className="text-xs text-gray-400">{formatDate(comment.created_at)}</Text>
+        <Text className="text-xs text-gray-400 dark:text-stone-500">
+          {formatDate(comment.created_at)}
+        </Text>
       </View>
 
       {isEditing ? (
@@ -63,7 +65,7 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
           />
           <View className="flex-row gap-2 self-end">
             <Pressable onPress={handleCancelEdit} className="px-3 py-1.5 active:opacity-70">
-              <Text className="text-sm text-gray-600">취소</Text>
+              <Text className="text-sm text-gray-600 dark:text-stone-400">취소</Text>
             </Pressable>
             <Button
               title="저장"
@@ -76,7 +78,9 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
         </View>
       ) : (
         <>
-          <Text className="text-base text-gray-700 leading-6">{comment.content}</Text>
+          <Text className="text-base text-gray-700 dark:text-stone-200 leading-6">
+            {comment.content}
+          </Text>
           {canEdit && (onEdit || onDelete) && (
             <View className="flex-row gap-3 mt-3 self-end">
               {onEdit && (
@@ -86,7 +90,9 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
                   accessibilityLabel="댓글 수정"
                   accessibilityHint="이 댓글을 수정합니다"
                   accessibilityRole="button">
-                  <Text className="text-sm text-happy-700 font-semibold">수정</Text>
+                  <Text className="text-sm text-happy-700 dark:text-happy-400 font-semibold">
+                    수정
+                  </Text>
                 </Pressable>
               )}
               {onDelete && (

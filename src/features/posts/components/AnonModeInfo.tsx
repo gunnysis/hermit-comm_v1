@@ -14,22 +14,30 @@ interface AnonModeInfoProps {
 export function AnonModeInfo({ anonMode, showName, onToggle }: AnonModeInfoProps) {
   if (anonMode === 'always_anon') {
     return (
-      <Text className="text-xs text-gray-500">이 게시판의 글은 항상 익명으로 표시됩니다.</Text>
+      <Text className="text-xs text-gray-500 dark:text-stone-400">
+        이 게시판의 글은 항상 익명으로 표시됩니다.
+      </Text>
     );
   }
 
   if (anonMode === 'require_name') {
-    return <Text className="text-xs text-gray-500">이 게시판의 글은 닉네임으로 표시됩니다.</Text>;
+    return (
+      <Text className="text-xs text-gray-500 dark:text-stone-400">
+        이 게시판의 글은 닉네임으로 표시됩니다.
+      </Text>
+    );
   }
 
   return (
     <Pressable onPress={onToggle} className="flex-row items-center gap-2 py-1 active:opacity-80">
       <View
         className={`w-4 h-4 rounded border ${
-          showName ? 'bg-happy-400 border-happy-400' : 'border-cream-400'
+          showName ? 'bg-happy-400 border-happy-400' : 'border-cream-400 dark:border-stone-500'
         }`}
       />
-      <Text className="text-xs text-gray-600">이번 글에 내 닉네임을 함께 표시하기</Text>
+      <Text className="text-xs text-gray-600 dark:text-stone-400">
+        이번 글에 내 닉네임을 함께 표시하기
+      </Text>
     </Pressable>
   );
 }

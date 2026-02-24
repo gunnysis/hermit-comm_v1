@@ -70,7 +70,7 @@ export default function HomeScreen() {
         onPress={() => pushAdmin(router)}
         className="ml-3 px-2 py-1.5 rounded-lg"
         accessibilityLabel="관리자 페이지">
-        <Text className="text-xs font-semibold text-gray-600">관리자</Text>
+        <Text className="text-xs font-semibold text-gray-600 dark:text-stone-400">관리자</Text>
       </Pressable>
     ) : undefined;
 
@@ -78,7 +78,7 @@ export default function HomeScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <View className="flex-1 relative">
         <ScreenHeader
           title="은둔마을"

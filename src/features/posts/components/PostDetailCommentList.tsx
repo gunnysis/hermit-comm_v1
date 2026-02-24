@@ -21,7 +21,9 @@ export function PostDetailCommentList({
 }: PostDetailCommentListProps) {
   return (
     <View className="py-4">
-      <Text className="text-lg font-bold text-gray-800 mb-4 px-4">댓글 {comments.length}개</Text>
+      <Text className="text-lg font-bold text-gray-800 dark:text-stone-100 mb-4 px-4">
+        댓글 {comments.length}개
+      </Text>
       {commentsLoading && comments.length === 0 ? (
         <Loading size="small" />
       ) : (
