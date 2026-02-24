@@ -1,5 +1,6 @@
 import React from 'react';
 import { TextInput, View, Text, TextInputProps } from 'react-native';
+import { useThemeColors } from '@/shared/hooks/useThemeColors';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -8,6 +9,7 @@ interface InputProps extends TextInputProps {
 }
 
 export function Input({ label, error, className, accessibilityHint, ...props }: InputProps) {
+  const { placeholder } = useThemeColors();
   return (
     <View className="mb-4">
       {label && (
@@ -21,7 +23,7 @@ export function Input({ label, error, className, accessibilityHint, ...props }: 
           ${error ? 'border-coral-500 dark:border-coral-500' : 'border-cream-200 dark:border-stone-600'}
           ${className || ''}
         `}
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={placeholder}
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
         {...props}

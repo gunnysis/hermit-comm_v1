@@ -15,6 +15,60 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useThemeColors } from '@/shared/hooks/useThemeColors';
+
+function EmptyGroups() {
+  const { chevron } = useThemeColors();
+  return (
+    <View className="items-center py-8">
+      <Ionicons name="people-outline" size={48} color={chevron} />
+      <Text className="text-sm text-gray-500 dark:text-stone-400 mt-3 text-center">
+        아직 참여 중인 그룹이 없습니다.{'\n'}초대 코드를 입력하여 그룹에 참여해보세요.
+      </Text>
+    </View>
+  );
+}
+
+function GroupCard({
+  group,
+  onPress,
+  onLeave,
+}: {
+  group: { id: number; name: string; description?: string | null };
+  onPress: () => void;
+  onLeave: () => void;
+}) {
+  const { chevron } = useThemeColors();
+  return (
+    <View className="bg-white dark:bg-stone-900 rounded-2xl border border-cream-200 dark:border-stone-700 overflow-hidden">
+      <Pressable onPress={onPress} className="px-4 py-4 active:opacity-80">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text className="text-base font-semibold text-gray-800 dark:text-stone-100">
+              {group.name}
+            </Text>
+            {group.description && (
+              <Text className="text-xs text-gray-500 dark:text-stone-400 mt-1" numberOfLines={2}>
+                {group.description}
+              </Text>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={chevron} />
+        </View>
+      </Pressable>
+      <View className="border-t border-cream-100 dark:border-stone-700 px-4 py-2">
+        <Pressable
+          onPress={onLeave}
+          className="flex-row items-center gap-1 py-1 active:opacity-70"
+          accessibilityLabel={`${group.name} 그룹에서 나가기`}
+          accessibilityRole="button">
+          <Ionicons name="log-out-outline" size={14} color="#EF4444" />
+          <Text className="text-xs text-red-500">나가기</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
 export default function MyGroupsScreen() {
   const router = useRouter();
@@ -82,7 +136,7 @@ export default function MyGroupsScreen() {
   if (isLoading) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="내 그룹을 불러오는 중..." />
       </Container>
     );
@@ -91,7 +145,7 @@ export default function MyGroupsScreen() {
   if (error) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView
           message={toFriendlyErrorMessage(error, '그룹 목록을 불러오지 못했습니다.')}
           onRetry={refetch}
@@ -104,15 +158,17 @@ export default function MyGroupsScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <View className="flex-1">
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
           <ScreenHeader title="내 그룹" subtitle="참여 중인 프로그램/소모임의 익명 게시판" />
 
           <View className="p-4 pb-1">
-            <View className="bg-white rounded-2xl px-4 py-3 border border-cream-200">
-              <Text className="text-sm font-semibold text-gray-800 mb-2">초대 코드로 참여</Text>
-              <Text className="text-xs text-gray-500 mb-3">
+            <View className="bg-white dark:bg-stone-900 rounded-2xl px-4 py-3 border border-cream-200 dark:border-stone-700">
+              <Text className="text-sm font-semibold text-gray-800 dark:text-stone-100 mb-2">
+                초대 코드로 참여
+              </Text>
+              <Text className="text-xs text-gray-500 dark:text-stone-400 mb-3">
                 운영자로부터 받은 초대 코드를 입력하면 해당 그룹 게시판에 참여할 수 있어요.
               </Text>
               <View className="flex-row items-center gap-2">
@@ -139,47 +195,19 @@ export default function MyGroupsScreen() {
           </View>
 
           <View className="p-4 gap-3">
-            <Text className="text-sm font-semibold text-gray-800 mb-1">
+            <Text className="text-sm font-semibold text-gray-800 dark:text-stone-100 mb-1">
               내 그룹 목록 ({validGroups.length})
             </Text>
             {validGroups.length === 0 ? (
-              <View className="items-center py-8">
-                <Ionicons name="people-outline" size={48} color="#D1D5DB" />
-                <Text className="text-sm text-gray-500 mt-3 text-center">
-                  아직 참여 중인 그룹이 없습니다.{'\n'}초대 코드를 입력하여 그룹에 참여해보세요.
-                </Text>
-              </View>
+              <EmptyGroups />
             ) : (
               validGroups.map((group) => (
-                <View
+                <GroupCard
                   key={group.id}
-                  className="bg-white rounded-2xl border border-cream-200 overflow-hidden">
-                  <Pressable
-                    onPress={() => pushGroup(router, group.id)}
-                    className="px-4 py-4 active:opacity-80">
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-1">
-                        <Text className="text-base font-semibold text-gray-800">{group.name}</Text>
-                        {group.description && (
-                          <Text className="text-xs text-gray-500 mt-1" numberOfLines={2}>
-                            {group.description}
-                          </Text>
-                        )}
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                    </View>
-                  </Pressable>
-                  <View className="border-t border-cream-100 px-4 py-2">
-                    <Pressable
-                      onPress={() => handleLeaveGroup(group.id, group.name)}
-                      className="flex-row items-center gap-1 py-1 active:opacity-70"
-                      accessibilityLabel={`${group.name} 그룹에서 나가기`}
-                      accessibilityRole="button">
-                      <Ionicons name="log-out-outline" size={14} color="#EF4444" />
-                      <Text className="text-xs text-red-500">나가기</Text>
-                    </Pressable>
-                  </View>
-                </View>
+                  group={group}
+                  onPress={() => pushGroup(router, group.id)}
+                  onLeave={() => handleLeaveGroup(group.id, group.name)}
+                />
               ))
             )}
           </View>

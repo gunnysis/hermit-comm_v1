@@ -3,6 +3,7 @@ import * as comments from './comments';
 import * as reactions from './reactions';
 import * as analysis from './analysis';
 import * as health from './health';
+import * as recommendations from './recommendations';
 
 export { APIError } from './error';
 export const api = {
@@ -23,4 +24,5 @@ export const api = {
   getPostAnalysis: analysis.getPostAnalysis,
   invokeSmartService: analysis.invokeSmartService,
   healthCheck: health.healthCheck,
+  getRecommendedPosts: recommendations.getRecommendedPosts,
 };

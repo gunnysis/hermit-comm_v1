@@ -4,7 +4,7 @@
 
 @layer components {
   .card-happy {
-    @apply bg-white rounded-3xl p-4 shadow-lg border border-cream-200;
+    @apply bg-white dark:bg-stone-900 rounded-3xl p-4 shadow-lg border border-cream-200 dark:border-stone-700;
   }
 
   .btn-happy {
@@ -12,15 +12,15 @@
   }
 
   .input-happy {
-    @apply bg-cream-50 border-2 border-cream-200 rounded-2xl px-4 py-3;
+    @apply bg-cream-50 dark:bg-stone-800 border-2 border-cream-200 dark:border-stone-600 rounded-2xl px-4 py-3;
   }
 
   /* 반응형 컨테이너 배경 - 넓은 화면에서 콘텐츠 영역 구분 */
   .app-bg {
-    @apply bg-cream-100;
+    @apply bg-cream-100 dark:bg-stone-950;
   }
 
   .content-bg {
-    @apply bg-cream-50;
+    @apply bg-cream-50 dark:bg-stone-900;
   }
 }

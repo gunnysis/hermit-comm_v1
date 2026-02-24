@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 import { api } from '@/shared/lib/api';
 import { logger } from '@/shared/utils/logger';
 import { useRealtimeReactions } from './useRealtimeReactions';
@@ -10,16 +11,17 @@ import { useRealtimeReactions } from './useRealtimeReactions';
  * - userReactedTypes: 현재 사용자가 남긴 반응 타입 목록 (취소 표시용)
  */
 export function usePostDetailReactions(postId: number) {
+  const queryClient = useQueryClient();
   const pendingRef = useRef<Set<string>>(new Set());
   const [pendingTypes, setPendingTypes] = useState<Set<string>>(new Set());
 
-  const { data: reactions = [], refetch: refetchReactions } = useQuery({
+  const { data: reactions = [] } = useQuery({
     queryKey: ['reactions', postId],
     queryFn: () => api.getReactions(postId),
     enabled: postId > 0,
   });
 
-  const { data: userReactedTypes = [], refetch: refetchUserReactions } = useQuery({
+  const { data: userReactedTypes = [] } = useQuery({
     queryKey: ['userReactions', postId],
     queryFn: () => api.getUserReactions(postId),
     enabled: postId > 0,
@@ -28,14 +30,13 @@ export function usePostDetailReactions(postId: number) {
   useRealtimeReactions({
     postId,
     onReactionsChange: () => {
-      refetchReactions();
-      refetchUserReactions();
+      queryClient.invalidateQueries({ queryKey: ['reactions', postId] });
+      queryClient.invalidateQueries({ queryKey: ['userReactions', postId] });
     },
   });
 
   const handleReaction = useCallback(
     async (reactionType: string) => {
-      // 해당 반응 타입이 처리 중이면 연타 무시
       if (pendingRef.current.has(reactionType)) return;
 
       pendingRef.current.add(reactionType);
@@ -43,15 +44,23 @@ export function usePostDetailReactions(postId: number) {
 
       try {
         await api.toggleReaction(postId, reactionType);
-        await Promise.all([refetchReactions(), refetchUserReactions()]);
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['reactions', postId] }),
+          queryClient.invalidateQueries({ queryKey: ['userReactions', postId] }),
+        ]);
       } catch (err) {
         logger.error('[반응] toggleReaction 실패:', err);
+        Toast.show({
+          type: 'error',
+          text1: '반응 등록에 실패했어요',
+          text2: '잠시 후 다시 시도해 주세요.',
+        });
       } finally {
         pendingRef.current.delete(reactionType);
         setPendingTypes(new Set(pendingRef.current));
       }
     },
-    [postId, refetchReactions, refetchUserReactions],
+    [postId, queryClient],
   );
 
   return { reactions, userReactedTypes, handleReaction, pendingTypes };

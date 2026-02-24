@@ -73,7 +73,7 @@ export default function AdminLoginScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1">
@@ -81,8 +81,10 @@ export default function AdminLoginScreen() {
           className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 48, paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled">
-          <Text className="text-2xl font-bold text-gray-800 mb-2">관리자 로그인</Text>
-          <Text className="text-sm text-gray-600 mb-6">
+          <Text className="text-2xl font-bold text-gray-800 dark:text-stone-100 mb-2">
+            관리자 로그인
+          </Text>
+          <Text className="text-sm text-gray-600 dark:text-stone-400 mb-6">
             이메일과 비밀번호로 로그인하면 관리자 페이지에 접근할 수 있습니다.
           </Text>
 
@@ -111,8 +113,8 @@ export default function AdminLoginScreen() {
           />
 
           {error ? (
-            <View className="mb-4 p-3 bg-coral-50 rounded-xl">
-              <Text className="text-sm text-coral-600">{error}</Text>
+            <View className="mb-4 p-3 bg-coral-50 dark:bg-coral-900/30 rounded-xl">
+              <Text className="text-sm text-coral-600 dark:text-coral-400">{error}</Text>
             </View>
           ) : null}
 
@@ -124,7 +126,7 @@ export default function AdminLoginScreen() {
           />
 
           <Pressable onPress={handleCancel} className="mt-4 py-3" accessibilityLabel="취소">
-            <Text className="text-center text-gray-600">취소</Text>
+            <Text className="text-center text-gray-600 dark:text-stone-400">취소</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

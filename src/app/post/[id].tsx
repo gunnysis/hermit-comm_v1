@@ -18,6 +18,7 @@ import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
 import { usePostDetailAnalysis } from '@/features/posts/hooks/usePostDetailAnalysis';
 import { usePostDetailComments } from '@/features/posts/hooks/usePostDetailComments';
 import { usePostDetailReactions } from '@/features/posts/hooks/usePostDetailReactions';
+import { useRecommendedPosts } from '@/features/posts/hooks/useRecommendedPosts';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAuthor } from '@/features/posts/hooks/useAuthor';
@@ -69,6 +70,8 @@ export default function PostDetailScreen() {
   const { postAnalysis, analysisLoading } = usePostDetailAnalysis(postId);
   const { reactions, userReactedTypes, handleReaction, pendingTypes } =
     usePostDetailReactions(postId);
+  const { data: recommendedPosts = [], isLoading: recommendedPostsLoading } =
+    useRecommendedPosts(postId);
   const {
     comments,
     commentsLoading,
@@ -177,7 +180,7 @@ export default function PostDetailScreen() {
   if (postLoading) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <Loading message="게시글을 불러오는 중..." />
       </Container>
     );
@@ -186,7 +189,7 @@ export default function PostDetailScreen() {
   if (postError || !post) {
     return (
       <Container>
-        <StatusBar style="dark" />
+        <StatusBar style="auto" />
         <ErrorView
           message={(postError as Error)?.message ?? '게시글을 찾을 수 없습니다.'}
           onRetry={refetchPost}
@@ -199,7 +202,7 @@ export default function PostDetailScreen() {
 
   return (
     <Container>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -224,6 +227,8 @@ export default function PostDetailScreen() {
             userReactedTypes={userReactedTypes}
             onReaction={handleReaction}
             pendingTypes={pendingTypes}
+            recommendedPosts={recommendedPosts}
+            recommendedPostsLoading={recommendedPostsLoading}
           />
 
           <PostDetailCommentList

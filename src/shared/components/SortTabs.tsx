@@ -14,13 +14,15 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
       <Pressable
         onPress={() => onChange('latest')}
         className={`flex-1 py-2 rounded-xl ${
-          value === 'latest' ? 'bg-happy-400' : 'bg-white border border-cream-200'
+          value === 'latest'
+            ? 'bg-happy-400'
+            : 'bg-white dark:bg-stone-800 border border-cream-200 dark:border-stone-600'
         }`}
         accessibilityLabel="최신순 정렬"
         accessibilityRole="button">
         <Text
           className={`text-center font-semibold ${
-            value === 'latest' ? 'text-white' : 'text-gray-600'
+            value === 'latest' ? 'text-white' : 'text-gray-600 dark:text-stone-300'
           }`}>
           최신순
         </Text>
@@ -28,13 +30,15 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
       <Pressable
         onPress={() => onChange('popular')}
         className={`flex-1 py-2 rounded-xl ${
-          value === 'popular' ? 'bg-happy-400' : 'bg-white border border-cream-200'
+          value === 'popular'
+            ? 'bg-happy-400'
+            : 'bg-white dark:bg-stone-800 border border-cream-200 dark:border-stone-600'
         }`}
         accessibilityLabel="인기순 정렬"
         accessibilityRole="button">
         <Text
           className={`text-center font-semibold ${
-            value === 'popular' ? 'text-white' : 'text-gray-600'
+            value === 'popular' ? 'text-white' : 'text-gray-600 dark:text-stone-300'
           }`}>
           인기순
         </Text>
