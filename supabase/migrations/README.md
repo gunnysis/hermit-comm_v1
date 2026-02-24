@@ -16,13 +16,19 @@ Supabase CLI 사용 시 `supabase db push` 또는 `supabase migration up`으로 
 | 14 | `014_recommend_posts_by_emotion.sql` | get_recommended_posts_by_emotion(post_id, limit) RPC — 감정 기반 추천 |
 | 15 | `015_webhook_analyze_post_trigger.sql` | posts INSERT 시 analyze-post Edge Function 호출 트리거 (CONSOLE_SETUP §4 대체) |
 | 16 | `016_analyze_post_trigger_auth.sql` | 트리거 제거. 감정 분석 자동 호출은 Database Webhook(posts INSERT → analyze-post)으로 설정 |
+| 17 | `017_storage_post_images.sql` | Storage 버킷 post-images 생성 및 RLS (이미지 업로드·공개 읽기) |
+| 18 | `018_posts_webhook_trigger.sql` | (선택) posts INSERT 시 pg_net으로 analyze-post 호출 트리거 — 프로젝트 URL 포함, Dashboard Webhook 대체용 |
+| 19 | `019_post_analysis_service_role_grant.sql` | post_analysis 테이블 service_role 쓰기 권한 부여 |
+| 20 | `020_service_role_full_grant.sql` | public 스키마 전체 테이블·시퀀스 service_role 권한 부여 |
+| 21 | `021_user_reactions.sql` | user_reactions 테이블 (사용자별 반응 추적, 연타 방지·취소 기능용) |
 
 ## 최종 스키마 요약
 
 ```
 posts           — 게시글 (소프트 삭제, updated_at 자동 갱신)
 comments        — 댓글 (소프트 삭제, updated_at 자동 갱신)
-reactions       — 반응 (좋아요/하트/웃음)
+reactions       — 반응 (좋아요/하트/웃음) 집계
+user_reactions  — 사용자별 반응 기록 (연타 방지·취소용, 021)
 boards          — 게시판 (공개/비공개, 익명 모드, group_id)
 groups          — 그룹 (초대 코드 기반)
 group_members   — 그룹 멤버십 (역할, 상태, 닉네임, 소프트 탈퇴 left_at)

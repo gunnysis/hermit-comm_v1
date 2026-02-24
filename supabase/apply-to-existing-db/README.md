@@ -32,7 +32,7 @@ npm run db:push
 supabase migration list
 ```
 
-- **Local**: 이 저장소 `migrations/` 에 있는 파일 (001~015. 004~008은 없음)
+- **Local**: 이 저장소 `migrations/` 에 있는 파일 (001~003, 009~021. 004~008은 없음)
 - **Remote**: 원격 DB에 적용된 마이그레이션
 - Local과 Remote 모두에 같은 번호가 있으면 **이미 적용됨**. Remote에 없으면 `supabase db push`로 적용 가능.
 
@@ -54,8 +54,14 @@ supabase migration list
 | 8 | `013_fix_view_image_url.sql` | posts_with_like_count 뷰에 image_url 컬럼 추가 (010 추가 후 뷰 갱신) |
 | 9 | `014_recommend_posts_by_emotion.sql` | get_recommended_posts_by_emotion(post_id, limit) RPC — 감정 기반 비슷한 글 추천 |
 | 10 | `015_webhook_analyze_post_trigger.sql` | posts INSERT 시 analyze-post Edge Function 호출 트리거 (pg_net) — §4 Webhook 대체 |
+| 11 | `016_analyze_post_trigger_auth.sql` | 트리거 제거, Database Webhook 사용 권장 |
+| 12 | `017_storage_post_images.sql` | Storage 버킷 post-images·RLS |
+| 13 | `018_posts_webhook_trigger.sql` | (선택) posts INSERT 시 analyze-post 트리거 (프로젝트 URL 포함) |
+| 14 | `019_post_analysis_service_role_grant.sql` | post_analysis service_role 쓰기 권한 |
+| 15 | `020_service_role_full_grant.sql` | public 스키마 전체 service_role 권한 |
+| 16 | `021_user_reactions.sql` | user_reactions 테이블 (사용자별 반응) |
 
-**의존 관계**: 002는 001 이후, 003은 002 이후(뷰 필요), 009는 001·002 이후, 011은 009 이후, 012는 001·002 이후, 013은 009·010 이후, 014는 009·013(뷰) 이후, **015는 pg_net 확장 및 public.posts 존재 시**.
+**의존 관계**: 002는 001 이후, 003은 002 이후(뷰 필요), 009는 001·002 이후, 011은 009 이후, 012는 001·002 이후, 013은 009·010 이후, 014는 009·013(뷰) 이후, **015는 pg_net 확장 및 public.posts 존재 시**. 016은 015 적용 후 트리거 제거. 017~021은 순서대로.
 
 ---
 
@@ -88,7 +94,7 @@ supabase db push
 ```
 
 - `db push`는 `migrations/` 안의 마이그레이션을 **번호 순서**로 적용합니다. **이미 원격에 적용된 것은 건너뛰고**, 아직 없는 것만 적용하므로 현재 DB 상태에 맞게 동작합니다.
-- 이 저장소에 있는 001~015만 적용 대상입니다 (004~008은 로컬에 없음).
+- 이 저장소에 있는 001~003, 009~021이 적용 대상입니다 (004~008은 로컬에 없음).
 
 ### 방법 B: 수동 적용 (SQL Editor에서 파일 내용 복사)
 
@@ -104,9 +110,15 @@ CLI를 쓰지 않을 때는 아래 **순서**대로 SQL Editor에서 실행합�
 8. `migrations/013_fix_view_image_url.sql` 전체 실행  
 9. `migrations/014_recommend_posts_by_emotion.sql` 전체 실행  
 10. `migrations/015_webhook_analyze_post_trigger.sql` 전체 실행  
+11. `migrations/016_analyze_post_trigger_auth.sql` 전체 실행  
+12. `migrations/017_storage_post_images.sql` 전체 실행  
+13. `migrations/018_posts_webhook_trigger.sql` 전체 실행 (선택)  
+14. `migrations/019_post_analysis_service_role_grant.sql` 전체 실행  
+15. `migrations/020_service_role_full_grant.sql` 전체 실행  
+16. `migrations/021_user_reactions.sql` 전체 실행  
 
 - 001·002·003이 이미 적용된 DB라면 **4번부터** 진행하면 됩니다.
-- 009까지 적용된 DB라면 **5번(010)부터** 진행하면 됩니다.
+- 전체 순서는 [APPLY_ORDER.txt](./APPLY_ORDER.txt) 참고.
 
 ---
 
@@ -121,7 +133,7 @@ CLI를 쓰지 않을 때는 아래 **순서**대로 SQL Editor에서 실행합�
 ## 5. 요약
 
 - **현재 DB 확인**: CLI `supabase migration list` 또는 SQL Editor에서 `check_applied.sql` 실행.
-- **적용 순서**: 001 → 002 → 003 → 009 → 010 → 011 → 012 → 013 → 014 → 015 (이 repo에 있는 파일만).
+- **적용 순서**: 001 → 002 → 003 → 009 → … → 021 (이 repo에 있는 파일만). 상세 목록은 [APPLY_ORDER.txt](./APPLY_ORDER.txt).
 - **적용 방법**: CLI 사용 시 `supabase db push`(이미 적용된 건 자동 건너뜀). 수동 시 [APPLY_ORDER.txt](./APPLY_ORDER.txt) 순서대로 각 SQL 파일 실행.
 
 ---
@@ -137,4 +149,4 @@ CLI를 쓰지 않을 때는 아래 **순서**대로 SQL Editor에서 실행합�
 supabase migration repair --status reverted 004 005 006 007 008
 ```
 
-이후 `npm run db:push` 또는 `supabase db push`를 다시 실행하면, 로컬에 있는 001, 002, 003, 009, 010, 011, 012만 기준으로 동기화됩니다.
+이후 `npm run db:push` 또는 `supabase db push`를 다시 실행하면, 로컬에 있는 001, 002, 003, 009~021만 기준으로 동기화됩니다.

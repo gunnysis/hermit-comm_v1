@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
+import { logger } from '@/shared/utils/logger';
 import { useRealtimeReactions } from './useRealtimeReactions';
 
 /**
@@ -43,6 +44,8 @@ export function usePostDetailReactions(postId: number) {
       try {
         await api.toggleReaction(postId, reactionType);
         await Promise.all([refetchReactions(), refetchUserReactions()]);
+      } catch (err) {
+        logger.error('[반응] toggleReaction 실패:', err);
       } finally {
         pendingRef.current.delete(reactionType);
         setPendingTypes(new Set(pendingRef.current));

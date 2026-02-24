@@ -12,8 +12,19 @@ supabase/
 │   ├── 009_post_analysis.sql # 감정 분석·뷰
 │   ├── 010_image_attachment.sql # posts.image_url
 │   ├── 011_emotion_trend_rpc.sql # get_emotion_trend RPC
-│   └── 012_group_delete_rls.sql # 그룹 삭제 RLS·CASCADE
-├── apply-to-existing-db/    # 기존 DB에 마이그레이션 적용 (CLI 확인 기반)
+│   ├── 012_group_delete_rls.sql # 그룹 삭제 RLS·CASCADE
+│   ├── 013_fix_view_image_url.sql # 뷰 image_url
+│   ├── 014_recommend_posts_by_emotion.sql # 감정 기반 추천 RPC
+│   ├── 015_webhook_analyze_post_trigger.sql # (선택) 감정 분석 트리거
+│   ├── 016_analyze_post_trigger_auth.sql # 트리거 제거, Webhook 권장
+│   ├── 017_storage_post_images.sql # Storage post-images 버킷
+│   ├── 018_posts_webhook_trigger.sql # (선택) 감정 분석 트리거 대체
+│   ├── 019_post_analysis_service_role_grant.sql # service_role post_analysis
+│   ├── 020_service_role_full_grant.sql # service_role 전체 권한
+│   ├── 021_user_reactions.sql # 사용자별 반응(user_reactions)
+│   └── README.md            # 마이그레이션 요약
+├── functions/               # Edge Functions (analyze-post 등)
+├── apply-to-existing-db/   # 기존 DB에 마이그레이션 적용 (CLI 확인 기반)
 │   ├── README.md            # 적용 순서·방법·CLI 확인
 │   ├── check_applied.sql    # SQL Editor용 적용 여부 확인
 │   ├── APPLY_ORDER.txt      # 수동 적용 시 파일 순서
@@ -56,7 +67,7 @@ supabase stop   # 종료 시
 
 1. **대시보드 SQL Editor**
    - [Supabase Dashboard](https://app.supabase.com) → 프로젝트 → SQL Editor
-   - 적용 순서는 [apply-to-existing-db/README.md](apply-to-existing-db/README.md) 및 [apply-to-existing-db/APPLY_ORDER.txt](apply-to-existing-db/APPLY_ORDER.txt) 참고. (001 → 002 → 003 → 009 → 010 → 011 → 012)
+   - 적용 순서는 [apply-to-existing-db/README.md](apply-to-existing-db/README.md) 및 [apply-to-existing-db/APPLY_ORDER.txt](apply-to-existing-db/APPLY_ORDER.txt) 참고. (001 → … → 021)
    - 이미 적용된 항목은 [apply-to-existing-db/check_applied.sql](apply-to-existing-db/check_applied.sql)로 확인 후 건너뛸 수 있음.
 
 2. **CLI로 푸시 (연결 후)**
@@ -92,6 +103,12 @@ supabase start
 | 010_image_attachment.sql | posts.image_url 컬럼 |
 | 011_emotion_trend_rpc.sql | get_emotion_trend(days) RPC |
 | 012_group_delete_rls.sql | groups DELETE RLS, posts/comments board_id ON DELETE CASCADE |
+| 013_fix_view_image_url.sql | posts_with_like_count 뷰에 image_url 추가 |
+| 014_recommend_posts_by_emotion.sql | get_recommended_posts_by_emotion RPC |
+| 015~016 | 감정 분석 트리거(선택) 및 제거 후 Database Webhook 권장 |
+| 017_storage_post_images.sql | Storage post-images 버킷·RLS |
+| 018~020 | (선택) 트리거 대체, service_role 권한 |
+| 021_user_reactions.sql | user_reactions 테이블 (사용자별 반응) |
 
 - 자세한 요약: [migrations/README.md](migrations/README.md)
 - **기존 DB에 적용**: [apply-to-existing-db/README.md](apply-to-existing-db/README.md)

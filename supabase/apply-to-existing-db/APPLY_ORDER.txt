@@ -12,7 +12,9 @@
 8. ../migrations/013_fix_view_image_url.sql
 9. ../migrations/014_recommend_posts_by_emotion.sql
 10. ../migrations/015_webhook_analyze_post_trigger.sql
-11. ../migrations/017_storage_post_images.sql
-12. ../migrations/018_posts_webhook_trigger.sql
-13. ../migrations/019_post_analysis_service_role_grant.sql
-14. ../migrations/020_service_role_full_grant.sql
+11. ../migrations/016_analyze_post_trigger_auth.sql
+12. ../migrations/017_storage_post_images.sql
+13. ../migrations/018_posts_webhook_trigger.sql
+14. ../migrations/019_post_analysis_service_role_grant.sql
+15. ../migrations/020_service_role_full_grant.sql
+16. ../migrations/021_user_reactions.sql

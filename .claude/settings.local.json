@@ -5,7 +5,25 @@
       "Bash(npm install:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(claude update:*)",
+      "Bash(claude:*)",
+      "Bash(cat:*)",
+      "Bash(node:*)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && supabase functions list 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && supabase secrets list 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && supabase db execute --file /dev/stdin <<'SQL' 2>&1\nSELECT \n  id, \n  hook_name, \n  hook_table_id,\n  hook_events, \n  request_payload\nFROM supabase_functions.hooks\nLIMIT 20;\nSQL)",
+      "Bash(head:*)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && supabase migration list 2>&1)",
+      "Bash(cd C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm:*)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && git diff --stat 2>&1 && eas whoami 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Administrator\\\\programming\\\\app\\\\gns-hermit-comm\" && npm run update:production 2>&1)",
+      "Bash(cd:*)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase migration list 2>&1)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && npx supabase storage ls 2>&1)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase storage ls --experimental 2>&1)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase db query \"SELECT id, name, public, file_size_limit, allowed_mime_types FROM storage.buckets WHERE id = 'post-images';\" 2>&1)",
+      "Bash(grep:*)"
     ]
   }
 }

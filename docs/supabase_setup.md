@@ -329,25 +329,50 @@ INSERT INTO app_admin (user_id) VALUES ('해당-auth.users.id-UUID');
 
 ## 13. 샘플 데이터 추가 (선택사항)
 
-테스트를 위해 샘플 데이터를 추가하려면 SQL Editor에서 실행:
+테스트를 위해 샘플 데이터를 추가하려면 SQL Editor에서 실행하세요.  
+**주의**: 현재 스키마에서는 `posts`에 `author_id`, `board_id`가 필수이므로, 아래 예시는 **이미 공개 게시판(boards)이 하나 있고**, **Auth 사용자 한 명이 있을 때** 해당 사용자 UUID와 보드 ID를 넣어 실행해야 합니다.
 
 ```sql
--- 샘플 게시글
-insert into posts (title, content, author) values
-  ('은둔마을에 오신 것을 환영합니다! 🏡', '이곳은 평화로운 커뮤니티입니다.', '관리자'),
-  ('Supabase 전환 완료', '이제 실시간 업데이트가 가능해졌어요!', '개발자'),
-  ('첫 게시글', '안녕하세요!', '사용자1');
+-- 관리자 또는 테스트용 사용자 UUID를 아래에 넣으세요 (Auth → Users에서 확인)
+-- 보드 ID는 보통 1 (기본 공개 게시판)
+DO $$
+DECLARE
+  uid UUID := '여기에-auth-users-uuid-넣기';
+  bid BIGINT := 1;
+BEGIN
+  INSERT INTO posts (title, content, author, author_id, board_id) VALUES
+    ('은둔마을에 오신 것을 환영합니다! 🏡', '이곳은 평화로운 커뮤니티입니다.', '관리자', uid, bid),
+    ('Supabase 전환 완료', '이제 실시간 업데이트가 가능해졌어요!', '개발자', uid, bid),
+    ('첫 게시글', '안녕하세요!', '사용자1', uid, bid)
+  ON CONFLICT DO NOTHING;
 
--- 샘플 댓글
-insert into comments (post_id, content, author) values
-  (1, '환영합니다! 반갑습니다.', '사용자2'),
-  (1, '여기 분위기 좋네요!', '사용자3'),
-  (2, '실시간 업데이트 멋져요!', '사용자1');
+  INSERT INTO comments (post_id, content, author, author_id) 
+  SELECT 1, '환영합니다! 반갑습니다.', '사용자2', uid
+  WHERE EXISTS (SELECT 1 FROM posts WHERE id = 1);
 
--- 샘플 반응
-insert into reactions (post_id, reaction_type, count) values
-  (1, 'like', 5),
-  (2, 'like', 3);
+  INSERT INTO comments (post_id, content, author, author_id) 
+  SELECT 1, '여기 분위기 좋네요!', '사용자3', uid
+  WHERE EXISTS (SELECT 1 FROM posts WHERE id = 1);
+
+  INSERT INTO reactions (post_id, reaction_type, count) VALUES
+    (1, 'like', 5),
+    (2, 'like', 3)
+  ON CONFLICT (post_id, reaction_type) DO NOTHING;
+END $$;
+```
+
+또는 **한 건만** 넣을 때는 다음처럼 직접 UUID와 board_id를 지정합니다.
+
+```sql
+-- Auth 사용자 UUID와 보드 ID(예: 1)를 넣은 뒤 실행
+INSERT INTO posts (title, content, author, author_id, board_id)
+VALUES (
+  '은둔마을에 오신 것을 환영합니다! 🏡',
+  '이곳은 평화로운 커뮤니티입니다.',
+  '관리자',
+  '여기에-auth-users-uuid',
+  1
+);
 ```
 
 ---

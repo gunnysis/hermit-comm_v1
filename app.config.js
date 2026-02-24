@@ -2,6 +2,34 @@
  * Expo App Configuration
  * 환경별로 bundleIdentifier, package, appName을 자동으로 설정합니다.
  */
+
+// ─── 버전 관리 ───────────────────────────────────────────────────────────────
+//
+//  ┌──────────────────────┬────────────────────────────────────────────────────┐
+//  │ 배포 유형            │ 변경 대상                                           │
+//  ├──────────────────────┼────────────────────────────────────────────────────┤
+//  │ OTA 배포 (JS만 변경) │ 아무것도 변경하지 않음                              │
+//  │                      │ → npm run update:preview | update:production        │
+//  ├──────────────────────┼────────────────────────────────────────────────────┤
+//  │ 네이티브 빌드        │ NATIVE_VERSION 올리기  ← OTA 호환성 경계 결정       │
+//  │ (모듈·권한·플러그인  │ BUILD_NUMBER 올리기    ← 스토어 제출 카운터         │
+//  │  변경, prebuild 필요)│ → eas build --platform android --profile production │
+//  └──────────────────────┴────────────────────────────────────────────────────┘
+//
+//  NATIVE_VERSION
+//    · runtimeVersion(policy: 'appVersion')의 기준값.
+//    · 같은 버전으로 빌드된 앱끼리만 OTA를 수신함.
+//    · 올려야 할 때: 새 네이티브 모듈 추가, Expo 플러그인/권한 변경, prebuild 필요 변경.
+//    · 올리면 안 될 때: JS/TS 코드만 바뀐 버그 수정·기능 추가 → OTA로 배포.
+//
+//  BUILD_NUMBER
+//    · 스토어 제출 카운터 (iOS buildNumber / Android versionCode).
+//    · production 프로파일은 eas.json의 autoIncrement:true 로 EAS가 자동 관리.
+//    · development/preview는 필요 시 수동으로 올림.
+// ─────────────────────────────────────────────────────────────────────────────
+const NATIVE_VERSION = '1.6.0';
+const BUILD_NUMBER = 1; // production은 EAS autoIncrement 로 자동 관리
+
 module.exports = ({ config }) => {
   // EAS Build Profile 또는 APP_ENV 환경 변수로 환경 감지
   const buildProfile = process.env.EAS_BUILD_PROFILE || process.env.APP_ENV || 'development';
@@ -37,7 +65,7 @@ module.exports = ({ config }) => {
       ...config.expo,
       name: currentEnv.name,
       slug: 'gns-hermit-comm',
-      version: '1.6.0',
+      version: NATIVE_VERSION,
       orientation: 'portrait',
       icon: './assets/icon.png',
       scheme: currentEnv.scheme,
@@ -54,7 +82,7 @@ module.exports = ({ config }) => {
       ios: {
         supportsTablet: true,
         bundleIdentifier: currentEnv.bundleIdentifier,
-        buildNumber: '1',
+        buildNumber: String(BUILD_NUMBER),
       },
       android: {
         adaptiveIcon: {
@@ -64,6 +92,7 @@ module.exports = ({ config }) => {
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
         package: currentEnv.package,
+        versionCode: BUILD_NUMBER,
         permissions: [],
         intentFilters: [
           {
