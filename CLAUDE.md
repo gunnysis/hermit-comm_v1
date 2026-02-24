@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Cursor Agent 사용 시**: 상세 규칙은 아래 참고. 코드 수정·검증·최소 변경은 `.cursor/rules/`와 [AGENTS.md](AGENTS.md)를 우선 적용한다.
+
 ---
 
 # 은둔마을 — AI 작업 가이드

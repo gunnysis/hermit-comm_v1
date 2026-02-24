@@ -1,0 +1,12 @@
+---
+description: Supabase 마이그레이션·RLS 관련 주의
+globs: supabase/**/*, **/lib/supabase*.ts, **/api*.ts
+alwaysApply: false
+---
+
+# Supabase·RLS·마이그레이션 주의
+
+1. **게시글/댓글 삭제**: soft delete(`update({ deleted_at })`)가 아닌 **hard delete**(`.delete()`)를 사용한다. RLS의 `deleted_at IS NULL` 조건과 충돌한다.
+2. **createPost**: 42501 에러 시 `.select()` 없이 재시도하는 기존 패턴을 유지한다. 이 패턴을 제거하거나 변경하지 않는다.
+3. **마이그레이션**: `supabase/migrations/README.md` 순서표를 보고 다음 번호를 사용한다. 현재 기준 `022_*.sql` 형식으로 새 파일 추가.
+4. **RLS/정책 변경**: 제안 시 "RLS 영향"을 명시하고 사용자 확인을 권장한다.

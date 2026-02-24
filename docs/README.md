@@ -6,6 +6,7 @@
 |------|------|------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 개발자 | 기술 스택, 폴더 구조, 데이터 페칭 전략, API 레이어, 인증·익명 정책 |
 | [APP_USAGE_GUIDE.md](APP_USAGE_GUIDE.md) | 사용자·운영자 | 앱 사용법(익명 게시판, 그룹, 관리자 로그인 등) |
+| [CURSOR_AGENT_GUIDE.md](CURSOR_AGENT_GUIDE.md) | 개발자 | Cursor Agent 사용법, Agent vs Ask, 요청 습관, 고위험 구역 |
 | [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) | 배포 담당 | 프로덕션 배포 전 환경 변수, 검사(tsc/lint/test), EAS 빌드, Supabase·OTA 점검 |
 | [E2E_MAESTRO.md](E2E_MAESTRO.md) | QA·개발자 | Maestro E2E 실행 방법, 실행 전 준비, 플로우 순서·재개 |
 | [SENTRY.md](SENTRY.md) | 배포 담당 | Sentry 프로젝트 생성, DSN·EAS Secrets, 소스맵 업로드, 빌드 실패 해결 |

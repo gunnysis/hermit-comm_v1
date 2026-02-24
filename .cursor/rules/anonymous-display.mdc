@@ -1,0 +1,13 @@
+---
+description: 익명/표시명 로직 수정 시 anon_mode·보드 컨텍스트 고려
+globs: "**/anonymous*.ts, **/PostCard*.tsx, **/CommentList*.tsx"
+alwaysApply: false
+---
+
+# 익명/표시명 로직 주의
+
+`resolveDisplayName`, `anon_mode`, `wantNameOverride`를 다룰 때:
+
+- 보드별 `anon_mode`가 다를 수 있음을 전제한다 (`always_anon` / `allow_choice` / `require_name`).
+- 기존 `src/shared/lib/anonymous.ts` 시그니처와 케이스 분기를 유지한다.
+- 그룹/보드 컨텍스트 없이 "익명"/"이름 공개" 동작만 바꾸지 않는다.

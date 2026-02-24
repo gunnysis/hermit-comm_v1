@@ -1,0 +1,21 @@
+---
+description: 게시글·댓글 mutation 후 쿼리 무효화
+globs: src/features/**/*.ts, src/features/**/*.tsx, src/shared/lib/api*.ts
+alwaysApply: false
+---
+
+# Mutation 후 쿼리 무효화
+
+게시글·댓글 생성·수정·삭제 후 해당 쿼리 키에 대해 `queryClient.invalidateQueries`를 호출한다.
+
+**queryKey는 기존 훅과 일치시킨다.** 예:
+
+- `['boardPosts', boardId, sortOrder]`
+- `['groupPosts', groupId, boardId, sortOrder]`
+- `['post', postId]`
+- `['postAnalysis', postId]`
+- `['comments', postId]`
+- `['myGroups']`
+- `QUERY_KEY_MANAGED_GROUPS` (관리자 그룹 목록)
+
+훅 파일(useBoardPosts, useGroupPosts, usePostDetail, usePostDetailComments, useCreatePost 등)을 참고한다.

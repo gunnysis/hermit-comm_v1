@@ -23,7 +23,9 @@
       "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && npx supabase storage ls 2>&1)",
       "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase storage ls --experimental 2>&1)",
       "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase db query \"SELECT id, name, public, file_size_limit, allowed_mime_types FROM storage.buckets WHERE id = 'post-images';\" 2>&1)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase db push 2>&1)",
+      "Bash(cd /c/Users/Administrator/programming/app/gns-hermit-comm && supabase db push --include-all 2>&1)"
     ]
   }
 }
