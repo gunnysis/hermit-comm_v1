@@ -136,8 +136,8 @@ export default function EditPostScreen() {
       <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}>
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : insets.top}>
         <ScreenHeader
           title="게시글 수정"
           subtitle={board?.name ?? (groupId ? '그룹 게시판' : '공개 게시판')}

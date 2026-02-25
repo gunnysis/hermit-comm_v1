@@ -96,8 +96,10 @@ export default function CreateScreen() {
       <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 48) : 0}>
+        behavior="padding"
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 48) : insets.top
+        }>
         <ScrollView
           className="flex-1"
           keyboardShouldPersistTaps="handled"

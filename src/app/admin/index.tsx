@@ -7,8 +7,8 @@ import {
   Alert,
   Share,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -52,6 +52,7 @@ async function shareInviteCode(inviteCode: string) {
 export default function AdminIndexScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [description, setDescription] = useState('');
@@ -163,7 +164,8 @@ export default function AdminIndexScreen() {
     <Container>
       <StatusBar style="auto" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
+        keyboardVerticalOffset={insets.top}
         className="flex-1">
         <ScrollView
           className="flex-1"

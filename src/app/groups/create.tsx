@@ -64,8 +64,8 @@ export default function GroupCreatePostScreen() {
       <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : 0}>
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : insets.top}>
         <ScreenHeader
           title="그룹 글쓰기"
           subtitle={board?.name ?? '그룹 게시판'}

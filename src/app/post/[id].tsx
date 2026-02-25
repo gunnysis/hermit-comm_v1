@@ -205,8 +205,10 @@ export default function PostDetailScreen() {
       <StatusBar style="auto" />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 56) : 0}>
+        behavior="padding"
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? insets.top + (isWide ? 0 : 56) : insets.top
+        }>
         <PostDetailHeader
           onShare={handleShare}
           onEdit={() => router.push(`/post/edit/${id}`)}
