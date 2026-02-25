@@ -76,7 +76,7 @@ export function useRealtimePosts({
           .subscribe((status, err) => {
             if (!mounted) return;
             if (status === 'CHANNEL_ERROR') {
-              logger.error('[Realtime] 채널 에러:', err);
+              logger.warn('[Realtime] 채널 에러:', err);
             }
           });
       } catch (error) {

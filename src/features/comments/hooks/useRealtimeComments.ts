@@ -85,9 +85,9 @@ export function useRealtimeComments({
             logger.log('[Realtime] 구독 상태:', status);
 
             if (status === 'CHANNEL_ERROR') {
-              logger.error('[Realtime] 채널 에러:', err);
+              logger.warn('[Realtime] 채널 에러:', err);
             } else if (status === 'TIMED_OUT') {
-              logger.error('[Realtime] 타임아웃');
+              logger.warn('[Realtime] 타임아웃');
             } else if (status === 'CLOSED') {
               logger.warn('[Realtime] 채널 닫힘');
             }
