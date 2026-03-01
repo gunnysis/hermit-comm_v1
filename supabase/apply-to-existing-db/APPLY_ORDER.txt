@@ -1,7 +1,7 @@
 # SQL Editor에서 수동 적용 시 아래 순서대로 migrations/ 파일 실행
-# (이 저장소에는 004~008 없음. 원격에만 있을 수 있음)
+# (004~008 파일은 이 저장소에 없음)
 # 이미 적용된 항목은 check_applied.sql 또는 supabase migration list로 확인 후 건너뛰기
-# 20260223110128_remote_commit.sql은 Supabase CLI 자동 생성 스냅샷 → 수동 적용 불필요
+# 20260223110128_remote_commit.sql은 CLI 자동 생성 스냅샷 → 수동 적용 불필요
 
 1.  ../migrations/001_schema.sql
 2.  ../migrations/002_rls.sql
@@ -20,3 +20,5 @@
 15. ../migrations/020_service_role_full_grant.sql
 16. ../migrations/021_user_reactions.sql
 17. ../migrations/022_reactions_delete_policy.sql
+18. ../migrations/023_fix_view_security_invoker.sql
+19. ../migrations/20260301000000_fix_view_reaction_type.sql
