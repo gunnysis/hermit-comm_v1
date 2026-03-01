@@ -1,114 +1,51 @@
-# Supabase 설정 (은둔마을)
+# Supabase 마이그레이션
 
-## 디렉터리 구조
+DB 스키마와 RLS 정책은 `supabase db push` 로 자동 적용됩니다.
 
-```
-supabase/
-├── config.toml              # 로컬/CLI 설정
-├── migrations/               # DB 마이그레이션 (순서대로 적용)
-│   ├── 001_schema.sql       # 통합 스키마
-│   ├── 002_rls.sql          # RLS 정책
-│   ├── 003_grants.sql       # 권한 부여
-│   ├── 009_post_analysis.sql # 감정 분석·뷰
-│   ├── 010_image_attachment.sql # posts.image_url
-│   ├── 011_emotion_trend_rpc.sql # get_emotion_trend RPC
-│   ├── 012_group_delete_rls.sql # 그룹 삭제 RLS·CASCADE
-│   ├── 013_fix_view_image_url.sql # 뷰 image_url
-│   ├── 014_recommend_posts_by_emotion.sql # 감정 기반 추천 RPC
-│   ├── 015_webhook_analyze_post_trigger.sql # (선택) 감정 분석 트리거
-│   ├── 016_analyze_post_trigger_auth.sql # 트리거 제거, Webhook 권장
-│   ├── 017_storage_post_images.sql # Storage post-images 버킷
-│   ├── 018_posts_webhook_trigger.sql # (선택) 감정 분석 트리거 대체
-│   ├── 019_post_analysis_service_role_grant.sql # service_role post_analysis
-│   ├── 020_service_role_full_grant.sql # service_role 전체 권한
-│   ├── 021_user_reactions.sql # 사용자별 반응(user_reactions)
-│   └── README.md            # 마이그레이션 요약
-├── functions/               # Edge Functions (analyze-post 등)
-├── apply-to-existing-db/   # 기존 DB에 마이그레이션 적용 (CLI 확인 기반)
-│   ├── README.md            # 적용 순서·방법·CLI 확인
-│   ├── check_applied.sql    # SQL Editor용 적용 여부 확인
-│   ├── APPLY_ORDER.txt      # 수동 적용 시 파일 순서
-│   ├── migration_list_reference.txt  # supabase migration list 출력 해석
-│   └── scripts/
-│       └── check_via_cli.ps1 # CLI로 적용 여부 확인 (PowerShell)
-└── README.md
-```
-
-## 초기 설정 (Init)
-
-### 1. Supabase CLI 설치
-
-```bash
-# Windows (Scoop)
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-
-# 또는 npm
-npm install -g supabase
-```
-
-### 2. 이미 설정된 경우
-
-- `config.toml`이 있으면 **추가 init 불필요**
-- 원격 프로젝트와 연결: `supabase link --project-ref <프로젝트-ref>`
-
-### 3. 로컬에서 DB 실행 (선택)
-
-```bash
-supabase start
-# 마이그레이션이 자동 적용됨
-
-supabase stop   # 종료 시
-```
-
-## 마이그레이션 적용 방법
-
-### A. 원격(호스팅) Supabase에 적용
-
-1. **대시보드 SQL Editor**
-   - [Supabase Dashboard](https://app.supabase.com) → 프로젝트 → SQL Editor
-   - 적용 순서는 [apply-to-existing-db/README.md](apply-to-existing-db/README.md) 및 [apply-to-existing-db/APPLY_ORDER.txt](apply-to-existing-db/APPLY_ORDER.txt) 참고. (001 → … → 021)
-   - 이미 적용된 항목은 [apply-to-existing-db/check_applied.sql](apply-to-existing-db/check_applied.sql)로 확인 후 건너뛸 수 있음.
-
-2. **CLI로 푸시 (연결 후)**
-
-   ```bash
-   supabase link --project-ref <프로젝트-ref>
-   supabase db push
-   ```
-
-### B. 로컬 Supabase에 적용
-
-```bash
-supabase start
-# migrations/ 폴더가 자동 적용됨
-```
-
-## 필수 대시보드 설정
-
-1. **Authentication → Providers**  
-   - **Anonymous Sign-in** 활성화
-
-2. **Database → Replication**  
-   - `posts`, `comments`, `reactions` 테이블 Realtime 활성화
-
-## 마이그레이션 순서
+## 마이그레이션 파일
 
 | 파일 | 내용 |
 |------|------|
-| 001_schema.sql | groups, boards, group_members, posts, comments, reactions, app_admin, 인덱스·트리거·뷰·함수 |
-| 002_rls.sql | RLS 정책 (auth.uid() 캐싱, 그룹 멤버십, 관리자 제한) |
-| 003_grants.sql | anon/authenticated 권한 + posts_with_like_count SELECT |
-| 009_post_analysis.sql | post_analysis 테이블, posts_with_like_count 뷰(emotions 포함) |
-| 010_image_attachment.sql | posts.image_url 컬럼 |
-| 011_emotion_trend_rpc.sql | get_emotion_trend(days) RPC |
-| 012_group_delete_rls.sql | groups DELETE RLS, posts/comments board_id ON DELETE CASCADE |
-| 013_fix_view_image_url.sql | posts_with_like_count 뷰에 image_url 추가 |
-| 014_recommend_posts_by_emotion.sql | get_recommended_posts_by_emotion RPC |
-| 015~016 | 감정 분석 트리거(선택) 및 제거 후 Database Webhook 권장 |
-| 017_storage_post_images.sql | Storage post-images 버킷·RLS |
-| 018~020 | (선택) 트리거 대체, service_role 권한 |
-| 021_user_reactions.sql | user_reactions 테이블 (사용자별 반응) |
+| `migrations/20260301000001_baseline.sql` | **통합 베이스라인** — 전체 스키마, RLS, 권한, Storage 버킷을 단일 파일로 정의 |
 
-- 자세한 요약: [migrations/README.md](migrations/README.md)
-- **기존 DB에 적용**: [apply-to-existing-db/README.md](apply-to-existing-db/README.md)
+> 이전 마이그레이션 이력(001~023, 20260223110128, 20260301000000)은 모두 이 베이스라인으로 통합됨.
+> 원격 DB에는 `migration repair`로 베이스라인 하나만 적용된 상태로 정리되어 있음.
+
+## 스키마 요약
+
+```
+posts           — 게시글 (소프트 삭제, updated_at 자동 갱신)
+comments        — 댓글 (소프트 삭제, updated_at 자동 갱신)
+reactions       — 반응(좋아요) 집계 (reaction_type = 'like')
+user_reactions  — 사용자별 반응 기록 (연타 방지·취소용)
+boards          — 게시판 (공개/비공개, 익명 모드, group_id)
+groups          — 그룹 (초대 코드 기반)
+group_members   — 그룹 멤버십 (역할, 상태, 닉네임, 소프트 탈퇴 left_at)
+app_admin       — 앱 관리자
+post_analysis   — 게시글 감정 분석 결과 (Edge Function 자동 호출)
+```
+
+## 대시보드 수동 설정
+
+### 관리자 등록
+```sql
+INSERT INTO app_admin (user_id) VALUES ('관리자-uuid');
+```
+
+### 기본 공개 게시판 생성
+```sql
+INSERT INTO boards (name, description, visibility, anon_mode)
+VALUES ('자유게시판', '따뜻한 이야기를 나누는 곳', 'public', 'always_anon');
+```
+
+### Realtime 활성화
+Database > Replication에서 `posts`, `comments`, `reactions` 테이블 활성화.
+
+### 오래된 익명 사용자 정리 (선택, 주기적 실행)
+```sql
+SELECT public.cleanup_orphan_group_members(180);
+```
+
+## 참고 문서
+- [docs/supabase_setup.md](../docs/supabase_setup.md)
+- [supabase/functions/CONSOLE_SETUP.md](../functions/CONSOLE_SETUP.md) — Edge Function·Webhook 설정

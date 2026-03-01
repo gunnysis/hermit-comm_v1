@@ -1,24 +1,4 @@
 # SQL Editor에서 수동 적용 시 아래 순서대로 migrations/ 파일 실행
-# (004~008 파일은 이 저장소에 없음)
-# 이미 적용된 항목은 check_applied.sql 또는 supabase migration list로 확인 후 건너뛰기
-# 20260223110128_remote_commit.sql은 CLI 자동 생성 스냅샷 → 수동 적용 불필요
+# 모든 스키마가 단일 베이스라인 파일로 통합되어 있음
 
-1.  ../migrations/001_schema.sql
-2.  ../migrations/002_rls.sql
-3.  ../migrations/003_grants.sql
-4.  ../migrations/009_post_analysis.sql
-5.  ../migrations/010_image_attachment.sql
-6.  ../migrations/011_emotion_trend_rpc.sql
-7.  ../migrations/012_group_delete_rls.sql
-8.  ../migrations/013_fix_view_image_url.sql
-9.  ../migrations/014_recommend_posts_by_emotion.sql
-10. ../migrations/015_webhook_analyze_post_trigger.sql
-11. ../migrations/016_analyze_post_trigger_auth.sql
-12. ../migrations/017_storage_post_images.sql
-13. ../migrations/018_posts_webhook_trigger.sql
-14. ../migrations/019_post_analysis_service_role_grant.sql
-15. ../migrations/020_service_role_full_grant.sql
-16. ../migrations/021_user_reactions.sql
-17. ../migrations/022_reactions_delete_policy.sql
-18. ../migrations/023_fix_view_security_invoker.sql
-19. ../migrations/20260301000000_fix_view_reaction_type.sql
+1. ../migrations/20260301000001_baseline.sql
