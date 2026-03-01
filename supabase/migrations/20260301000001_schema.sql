@@ -1,9 +1,8 @@
 -- =============================================================================
--- 20260301000001_baseline.sql — 은둔마을 통합 스키마 베이스라인
+-- 20260301000001_schema.sql — 은둔마을 스키마 베이스라인
 --
--- 기존 마이그레이션 001~023, 20260223110128, 20260301000000을 단일 파일로 통합.
--- 멱등 패턴(IF NOT EXISTS, CREATE OR REPLACE, DROP IF EXISTS) 적용.
--- 원격 DB 실제 상태(2026-03-01) 기준.
+-- 확장, 함수, 테이블, 인덱스, 뷰, 트리거 정의.
+-- 멱등 패턴(IF NOT EXISTS, CREATE OR REPLACE) 적용.
 -- =============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -240,27 +239,27 @@ CREATE INDEX IF NOT EXISTS idx_posts_deleted_at           ON public.posts(delete
 CREATE INDEX IF NOT EXISTS idx_posts_board_created_at     ON public.posts(board_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_author_id_created_at ON public.posts(author_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_comments_post_id           ON public.comments(post_id);
-CREATE INDEX IF NOT EXISTS idx_comments_board_id          ON public.comments(board_id);
-CREATE INDEX IF NOT EXISTS idx_comments_group_id          ON public.comments(group_id);
-CREATE INDEX IF NOT EXISTS idx_comments_author_id         ON public.comments(author_id);
-CREATE INDEX IF NOT EXISTS idx_comments_deleted_at        ON public.comments(deleted_at) WHERE deleted_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_comments_post_id              ON public.comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_board_id             ON public.comments(board_id);
+CREATE INDEX IF NOT EXISTS idx_comments_group_id             ON public.comments(group_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author_id            ON public.comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_deleted_at           ON public.comments(deleted_at) WHERE deleted_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_comments_author_id_created_at ON public.comments(author_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_reactions_post_id          ON public.reactions(post_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_post_id     ON public.reactions(post_id);
 
-CREATE INDEX IF NOT EXISTS idx_boards_visibility          ON public.boards(visibility);
-CREATE INDEX IF NOT EXISTS idx_boards_group_id            ON public.boards(group_id);
+CREATE INDEX IF NOT EXISTS idx_boards_visibility     ON public.boards(visibility);
+CREATE INDEX IF NOT EXISTS idx_boards_group_id       ON public.boards(group_id);
 
-CREATE INDEX IF NOT EXISTS idx_groups_owner_id            ON public.groups(owner_id);
-CREATE INDEX IF NOT EXISTS idx_groups_invite_code         ON public.groups(invite_code);
+CREATE INDEX IF NOT EXISTS idx_groups_owner_id       ON public.groups(owner_id);
+CREATE INDEX IF NOT EXISTS idx_groups_invite_code    ON public.groups(invite_code);
 
-CREATE INDEX IF NOT EXISTS idx_group_members_user_id      ON public.group_members(user_id);
-CREATE INDEX IF NOT EXISTS idx_group_members_lookup       ON public.group_members(group_id, user_id, status);
-CREATE INDEX IF NOT EXISTS idx_group_members_approved     ON public.group_members(group_id, user_id) WHERE status = 'approved';
-CREATE INDEX IF NOT EXISTS idx_group_members_left_at      ON public.group_members(left_at) WHERE left_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_group_members_user_id  ON public.group_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_group_members_lookup   ON public.group_members(group_id, user_id, status);
+CREATE INDEX IF NOT EXISTS idx_group_members_approved ON public.group_members(group_id, user_id) WHERE status = 'approved';
+CREATE INDEX IF NOT EXISTS idx_group_members_left_at  ON public.group_members(left_at) WHERE left_at IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_post_analysis_post_id      ON public.post_analysis(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_analysis_post_id  ON public.post_analysis(post_id);
 
 -- ----------------------------------------------------------------------------
 -- 4. 뷰
@@ -331,152 +330,3 @@ CREATE OR REPLACE TRIGGER analyze_post_on_insert
     '{}',
     '5000'
   );
-
--- ----------------------------------------------------------------------------
--- 6. RLS 활성화 및 정책
--- ----------------------------------------------------------------------------
-
-ALTER TABLE public.posts         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.comments      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reactions     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.boards        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.groups        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.app_admin     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.post_analysis ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_reactions ENABLE ROW LEVEL SECURITY;
-
--- posts
-DROP POLICY IF EXISTS "Everyone can read posts"             ON public.posts;
-DROP POLICY IF EXISTS "Authenticated users can create posts" ON public.posts;
-DROP POLICY IF EXISTS "Users can update own posts"          ON public.posts;
-DROP POLICY IF EXISTS "Users can delete own posts"          ON public.posts;
-
-CREATE POLICY "Everyone can read posts" ON public.posts FOR SELECT
-  USING (deleted_at IS NULL AND (group_id IS NULL OR EXISTS (
-    SELECT 1 FROM public.group_members gm
-    WHERE gm.group_id = posts.group_id AND gm.user_id = (SELECT auth.uid()) AND gm.status = 'approved'
-  )));
-CREATE POLICY "Authenticated users can create posts" ON public.posts FOR INSERT
-  WITH CHECK ((SELECT auth.uid()) = author_id);
-CREATE POLICY "Users can update own posts" ON public.posts FOR UPDATE
-  USING ((SELECT auth.uid()) = author_id AND deleted_at IS NULL)
-  WITH CHECK ((SELECT auth.uid()) = author_id);
-CREATE POLICY "Users can delete own posts" ON public.posts FOR DELETE
-  USING ((SELECT auth.uid()) = author_id);
-
--- comments
-DROP POLICY IF EXISTS "Everyone can read comments"              ON public.comments;
-DROP POLICY IF EXISTS "Authenticated users can create comments" ON public.comments;
-DROP POLICY IF EXISTS "Users can update own comments"          ON public.comments;
-DROP POLICY IF EXISTS "Users can delete own comments"          ON public.comments;
-
-CREATE POLICY "Everyone can read comments" ON public.comments FOR SELECT
-  USING (deleted_at IS NULL AND (group_id IS NULL OR EXISTS (
-    SELECT 1 FROM public.group_members gm
-    WHERE gm.group_id = comments.group_id AND gm.user_id = (SELECT auth.uid()) AND gm.status = 'approved'
-  )));
-CREATE POLICY "Authenticated users can create comments" ON public.comments FOR INSERT
-  WITH CHECK ((SELECT auth.uid()) = author_id);
-CREATE POLICY "Users can update own comments" ON public.comments FOR UPDATE
-  USING ((SELECT auth.uid()) = author_id AND deleted_at IS NULL)
-  WITH CHECK ((SELECT auth.uid()) = author_id);
-CREATE POLICY "Users can delete own comments" ON public.comments FOR DELETE
-  USING ((SELECT auth.uid()) = author_id);
-
--- reactions
-DROP POLICY IF EXISTS "Everyone can read reactions"            ON public.reactions;
-DROP POLICY IF EXISTS "Authenticated users can create reactions" ON public.reactions;
-DROP POLICY IF EXISTS "Authenticated users can update reactions" ON public.reactions;
-DROP POLICY IF EXISTS "Authenticated users can delete reactions" ON public.reactions;
-
-CREATE POLICY "Everyone can read reactions"             ON public.reactions FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create reactions" ON public.reactions FOR INSERT
-  WITH CHECK (auth.role() IN ('authenticated', 'anon'));
-CREATE POLICY "Authenticated users can update reactions" ON public.reactions FOR UPDATE
-  USING (auth.role() IN ('authenticated', 'anon'));
-CREATE POLICY "Authenticated users can delete reactions" ON public.reactions FOR DELETE
-  USING (auth.role() IN ('authenticated', 'anon'));
-
--- boards
-DROP POLICY IF EXISTS "Everyone can read boards"       ON public.boards;
-DROP POLICY IF EXISTS "Only app_admin can create boards" ON public.boards;
-
-CREATE POLICY "Everyone can read boards"        ON public.boards FOR SELECT USING (true);
-CREATE POLICY "Only app_admin can create boards" ON public.boards FOR INSERT
-  WITH CHECK ((SELECT auth.uid()) IN (SELECT user_id FROM public.app_admin));
-
--- groups
-DROP POLICY IF EXISTS "Everyone can read groups"                   ON public.groups;
-DROP POLICY IF EXISTS "Only app_admin can create groups as owner"  ON public.groups;
-
-CREATE POLICY "Everyone can read groups"                  ON public.groups FOR SELECT USING (true);
-CREATE POLICY "Only app_admin can create groups as owner" ON public.groups FOR INSERT
-  WITH CHECK ((SELECT auth.uid()) IN (SELECT user_id FROM public.app_admin) AND owner_id = (SELECT auth.uid()));
-
--- group_members
-DROP POLICY IF EXISTS "Users can read own group_members"   ON public.group_members;
-DROP POLICY IF EXISTS "Users can join groups"              ON public.group_members;
-DROP POLICY IF EXISTS "Users can update own group_members" ON public.group_members;
-
-CREATE POLICY "Users can read own group_members"   ON public.group_members FOR SELECT USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Users can join groups"              ON public.group_members FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Users can update own group_members" ON public.group_members FOR UPDATE
-  USING ((SELECT auth.uid()) = user_id) WITH CHECK ((SELECT auth.uid()) = user_id);
-
--- app_admin
-DROP POLICY IF EXISTS "Users can read own app_admin row" ON public.app_admin;
-CREATE POLICY "Users can read own app_admin row" ON public.app_admin FOR SELECT USING ((SELECT auth.uid()) = user_id);
-
--- post_analysis
-DROP POLICY IF EXISTS "post_analysis_select" ON public.post_analysis;
-CREATE POLICY "post_analysis_select" ON public.post_analysis FOR SELECT USING (true);
-
--- user_reactions
-DROP POLICY IF EXISTS "user_reactions_select" ON public.user_reactions;
-DROP POLICY IF EXISTS "user_reactions_insert" ON public.user_reactions;
-DROP POLICY IF EXISTS "user_reactions_delete" ON public.user_reactions;
-
-CREATE POLICY "user_reactions_select" ON public.user_reactions FOR SELECT USING (true);
-CREATE POLICY "user_reactions_insert" ON public.user_reactions FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
-CREATE POLICY "user_reactions_delete" ON public.user_reactions FOR DELETE USING ((SELECT auth.uid()) = user_id);
-
--- ----------------------------------------------------------------------------
--- 7. 권한
--- ----------------------------------------------------------------------------
-
-REVOKE USAGE ON SCHEMA public FROM PUBLIC;
-GRANT ALL ON SCHEMA public TO PUBLIC;
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES    IN SCHEMA public TO anon, authenticated, service_role;
-GRANT USAGE, SELECT                  ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES    TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-  GRANT USAGE, SELECT                  ON SEQUENCES TO anon, authenticated, service_role;
-
--- ----------------------------------------------------------------------------
--- 8. Storage — post-images 버킷 (이미지 업로드)
--- ----------------------------------------------------------------------------
-
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('post-images', 'post-images', true, 52428800, ARRAY['image/jpeg','image/png','image/webp','image/gif'])
-ON CONFLICT (id) DO NOTHING;
-
-DROP POLICY IF EXISTS "authenticated users can upload post images" ON storage.objects;
-DROP POLICY IF EXISTS "anyone can read post images"               ON storage.objects;
-DROP POLICY IF EXISTS "users can delete own post images"          ON storage.objects;
-
-CREATE POLICY "authenticated users can upload post images"
-  ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'post-images' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "anyone can read post images"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'post-images');
-
-CREATE POLICY "users can delete own post images"
-  ON storage.objects FOR DELETE TO authenticated
-  USING (bucket_id = 'post-images' AND auth.uid()::text = (storage.foldername(name))[1]);

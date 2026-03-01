@@ -7,5 +7,5 @@ Write-Host "Running: supabase migration list" -ForegroundColor Cyan
 Write-Host ""
 supabase migration list 2>&1
 Write-Host ""
-Write-Host "기대 목록: 20260301000001" -ForegroundColor Yellow
+Write-Host "기대 목록: 20260301000001, 20260301000002, 20260301000003" -ForegroundColor Yellow
 Write-Host "Local에만 있고 Remote에 없는 항목이 있으면: supabase db push" -ForegroundColor Yellow

@@ -1,4 +1,6 @@
 # SQL Editor에서 수동 적용 시 아래 순서대로 migrations/ 파일 실행
-# 모든 스키마가 단일 베이스라인 파일로 통합되어 있음
+# 관심사별 3개 파일로 구성되어 있음
 
-1. ../migrations/20260301000001_baseline.sql
+1. ../migrations/20260301000001_schema.sql   -- 확장·함수·테이블·인덱스·뷰·트리거
+2. ../migrations/20260301000002_rls.sql      -- RLS 활성화 + 전체 정책
+3. ../migrations/20260301000003_infra.sql    -- 권한(grants) + Storage 버킷·정책
