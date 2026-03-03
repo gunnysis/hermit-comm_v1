@@ -40,6 +40,11 @@ export const ALIAS_ANIMALS = [
 /** 페이지당 게시글 수 */
 export const PAGE_SIZE = 20;
 
-// 감정 상수는 중앙 프로젝트에서 생성됨 (constants.generated.ts)
-export { ALLOWED_EMOTIONS, EMOTION_EMOJI } from './constants.generated';
-export type { AllowedEmotion } from './constants.generated';
+// 공유 상수는 중앙 프로젝트에서 생성됨 (constants.generated.ts)
+export {
+  ALLOWED_EMOTIONS,
+  EMOTION_EMOJI,
+  REACTION_COLOR_MAP,
+  SHARED_PALETTE,
+} from './constants.generated';
+export type { AllowedEmotion, ReactionColorKey } from './constants.generated';

@@ -5,6 +5,18 @@
 ## 전체 아키텍처
 
 ```
+                    ┌───────────────────────────────┐
+                    │  supabase-hermit (WSL) — SSoT │
+                    │  ~/apps/supabase-hermit       │
+                    │                               │
+                    │  shared/constants.ts           │
+                    │  shared/types.ts               │
+                    │  supabase/migrations/          │
+                    │  scripts/sync-to-projects.sh   │
+                    └───────────┬───────────────────┘
+                                │ sync
+                    ┌───────────┴───────────┐
+                    │                       │
 ┌─────────────────────────────────┐   ┌─────────────────────────────────┐
 │  앱 레포 (Windows)               │   │  웹 레포 (WSL/Ubuntu)            │
 │  gns-hermit-comm                │   │  web-hermit-comm                │
@@ -15,8 +27,8 @@
 │  TanStack Query                 │   │  TanStack Query                 │
 │  Expo Router                    │   │  App Router                     │
 │                                 │   │                                 │
-│  ★ Supabase 마이그레이션 원본    │   │  마이그레이션 복사본             │
-│  ★ Edge Functions 원본          │   │  (sync-from-app.sh로 동기화)    │
+│  ★ Edge Functions 원본          │   │  (마이그레이션 복사본)            │
+│  ★ shared-palette.js (자동생성)  │   │                                 │
 └────────────────┬────────────────┘   └────────────────┬────────────────┘
                  │                                     │
                  └──────────────┬──────────────────────┘
@@ -32,14 +44,16 @@
 
 ## 역할 경계
 
-| 항목 | 앱 레포 | 웹 레포 |
-|------|---------|---------|
-| Supabase 마이그레이션 생성 | **원본** | 복사본 수신 |
-| Edge Functions | **원본** (`supabase/functions/`) | 없음 |
-| 타입 정의 원본 | `src/types/index.ts` | `src/types/database.ts` |
-| 상수 원본 | `src/shared/lib/constants.ts` | `src/lib/constants.ts` |
-| 익명 별칭 알고리즘 | `src/shared/lib/anonymous.ts` | `src/lib/anonymous.ts` |
-| 배포 환경 | EAS Build + OTA | Vercel |
+| 항목 | SSoT | 앱 레포 | 웹 레포 |
+|------|------|---------|---------|
+| Supabase 마이그레이션 | **supabase-hermit** | 복사본 수신 | 복사본 수신 |
+| Edge Functions | 앱 레포 | **원본** (`supabase/functions/`) | 없음 |
+| 공유 타입 | **supabase-hermit** | `src/types/database.types.ts` | `src/types/database.types.ts` |
+| 공유 상수 | **supabase-hermit** | `src/shared/lib/constants.generated.ts` | `src/lib/constants.generated.ts` |
+| 색상 팔레트 | **supabase-hermit** (`SHARED_PALETTE`) | `shared-palette.js` + `tailwind.config.js` | CSS variables |
+| 반응 색상 매핑 | **supabase-hermit** (`REACTION_COLOR_MAP`) | `constants.generated.ts`에서 import | `constants.generated.ts`에서 import |
+| 익명 별칭 알고리즘 | 각자 유지 | `src/shared/lib/anonymous.ts` | `src/lib/anonymous.ts` |
+| 배포 환경 | — | EAS Build + OTA | Vercel |
 
 ## 동기화 체크리스트
 
@@ -59,13 +73,22 @@ bash scripts/sync-from-app.sh
 ### 상수 변경 시
 
 VALIDATION, ALLOWED_EMOTIONS, EMOTION_EMOJI 값 변경 시:
-- [ ] 앱 `src/shared/lib/constants.ts` 업데이트
-- [ ] 웹 `src/lib/constants.ts` 동일하게 업데이트
+- [ ] `supabase-hermit/shared/constants.ts` 수정
+- [ ] `sync-to-projects.sh` 실행 (양쪽 `constants.generated.ts` 자동 갱신)
+- [ ] 앱 `src/shared/lib/constants.ts`의 VALIDATION은 별도 수동 유지
+
+### 디자인 토큰 (색상 팔레트) 변경 시
+
+SHARED_PALETTE, REACTION_COLOR_MAP 값 변경 시:
+- [ ] `supabase-hermit/shared/constants.ts` 수정
+- [ ] `sync-to-projects.sh` 실행 (앱: `constants.generated.ts` + `shared-palette.js` 자동 갱신)
+- [ ] 앱 `tailwind.config.js`는 `shared-palette.js`에서 자동 로드 (변경 불필요)
+- [ ] 웹 `globals.css` 또는 Tailwind v4 `@theme`에 수동 반영
 
 ### 타입 변경 시
 
-- [ ] 앱 `src/types/index.ts` 변경 사항 확인
-- [ ] 웹 `src/types/database.ts`에 수동 반영
+- [ ] `supabase-hermit/shared/types.ts` 수정
+- [ ] `sync-to-projects.sh` 실행 (양쪽 `database.types.ts` 자동 갱신)
 
 ## 절대 동기화하지 않는 것
 

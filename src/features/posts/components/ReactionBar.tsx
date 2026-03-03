@@ -3,6 +3,7 @@ import { View, Text, Pressable, Animated, useColorScheme } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { Reaction } from '@/types';
 import { formatReactionCount } from '@/shared/utils/format';
+import { REACTION_COLOR_MAP, SHARED_PALETTE } from '@/shared/lib/constants';
 
 export const REACTION_TYPES = [
   { type: 'like', emoji: '👍', label: '좋아요' },
@@ -14,40 +15,25 @@ export const REACTION_TYPES = [
 
 export type ReactionType = (typeof REACTION_TYPES)[number]['type'];
 
-/** 리액션 타입별 활성 색상 */
-const ACTIVE_COLORS: Record<string, { bg: string; border: string; text: string; shadow: string }> =
-  {
-    like: {
-      bg: 'bg-happy-100 dark:bg-happy-900/50',
-      border: 'border-happy-400 dark:border-happy-500',
-      text: 'text-happy-700 dark:text-happy-300',
-      shadow: '#FFCF33',
-    },
-    heart: {
-      bg: 'bg-coral-50 dark:bg-coral-900/40',
-      border: 'border-coral-400 dark:border-coral-500',
-      text: 'text-coral-600 dark:text-coral-400',
-      shadow: '#FF7366',
-    },
-    laugh: {
-      bg: 'bg-peach-50 dark:bg-peach-900/40',
-      border: 'border-peach-400 dark:border-peach-500',
-      text: 'text-peach-700 dark:text-peach-400',
-      shadow: '#FFAF66',
-    },
-    sad: {
-      bg: 'bg-lavender-50 dark:bg-lavender-900/40',
-      border: 'border-lavender-400 dark:border-lavender-500',
-      text: 'text-lavender-700 dark:text-lavender-400',
-      shadow: '#C39BFF',
-    },
-    surprise: {
-      bg: 'bg-mint-50 dark:bg-mint-900/40',
-      border: 'border-mint-400 dark:border-mint-600',
-      text: 'text-mint-700 dark:text-mint-400',
-      shadow: '#19FFB2',
-    },
+/** SHARED_PALETTE + REACTION_COLOR_MAP 기반 Tailwind 클래스·그림자 색상 생성 */
+function buildActiveColors(colorKey: string) {
+  const palette = SHARED_PALETTE[colorKey as keyof typeof SHARED_PALETTE];
+  if (!palette) return buildActiveColors('happy');
+  return {
+    bg: `bg-${colorKey}-100 dark:bg-${colorKey}-900/50`,
+    border: `border-${colorKey}-400 dark:border-${colorKey}-500`,
+    text: `text-${colorKey}-700 dark:text-${colorKey}-300`,
+    shadow: palette[400],
   };
+}
+
+const ACTIVE_COLORS: Record<string, { bg: string; border: string; text: string; shadow: string }> =
+  Object.fromEntries(
+    Object.entries(REACTION_COLOR_MAP).map(([type, colorKey]) => [
+      type,
+      buildActiveColors(colorKey),
+    ]),
+  );
 
 const DEFAULT_ACTIVE = ACTIVE_COLORS.like;
 
