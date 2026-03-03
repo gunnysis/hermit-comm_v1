@@ -29,6 +29,7 @@ supabase db push
 | `20260301000003_infra.sql`  | 권한(grants) + Storage 버킷·정책 (조건부 실행) |
 | `20260302000000_fix_rls_update_policies.sql` | posts/comments UPDATE 정책 수정 |
 | `20260303000001_core_redesign.sql` | toggle_reaction RPC, soft_delete RPC, 정책 확장, FK·제약조건 추가 |
+| `20260303000002_fix_group_members_recursion.sql` | group_members SELECT 재귀 수정, `is_group_member()` 함수 도입 |
 
 > 이전 이력(001~023, 20260223110128, 20260301000000)은 베이스라인 3개 파일로 통합됨.
 
@@ -40,7 +41,7 @@ supabase db push
 ```bash
 supabase migration list
 ```
-Local, Remote 모두에 `20260301000001`~`20260303000001`이 있으면 이미 적용됨.
+Local, Remote 모두에 `20260301000001`~`20260303000002`이 있으면 이미 적용됨.
 
 ### SQL Editor
 `check_applied.sql` 파일을 Supabase 대시보드 SQL Editor에서 실행하면 주요 객체 존재 여부를 확인할 수 있습니다.

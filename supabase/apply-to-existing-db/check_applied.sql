@@ -22,14 +22,15 @@ SELECT 'view' AS check,
            AND c.reloptions::text LIKE '%security_invoker=true%'
        ) AS security_invoker_ok;
 
--- RPC 함수 존재 (core_redesign 포함)
+-- RPC 함수 존재 (core_redesign + fix_group_members_recursion 포함)
 SELECT 'functions' AS check,
        EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'get_emotion_trend')                  AS get_emotion_trend_ok,
        EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'get_recommended_posts_by_emotion')    AS get_recommended_posts_ok,
        EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'toggle_reaction')                     AS toggle_reaction_ok,
        EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'get_post_reactions')                  AS get_post_reactions_ok,
        EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'soft_delete_post')                    AS soft_delete_post_ok,
-       EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'soft_delete_comment')                 AS soft_delete_comment_ok;
+       EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'soft_delete_comment')                 AS soft_delete_comment_ok,
+       EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'public' AND p.proname = 'is_group_member')                     AS is_group_member_ok;
 
 -- 트리거 존재
 SELECT 'triggers' AS check,

@@ -9,10 +9,11 @@
 //   - URL: https://<project>.supabase.co/functions/v1/analyze-post
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { analyzeAndSave } from '../_shared/analyze.ts';
+import { corsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*' } });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -27,7 +28,7 @@ Deno.serve(async (req: Request) => {
     if (payload.type !== 'INSERT' || payload.table !== 'posts' || payload.schema !== 'public') {
       return new Response(JSON.stringify({ ok: false, reason: 'invalid_event' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -40,7 +41,7 @@ Deno.serve(async (req: Request) => {
       console.error('[analyze-post] ANTHROPIC_API_KEY 미설정');
       return new Response(JSON.stringify({ ok: false, reason: 'missing_api_key' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -55,13 +56,13 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify(result), {
       status: result.ok ? 200 : 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
     console.error('[analyze-post] 오류:', err);
     return new Response(
       JSON.stringify({ ok: false, reason: err instanceof Error ? err.message : 'unknown' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });

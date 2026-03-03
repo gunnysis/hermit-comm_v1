@@ -7,7 +7,7 @@
 ## 1. 전제 조건
 
 - Supabase 프로젝트가 생성되어 있고, CLI로 연결된 상태 (`supabase link` 완료)
-- 마이그레이션 001~016이 원격 DB에 적용된 상태 (`supabase db push` 또는 `npm run db:push` 완료). **016 적용 후 §4 Webhook 설정 필수**
+- 마이그레이션이 원격 DB에 적용된 상태 (`supabase db push` 또는 `npm run db:push` 완료). **적용 후 §4 Webhook 설정 필수**
 
 ---
 
@@ -58,7 +58,7 @@ supabase functions deploy recommend-posts-by-emotion
 
 ## 4. DB Webhook 설정 (게시글 작성 시 자동 감정 분석) — 필수
 
-**마이그레이션 016부터** `posts` INSERT 시 자동으로 `analyze-post`를 호출하는 **DB 트리거는 제거**되어 있습니다.  
+`posts` INSERT 시 자동으로 `analyze-post`를 호출하는 **DB 트리거는 제거**되어 있습니다.
 (pg_net 호출 시 인증이 필요해 트리거만으로는 401이 발생하므로, **Dashboard Webhook**을 사용합니다.)
 
 **반드시** 아래 절차대로 **Database Webhook**을 한 번 설정하세요. 설정 후 새 게시글 작성 시에만 감정 분석이 자동 호출됩니다.

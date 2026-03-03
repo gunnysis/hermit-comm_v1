@@ -5,3 +5,4 @@
 3. ../migrations/20260301000003_infra.sql    -- 권한(grants) + Storage 버킷·정책
 4. ../migrations/20260302000000_fix_rls_update_policies.sql  -- UPDATE 정책 수정
 5. ../migrations/20260303000001_core_redesign.sql            -- RPC·정책·FK 개편
+6. ../migrations/20260303000002_fix_group_members_recursion.sql -- group_members 재귀 수정·is_group_member 함수

@@ -11,6 +11,7 @@ DB 스키마와 RLS 정책은 `supabase db push` 로 자동 적용됩니다.
 | `migrations/20260301000003_infra.sql`  | 권한(grants) + Storage 버킷·정책 (조건부 실행) |
 | `migrations/20260302000000_fix_rls_update_policies.sql` | posts/comments UPDATE 정책 수정 (deleted_at 충돌 해소) |
 | `migrations/20260303000001_core_redesign.sql` | toggle_reaction RPC, soft_delete RPC, group_members 정책 확장, FK CASCADE 수정, 제약조건·인덱스 추가 |
+| `migrations/20260303000002_fix_group_members_recursion.sql` | group_members SELECT 재귀 무한루프 수정 — `is_group_member()` SECURITY DEFINER 함수 도입, posts/comments SELECT 정책 갱신 |
 
 > 이전 마이그레이션 이력(001~023, 20260223110128, 20260301000000)은 베이스라인 3개 파일로 통합됨.
 
@@ -49,6 +50,7 @@ Database > Replication에서 `posts`, `comments`, `reactions`, `user_reactions`,
 - `get_post_reactions(p_post_id)` — 게시글 반응 조회 (사용자 반응 여부 포함)
 - `soft_delete_post(p_post_id)` — 게시글 소프트 삭제
 - `soft_delete_comment(p_comment_id)` — 댓글 소프트 삭제
+- `is_group_member(p_group_id)` — 그룹 멤버십 확인 (SECURITY DEFINER, RLS 재귀 방지)
 
 ### 오래된 익명 사용자 정리 (선택, 주기적 실행)
 ```sql

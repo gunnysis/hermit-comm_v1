@@ -7,10 +7,11 @@
 // 호출: POST { body: { postId: number, limit?: number } }
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*' } });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -21,7 +22,7 @@ Deno.serve(async (req: Request) => {
     if (!postId || typeof postId !== 'number') {
       return new Response(JSON.stringify({ ok: false, reason: 'postId_required' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -38,19 +39,19 @@ Deno.serve(async (req: Request) => {
       console.error('[recommend-posts-by-emotion] RPC 에러:', error.message);
       return new Response(JSON.stringify({ ok: false, reason: error.message }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     return new Response(JSON.stringify({ ok: true, posts: data ?? [] }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
     console.error('[recommend-posts-by-emotion] 오류:', err);
     return new Response(
       JSON.stringify({ ok: false, reason: err instanceof Error ? err.message : 'unknown' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
