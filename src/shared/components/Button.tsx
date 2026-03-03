@@ -1,5 +1,6 @@
-import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Pressable, Text, ActivityIndicator, Animated, useColorScheme } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 interface ButtonProps {
   title: string;
@@ -23,18 +24,73 @@ export function Button({
   accessibilityHint,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-  const variantClasses = {
-    primary: 'bg-happy-500 dark:bg-happy-600 shadow-lg active:opacity-80',
-    secondary:
-      'bg-white dark:bg-stone-800 border-2 border-happy-300 dark:border-stone-600 active:bg-cream-50 dark:active:bg-stone-700 shadow-md',
-    danger: 'bg-coral-500 dark:bg-coral-600 shadow-lg active:opacity-80',
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      friction: 8,
+      tension: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 4,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
+
+  const handlePress = useCallback(() => {
+    if (isDisabled) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  }, [isDisabled, onPress]);
+
+  const variantStyles = {
+    primary: {
+      className: 'bg-happy-500 dark:bg-happy-600',
+      shadow: {
+        shadowColor: '#FFC300',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: isDark ? 0.4 : 0.25,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    },
+    secondary: {
+      className: `border-[1.5px] ${
+        isDark ? 'bg-stone-800/80 border-stone-600/60' : 'bg-white border-stone-200'
+      }`,
+      shadow: {
+        shadowColor: isDark ? '#000' : '#9CA3AF',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.2 : 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+      },
+    },
+    danger: {
+      className: 'bg-coral-500 dark:bg-coral-600',
+      shadow: {
+        shadowColor: '#FF7366',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: isDark ? 0.4 : 0.25,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    },
   };
 
   const sizeClasses = {
-    sm: 'px-4 py-2 rounded-2xl',
-    md: 'px-6 py-3 rounded-full',
-    lg: 'px-8 py-4 rounded-full',
+    sm: 'px-4 py-2.5 rounded-xl',
+    md: 'px-6 py-3 rounded-2xl',
+    lg: 'px-8 py-4 rounded-2xl',
   };
 
   const textSizeClasses = {
@@ -45,35 +101,42 @@ export function Button({
 
   const textColorClasses = {
     primary: 'text-white',
-    secondary: 'text-happy-700 dark:text-stone-200',
+    secondary: isDark ? 'text-stone-200' : 'text-stone-700',
     danger: 'text-white',
   };
 
+  const { className: variantClass, shadow } = variantStyles[variant];
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isDisabled}
-      accessibilityLabel={accessibilityLabel ?? title}
-      accessibilityRole="button"
-      accessibilityHint={accessibilityHint}
-      className={`
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${isDisabled ? 'opacity-50' : 'opacity-100'}
-        items-center justify-center
-      `}>
-      {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? '#FFC300' : '#fff'} />
-      ) : (
-        <Text
-          className={`
-            ${textSizeClasses[size]}
-            ${textColorClasses[variant]}
-            font-bold
-          `}>
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
+        accessibilityLabel={accessibilityLabel ?? title}
+        accessibilityRole="button"
+        accessibilityHint={accessibilityHint}
+        style={isDisabled ? undefined : shadow}
+        className={`
+          ${variantClass}
+          ${sizeClasses[size]}
+          ${isDisabled ? 'opacity-40' : ''}
+          items-center justify-center
+        `}>
+        {loading ? (
+          <ActivityIndicator color={variant === 'secondary' ? '#FFC300' : '#fff'} size="small" />
+        ) : (
+          <Text
+            className={`
+              ${textSizeClasses[size]}
+              ${textColorClasses[variant]}
+              font-bold
+            `}>
+            {title}
+          </Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }

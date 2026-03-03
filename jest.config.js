@@ -24,5 +24,6 @@ module.exports = {
     '!**/node_modules/**',
   ],
   coverageDirectory: 'coverage',
+  setupFiles: ['<rootDir>/jest.setup-rn-polyfills.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };

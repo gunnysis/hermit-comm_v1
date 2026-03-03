@@ -11,6 +11,23 @@ jest.mock('nativewind', () => ({
   useColorScheme: () => ({ colorScheme: 'light', setColorScheme: jest.fn(), toggleColorScheme: jest.fn() }),
 }));
 
+// Mock expo-haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium', Heavy: 'Heavy' },
+  notificationAsync: jest.fn(),
+  selectionAsync: jest.fn(),
+}));
+
+// Mock expo-blur
+jest.mock('expo-blur', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    BlurView: (props) => React.createElement(View, props),
+  };
+});
+
 // Mock Expo modules
 jest.mock('expo-constants', () => ({
   default: {

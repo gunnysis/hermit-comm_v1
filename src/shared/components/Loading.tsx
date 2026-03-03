@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, Text, Animated, useColorScheme } from 'react-native';
 
 interface LoadingProps {
   message?: string;
@@ -14,11 +14,19 @@ export function Loading({ message, size = 'large', skeleton = false }: LoadingPr
 
   return (
     <View className="flex-1 items-center justify-center p-8">
-      <View className="bg-white dark:bg-stone-800 rounded-full p-6 shadow-lg mb-4">
+      <View
+        style={{
+          shadowColor: '#FFC300',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 4,
+        }}
+        className="bg-white dark:bg-stone-800 rounded-2xl p-5 mb-4">
         <ActivityIndicator size={size} color="#FFC300" />
       </View>
       {message && (
-        <Text className="mt-4 text-base text-gray-600 dark:text-stone-400 text-center">
+        <Text className="mt-3 text-sm text-stone-500 dark:text-stone-400 text-center font-medium">
           {message}
         </Text>
       )}
@@ -26,21 +34,83 @@ export function Loading({ message, size = 'large', skeleton = false }: LoadingPr
   );
 }
 
+/** 시머 애니메이션이 적용된 스켈레톤 박스 */
+function ShimmerBox({ className }: { className: string }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: isDark ? [0.3, 0.6] : [0.5, 0.9],
+  });
+
+  return <Animated.View style={{ opacity }} className={className} />;
+}
+
+function SkeletonCard({ delay }: { delay: number }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      delay,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim, delay]);
+
+  return (
+    <Animated.View
+      style={{ opacity: fadeAnim }}
+      className={`rounded-2xl p-4 mb-3.5 mx-4 border ${
+        isDark ? 'bg-stone-900 border-stone-700/60' : 'bg-white border-stone-200/80'
+      }`}>
+      <ShimmerBox
+        className={`h-5 rounded-lg w-3/4 mb-3 ${isDark ? 'bg-stone-700' : 'bg-stone-200'}`}
+      />
+      <ShimmerBox
+        className={`h-3.5 rounded-md w-full mb-2 ${isDark ? 'bg-stone-800' : 'bg-stone-100'}`}
+      />
+      <ShimmerBox
+        className={`h-3.5 rounded-md w-5/6 mb-3 ${isDark ? 'bg-stone-800' : 'bg-stone-100'}`}
+      />
+      <View className="flex-row justify-between items-center">
+        <ShimmerBox
+          className={`h-6 rounded-full w-20 ${isDark ? 'bg-happy-900/30' : 'bg-happy-100'}`}
+        />
+        <ShimmerBox className={`h-3 rounded w-14 ${isDark ? 'bg-stone-700' : 'bg-stone-200'}`} />
+      </View>
+    </Animated.View>
+  );
+}
+
 function SkeletonLoader() {
   return (
-    <View className="p-4">
-      {[1, 2, 3].map((i) => (
-        <View
-          key={`skeleton-${i}`}
-          className="bg-white dark:bg-stone-900 rounded-3xl p-4 mb-4 shadow-sm border border-cream-100 dark:border-stone-700">
-          <View className="h-6 bg-cream-200 dark:bg-stone-700 rounded-xl w-3/4 mb-3" />
-          <View className="h-4 bg-cream-100 dark:bg-stone-800 rounded-lg w-full mb-2" />
-          <View className="h-4 bg-cream-100 dark:bg-stone-800 rounded-lg w-5/6 mb-3" />
-          <View className="flex-row justify-between items-center">
-            <View className="h-4 bg-happy-200 dark:bg-happy-900 rounded-full w-24" />
-            <View className="h-3 bg-gray-200 dark:bg-stone-700 rounded w-16" />
-          </View>
-        </View>
+    <View className="pt-3">
+      {[0, 1, 2].map((i) => (
+        <SkeletonCard key={`skeleton-${i}`} delay={i * 120} />
       ))}
     </View>
   );

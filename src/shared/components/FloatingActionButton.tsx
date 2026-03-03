@@ -1,7 +1,8 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useRef, useEffect } from 'react';
+import { Pressable, Animated, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { useThemeColors } from '@/shared/hooks/useThemeColors';
 
 interface FloatingActionButtonProps {
@@ -17,15 +18,69 @@ export function FloatingActionButton({
 }: FloatingActionButtonProps) {
   const { fabIcon } = useThemeColors();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  // 등장 애니메이션
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 120,
+      delay: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 0.88,
+      friction: 8,
+      tension: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [pressScale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 1,
+      friction: 3,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [pressScale]);
+
+  const handlePress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  }, [onPress]);
+
+  const combinedScale = Animated.multiply(scaleAnim, pressScale);
 
   return (
-    <Pressable
-      onPress={onPress}
-      className="absolute right-6 w-14 h-14 bg-happy-500 dark:bg-happy-600 rounded-full items-center justify-center shadow-lg active:scale-95"
-      style={{ elevation: 5, bottom: insets.bottom + 24 }}
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole="button">
-      <Ionicons name={icon} size={24} color={fabIcon} />
-    </Pressable>
+    <Animated.View
+      style={{
+        position: 'absolute',
+        right: 20,
+        bottom: insets.bottom + 24,
+        transform: [{ scale: combinedScale }],
+        shadowColor: isDark ? '#FFC300' : '#997500',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.5 : 0.3,
+        shadowRadius: 12,
+        elevation: 8,
+      }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        className="w-14 h-14 bg-happy-500 dark:bg-happy-500 rounded-2xl items-center justify-center"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button">
+        <Ionicons name={icon} size={22} color={fabIcon} />
+      </Pressable>
+    </Animated.View>
   );
 }
