@@ -17,16 +17,18 @@ export async function getPosts(
   offset: number = 0,
   sortOrder: 'latest' | 'popular' = 'latest',
 ): Promise<GetPostsResponse> {
-  const table = sortOrder === 'popular' ? 'posts_with_like_count' : 'posts';
-  const orderCol = sortOrder === 'popular' ? 'like_count' : 'created_at';
-
-  const query = supabase
-    .from(table)
-    .select(sortOrder === 'latest' ? '*, comments(count)' : '*')
-    .order(orderCol, { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  const { data, error } = await query;
+  const { data, error } =
+    sortOrder === 'popular'
+      ? await supabase
+          .from('posts_with_like_count')
+          .select('*')
+          .order('like_count', { ascending: false })
+          .range(offset, offset + limit - 1)
+      : await supabase
+          .from('posts')
+          .select('*, comments(count)')
+          .order('created_at', { ascending: false })
+          .range(offset, offset + limit - 1);
 
   if (error) {
     logger.error('[API] getPosts 에러:', error.message);
@@ -66,9 +68,30 @@ export async function searchPosts(
   query: string,
   limit: number = 20,
   offset: number = 0,
+  emotion?: string,
 ): Promise<GetPostsResponse> {
   const q = query.trim();
-  if (!q) return [];
+  if (!q && !emotion) return [];
+
+  // 감정 필터가 있으면 posts_with_like_count 뷰 사용 (emotions 컬럼 포함)
+  if (emotion) {
+    let emotionQuery = supabase
+      .from('posts_with_like_count')
+      .select('*')
+      .contains('emotions', [emotion]);
+    if (q) {
+      const escaped = q.replace(/'/g, "''");
+      emotionQuery = emotionQuery.or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`);
+    }
+    const { data, error } = await emotionQuery
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (error) {
+      logger.error('[API] searchPosts 에러:', error.message);
+      throw new APIError(500, error.message);
+    }
+    return (data || []) as Post[];
+  }
 
   const escaped = q.replace(/'/g, "''");
   const { data, error } = await supabase

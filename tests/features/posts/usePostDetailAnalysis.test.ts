@@ -13,6 +13,18 @@ jest.mock('@/shared/lib/api', () => ({
   },
 }));
 
+jest.mock('@/shared/lib/supabase', () => {
+  const mockSubscribe = jest.fn().mockReturnThis();
+  const mockOn = jest.fn().mockReturnThis();
+  const mockChannel = { on: mockOn, subscribe: mockSubscribe };
+  return {
+    supabase: {
+      channel: jest.fn(() => mockChannel),
+      removeChannel: jest.fn(() => Promise.resolve()),
+    },
+  };
+});
+
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -62,7 +74,7 @@ describe('usePostDetailAnalysis', () => {
     expect(result.current.postAnalysis).toBeNull();
   });
 
-  it('14초 fallback 타이머가 등록된다', () => {
+  it('15초 fallback 타이머가 등록된다', () => {
     jest.useFakeTimers();
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
 
@@ -71,7 +83,7 @@ describe('usePostDetailAnalysis', () => {
       renderHook(() => usePostDetailAnalysis(1), { wrapper });
 
       const calls = setTimeoutSpy.mock.calls;
-      const fallbackTimer = calls.find((call) => call[1] === 14000);
+      const fallbackTimer = calls.find((call) => call[1] === 15000);
       expect(fallbackTimer).toBeDefined();
     } finally {
       jest.useRealTimers();
@@ -109,7 +121,7 @@ describe('usePostDetailAnalysis', () => {
 
       // 14초 타이머 발동 + async 콜백 완료 대기
       await act(async () => {
-        jest.advanceTimersByTime(14001);
+        jest.advanceTimersByTime(15001);
         await Promise.resolve(); // async callback microtask flush
       });
 
@@ -132,7 +144,7 @@ describe('usePostDetailAnalysis', () => {
       renderHook(() => usePostDetailAnalysis(1), { wrapper });
 
       await act(async () => {
-        jest.advanceTimersByTime(14001);
+        jest.advanceTimersByTime(15001);
         await Promise.resolve(); // async callback microtask flush
       });
 

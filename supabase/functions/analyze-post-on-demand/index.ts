@@ -1,7 +1,7 @@
 // Supabase Edge Function: analyze-post-on-demand
-// 역할: 앱에서 분석 결과가 없을 때 수동으로 호출하는 fallback 감정 분석 함수.
-//       DB Webhook 실패 또는 지연 시 클라이언트가 직접 트리거.
-//       (구 smart-service, DESIGN.md 권장 이름)
+// 역할: 앱에서 분석 결과가 없거나 재분석이 필요할 때 수동으로 호출하는 감정 분석 함수.
+//       DB Webhook 실패/지연 시 fallback + 수동 재시도 버튼에서 사용.
+//       force=true로 호출하여 쿨다운을 우회한다.
 //
 // 로컬: supabase functions serve analyze-post-on-demand
 // 배포: supabase functions deploy analyze-post-on-demand
@@ -49,6 +49,7 @@ Deno.serve(async (req: Request) => {
       postId,
       content,
       title,
+      force: true,
     });
 
     return new Response(JSON.stringify(result), {

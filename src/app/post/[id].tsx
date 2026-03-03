@@ -70,6 +70,23 @@ export default function PostDetailScreen() {
   const { postAnalysis, analysisLoading } = usePostDetailAnalysis(postId);
   const { reactions, userReactedTypes, handleReaction, pendingTypes } =
     usePostDetailReactions(postId);
+
+  const handleEmotionPress = useCallback(
+    (emotion: string) => {
+      router.push({ pathname: '/search', params: { emotion } });
+    },
+    [router],
+  );
+
+  const handleRetryAnalysis = useCallback(async () => {
+    if (!post?.content) return;
+    try {
+      await api.invokeSmartService(postId, post.content, post.title);
+      queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
+    } catch {
+      Toast.show({ type: 'error', text1: '분석 요청에 실패했습니다.' });
+    }
+  }, [post, postId, queryClient]);
   const { data: recommendedPosts = [], isLoading: recommendedPostsLoading } =
     useRecommendedPosts(postId);
   const {
@@ -231,6 +248,8 @@ export default function PostDetailScreen() {
             pendingTypes={pendingTypes}
             recommendedPosts={recommendedPosts}
             recommendedPostsLoading={recommendedPostsLoading}
+            onEmotionPress={handleEmotionPress}
+            onRetryAnalysis={handleRetryAnalysis}
           />
 
           <PostDetailCommentList

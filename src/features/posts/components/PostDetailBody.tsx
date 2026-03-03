@@ -17,6 +17,10 @@ interface PostDetailBodyProps {
   pendingTypes: Set<string>;
   recommendedPosts?: RecommendedPost[];
   recommendedPostsLoading?: boolean;
+  /** 감정 태그 클릭 시 콜백 */
+  onEmotionPress?: (emotion: string) => void;
+  /** 분석 재시도 콜백 */
+  onRetryAnalysis?: () => void;
 }
 
 export function PostDetailBody({
@@ -29,7 +33,11 @@ export function PostDetailBody({
   pendingTypes,
   recommendedPosts = [],
   recommendedPostsLoading = false,
+  onEmotionPress,
+  onRetryAnalysis,
 }: PostDetailBodyProps) {
+  const isAnalysisDone = !analysisLoading && postAnalysis !== undefined;
+
   return (
     <View className="mx-4 mt-4 rounded-2xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-md overflow-hidden">
       <View className="p-4">
@@ -52,6 +60,9 @@ export function PostDetailBody({
         <EmotionTags
           emotions={postAnalysis?.emotions ?? []}
           isLoading={analysisLoading && postAnalysis == null}
+          onPress={onEmotionPress}
+          onRetry={onRetryAnalysis}
+          analysisDone={isAnalysisDone}
         />
         <View
           className="border-t border-cream-200 dark:border-stone-700 pt-4 items-start"

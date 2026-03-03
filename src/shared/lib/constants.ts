@@ -40,36 +40,6 @@ export const ALIAS_ANIMALS = [
 /** 페이지당 게시글 수 */
 export const PAGE_SIZE = 20;
 
-/** 허용 감정 목록 (감정 분석 Edge Function 반환값과 동일) */
-export const ALLOWED_EMOTIONS = [
-  '고립감',
-  '무기력',
-  '불안',
-  '외로움',
-  '슬픔',
-  '그리움',
-  '두려움',
-  '답답함',
-  '설렘',
-  '기대감',
-  '안도감',
-  '평온함',
-  '즐거움',
-] as const;
-
-/** 감정 이모지 맵 */
-export const EMOTION_EMOJI: Record<string, string> = {
-  고립감: '🫥',
-  무기력: '😶',
-  불안: '😰',
-  외로움: '😔',
-  슬픔: '😢',
-  그리움: '💭',
-  두려움: '😨',
-  답답함: '😤',
-  설렘: '💫',
-  기대감: '🌱',
-  안도감: '😮‍💨',
-  평온함: '😌',
-  즐거움: '😊',
-};
+// 감정 상수는 중앙 프로젝트에서 생성됨 (constants.generated.ts)
+export { ALLOWED_EMOTIONS, EMOTION_EMOJI } from './constants.generated';
+export type { AllowedEmotion } from './constants.generated';

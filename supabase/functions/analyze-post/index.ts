@@ -1,12 +1,12 @@
 // Supabase Edge Function: analyze-post
-// 역할: Supabase DB Webhook이 posts INSERT 이벤트 발생 시 자동 호출.
+// 역할: Supabase DB Webhook이 posts INSERT/UPDATE 이벤트 발생 시 자동 호출.
 //       게시글 감정을 분석하여 post_analysis 테이블에 저장.
+//       UPDATE 시 content/title 변경분만 트리거됨 (DB WHEN 절).
+//       60초 쿨다운으로 연속 수정 시 비용 방지.
 //
 // 로컬 개발:  supabase functions serve analyze-post
 // 배포:       supabase functions deploy analyze-post
-// Webhook 설정: Supabase Dashboard → Database → Webhooks
-//   - Table: posts, Events: INSERT
-//   - URL: https://<project>.supabase.co/functions/v1/analyze-post
+// 트리거: DB trigger (analyze_post_on_insert, analyze_post_on_update)
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { analyzeAndSave } from '../_shared/analyze.ts';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -22,14 +22,31 @@ Deno.serve(async (req: Request) => {
       table: string;
       schema: string;
       record: { id: number; title?: string; content?: string };
-      old_record: unknown;
+      old_record: { title?: string; content?: string } | null;
     };
 
-    if (payload.type !== 'INSERT' || payload.table !== 'posts' || payload.schema !== 'public') {
+    const isInsert = payload.type === 'INSERT';
+    const isUpdate = payload.type === 'UPDATE';
+
+    if ((!isInsert && !isUpdate) || payload.table !== 'posts' || payload.schema !== 'public') {
       return new Response(JSON.stringify({ ok: false, reason: 'invalid_event' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // UPDATE: content/title 미변경이면 스킵 (DB WHEN 절의 이중 안전장치)
+    if (isUpdate && payload.old_record) {
+      const oldContent = payload.old_record.content ?? '';
+      const oldTitle = payload.old_record.title ?? '';
+      const newContent = payload.record?.content ?? '';
+      const newTitle = payload.record?.title ?? '';
+      if (oldContent === newContent && oldTitle === newTitle) {
+        return new Response(JSON.stringify({ ok: true, skipped: 'no_content_change' }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const postId = payload.record?.id;

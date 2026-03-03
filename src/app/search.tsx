@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Container } from '@/shared/components/Container';
@@ -8,6 +8,7 @@ import { PostList } from '@/features/posts/components/PostList';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { api } from '@/shared/lib/api';
 import { draftStorage } from '@/shared/lib/storage';
+import { ALLOWED_EMOTIONS, EMOTION_EMOJI } from '@/shared/lib/constants';
 import type { Post } from '@/types';
 
 const RECENT_SEARCHES_KEY = 'search_recent';
@@ -34,10 +35,12 @@ function addRecentSearch(query: string): void {
 
 export default function SearchScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ q?: string }>();
+  const params = useLocalSearchParams<{ q?: string; emotion?: string }>();
   const initialQ = params.q ?? '';
+  const initialEmotion = params.emotion ?? '';
   const [query, setQuery] = useState(initialQ);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQ);
+  const [selectedEmotion, setSelectedEmotion] = useState(initialEmotion);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +51,15 @@ export default function SearchScreen() {
   }, []);
 
   useEffect(() => {
-    if (!initialQ) return;
-    setQuery(initialQ);
-    setDebouncedQuery(initialQ);
-  }, [initialQ]);
+    if (!initialQ && !initialEmotion) return;
+    if (initialQ) {
+      setQuery(initialQ);
+      setDebouncedQuery(initialQ);
+    }
+    if (initialEmotion) {
+      setSelectedEmotion(initialEmotion);
+    }
+  }, [initialQ, initialEmotion]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -60,9 +68,9 @@ export default function SearchScreen() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const search = useCallback(async (q: string) => {
+  const search = useCallback(async (q: string, emotion?: string) => {
     const trimmed = q.trim();
-    if (!trimmed) {
+    if (!trimmed && !emotion) {
       setPosts([]);
       setError(null);
       return;
@@ -70,10 +78,12 @@ export default function SearchScreen() {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.searchPosts(trimmed, 50, 0);
+      const result = await api.searchPosts(trimmed, 50, 0, emotion);
       setPosts(result);
-      addRecentSearch(trimmed);
-      setRecentSearches(getRecentSearches());
+      if (trimmed) {
+        addRecentSearch(trimmed);
+        setRecentSearches(getRecentSearches());
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '검색에 실패했습니다.');
       setPosts([]);
@@ -83,20 +93,25 @@ export default function SearchScreen() {
   }, []);
 
   useEffect(() => {
-    search(debouncedQuery);
-  }, [debouncedQuery, search]);
+    search(debouncedQuery, selectedEmotion || undefined);
+  }, [debouncedQuery, selectedEmotion, search]);
 
   const handleRefresh = useCallback(() => {
-    search(debouncedQuery);
-  }, [search, debouncedQuery]);
+    search(debouncedQuery, selectedEmotion || undefined);
+  }, [search, debouncedQuery, selectedEmotion]);
 
   const handleRecentPress = useCallback((q: string) => {
     setQuery(q);
     setDebouncedQuery(q);
   }, []);
 
-  const isEmpty = !loading && posts.length === 0 && debouncedQuery.trim().length > 0;
-  const showRecent = !debouncedQuery.trim() && recentSearches.length > 0;
+  const handleEmotionPress = useCallback((emotion: string) => {
+    setSelectedEmotion((prev) => (prev === emotion ? '' : emotion));
+  }, []);
+
+  const hasActiveFilter = debouncedQuery.trim().length > 0 || selectedEmotion.length > 0;
+  const isEmpty = !loading && posts.length === 0 && hasActiveFilter;
+  const showRecent = !hasActiveFilter && recentSearches.length > 0;
 
   const listError = useMemo(() => (isEmpty && error ? error : null), [isEmpty, error]);
 
@@ -121,10 +136,39 @@ export default function SearchScreen() {
               placeholder="제목·내용 검색"
               className="mb-0"
               accessibilityLabel="검색어 입력"
-              autoFocus
+              autoFocus={!initialEmotion}
             />
           </View>
         </View>
+
+        {/* 감정 필터 칩 */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="border-b border-cream-200 dark:border-stone-700"
+          contentContainerClassName="px-4 py-2 gap-2">
+          {ALLOWED_EMOTIONS.map((emotion) => {
+            const isActive = selectedEmotion === emotion;
+            const emoji = EMOTION_EMOJI[emotion] ?? '💬';
+            return (
+              <Pressable
+                key={emotion}
+                onPress={() => handleEmotionPress(emotion)}
+                className={`rounded-full px-3 py-1.5 active:opacity-80 ${
+                  isActive ? 'bg-happy-600 dark:bg-happy-700' : 'bg-stone-100 dark:bg-stone-800'
+                }`}
+                accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
+                accessibilityRole="button">
+                <Text
+                  className={`text-sm ${
+                    isActive ? 'text-white font-medium' : 'text-stone-600 dark:text-stone-300'
+                  }`}>
+                  {emoji} {emotion}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
         {showRecent && (
           <View className="px-4 py-3 border-b border-cream-200 dark:border-stone-700">
