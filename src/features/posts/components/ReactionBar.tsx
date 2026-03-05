@@ -78,31 +78,142 @@ function ReactionChip({
 
   const colors = ACTIVE_COLORS[type] ?? DEFAULT_ACTIVE;
 
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(0)).current;
+
   const handlePress = useCallback(() => {
     if (isPending) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    Animated.spring(scaleAnim, {
-      toValue: 1.15,
-      friction: 3,
-      tension: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        tension: 120,
-        useNativeDriver: true,
-      }).start();
-    });
+    // 타입별 차별화된 애니메이션
+    switch (type) {
+      case 'heart':
+        // pulse: 1 → 1.3 → 0.9 → 1
+        Animated.sequence([
+          Animated.spring(scaleAnim, {
+            toValue: 1.3,
+            friction: 3,
+            tension: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 0.9,
+            friction: 4,
+            tension: 200,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 5,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        break;
+      case 'laugh':
+        // wiggle rotation
+        Animated.sequence([
+          Animated.timing(rotateAnim, { toValue: -12, duration: 80, useNativeDriver: true }),
+          Animated.timing(rotateAnim, { toValue: 12, duration: 80, useNativeDriver: true }),
+          Animated.timing(rotateAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
+          Animated.timing(rotateAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+        ]).start();
+        Animated.sequence([
+          Animated.spring(scaleAnim, {
+            toValue: 1.1,
+            friction: 3,
+            tension: 200,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 4,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        break;
+      case 'sad':
+        // droop: 살짝 아래로
+        Animated.sequence([
+          Animated.timing(translateYAnim, { toValue: 3, duration: 150, useNativeDriver: true }),
+          Animated.spring(translateYAnim, {
+            toValue: 0,
+            friction: 5,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        Animated.sequence([
+          Animated.spring(scaleAnim, {
+            toValue: 1.05,
+            friction: 4,
+            tension: 150,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 5,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        break;
+      case 'surprise':
+        // pop: 0.5 → 1.2 → 1
+        Animated.sequence([
+          Animated.timing(scaleAnim, { toValue: 0.5, duration: 50, useNativeDriver: true }),
+          Animated.spring(scaleAnim, {
+            toValue: 1.2,
+            friction: 3,
+            tension: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 4,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        break;
+      default:
+        // like: standard bounce
+        Animated.sequence([
+          Animated.spring(scaleAnim, {
+            toValue: 1.15,
+            friction: 3,
+            tension: 200,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 4,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+        ]).start();
+    }
 
     onPress(type);
-  }, [isPending, type, onPress, scaleAnim]);
+  }, [isPending, type, onPress, scaleAnim, rotateAnim, translateYAnim]);
 
   const hasCount = count > 0;
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={{
+        transform: [
+          { scale: scaleAnim },
+          {
+            rotate: rotateAnim.interpolate({
+              inputRange: [-12, 12],
+              outputRange: ['-12deg', '12deg'],
+            }),
+          },
+          { translateY: translateYAnim },
+        ],
+      }}>
       <Pressable
         onPress={handlePress}
         disabled={isPending}
