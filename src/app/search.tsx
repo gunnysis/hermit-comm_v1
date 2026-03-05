@@ -79,7 +79,7 @@ export default function SearchScreen() {
     setError(null);
     try {
       const result = await api.searchPosts(trimmed, 50, 0);
-      setPosts(result as unknown as Post[]);
+      setPosts(result as Post[]);
       addRecentSearch(trimmed);
       setRecentSearches(getRecentSearches());
     } catch (err) {
