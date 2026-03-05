@@ -1,5 +1,5 @@
-/** 공개 게시판 기본 ID. 현재 공개 보드가 하나인 구조. */
-export const DEFAULT_PUBLIC_BOARD_ID = 1;
+/** 공개 게시판 기본 ID. 자유게시판 (visibility='public', group_id=NULL) */
+export const DEFAULT_PUBLIC_BOARD_ID = 12;
 
 /** 입력 유효성 검사 상수 */
 export const VALIDATION = {

@@ -68,9 +68,9 @@ export default function SearchScreen() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const search = useCallback(async (q: string, emotion?: string) => {
+  const search = useCallback(async (q: string) => {
     const trimmed = q.trim();
-    if (!trimmed && !emotion) {
+    if (!trimmed) {
       setPosts([]);
       setError(null);
       return;
@@ -78,12 +78,10 @@ export default function SearchScreen() {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.searchPosts(trimmed, 50, 0, emotion);
-      setPosts(result);
-      if (trimmed) {
-        addRecentSearch(trimmed);
-        setRecentSearches(getRecentSearches());
-      }
+      const result = await api.searchPosts(trimmed, 50, 0);
+      setPosts(result as unknown as Post[]);
+      addRecentSearch(trimmed);
+      setRecentSearches(getRecentSearches());
     } catch (err) {
       setError(err instanceof Error ? err.message : '검색에 실패했습니다.');
       setPosts([]);
@@ -93,12 +91,12 @@ export default function SearchScreen() {
   }, []);
 
   useEffect(() => {
-    search(debouncedQuery, selectedEmotion || undefined);
-  }, [debouncedQuery, selectedEmotion, search]);
+    search(debouncedQuery);
+  }, [debouncedQuery, search]);
 
   const handleRefresh = useCallback(() => {
-    search(debouncedQuery, selectedEmotion || undefined);
-  }, [search, debouncedQuery, selectedEmotion]);
+    search(debouncedQuery);
+  }, [search, debouncedQuery]);
 
   const handleRecentPress = useCallback((q: string) => {
     setQuery(q);

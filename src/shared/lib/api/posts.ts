@@ -10,6 +10,7 @@ import type {
   GetPostResponse,
   CreatePostResponse,
   UpdatePostResponse,
+  SearchResult,
 } from '@/types';
 
 export async function getPosts(
@@ -68,54 +69,22 @@ export async function searchPosts(
   query: string,
   limit: number = 20,
   offset: number = 0,
-  emotion?: string,
-): Promise<GetPostsResponse> {
+): Promise<SearchResult[]> {
   const q = query.trim();
-  if (!q && !emotion) return [];
+  if (!q) return [];
 
-  // 감정 필터가 있으면 posts_with_like_count 뷰 사용 (emotions 컬럼 포함)
-  if (emotion) {
-    let emotionQuery = supabase
-      .from('posts_with_like_count')
-      .select('*')
-      .contains('emotions', [emotion]);
-    if (q) {
-      const escaped = q.replace(/'/g, "''");
-      emotionQuery = emotionQuery.or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`);
-    }
-    const { data, error } = await emotionQuery
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-    if (error) {
-      logger.error('[API] searchPosts 에러:', error.message);
-      throw new APIError(500, error.message);
-    }
-    return (data || []) as Post[];
-  }
-
-  const escaped = q.replace(/'/g, "''");
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*, comments(count)')
-    .or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const { data, error } = await supabase.rpc('search_posts', {
+    p_query: q,
+    p_limit: limit,
+    p_offset: offset,
+  });
 
   if (error) {
     logger.error('[API] searchPosts 에러:', error.message);
     throw new APIError(500, error.message);
   }
 
-  const rows = (data || []) as (Post & { comments?: { count: number }[] | number })[];
-  return rows.map((row) => {
-    const { comments: commentCount, ...rest } = row;
-    const comment_count = Array.isArray(commentCount)
-      ? commentCount.reduce((sum, c) => sum + (c?.count ?? 0), 0)
-      : typeof commentCount === 'number'
-        ? commentCount
-        : undefined;
-    return { ...rest, comment_count } as Post;
-  });
+  return (data ?? []) as SearchResult[];
 }
 
 export async function getPost(id: number): Promise<GetPostResponse> {
