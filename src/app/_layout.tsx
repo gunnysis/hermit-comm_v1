@@ -121,21 +121,58 @@ export default function RootLayout() {
           <View className="flex-1 bg-cream-100">
             <NetworkBanner />
             <View className="flex-1">
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="post/[id]" />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                  animationDuration: 250,
+                }}>
+                <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+                <Stack.Screen
+                  name="post/[id]"
+                  options={{
+                    animation: 'ios_from_right',
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
                 <Stack.Screen
                   name="post/edit/[id]"
-                  options={{ presentation: 'modal', headerShown: false }}
+                  options={{
+                    presentation: 'modal',
+                    headerShown: false,
+                    animation: 'slide_from_bottom',
+                  }}
                 />
-                <Stack.Screen name="admin" />
-                <Stack.Screen name="groups/index" />
-                <Stack.Screen name="groups/[groupId]" />
+                <Stack.Screen name="admin" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen
+                  name="groups/index"
+                  options={{ animation: 'slide_from_right', gestureEnabled: true }}
+                />
+                <Stack.Screen
+                  name="groups/[groupId]"
+                  options={{
+                    animation: 'ios_from_right',
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
                 <Stack.Screen
                   name="groups/create"
-                  options={{ presentation: 'modal', headerShown: false }}
+                  options={{
+                    presentation: 'modal',
+                    headerShown: false,
+                    animation: 'slide_from_bottom',
+                  }}
                 />
-                <Stack.Screen name="settings/index" />
+                <Stack.Screen
+                  name="settings/index"
+                  options={{ animation: 'slide_from_right', gestureEnabled: true }}
+                />
+                <Stack.Screen
+                  name="search"
+                  options={{ animation: 'fade', animationDuration: 200 }}
+                />
               </Stack>
             </View>
             <Toast />
