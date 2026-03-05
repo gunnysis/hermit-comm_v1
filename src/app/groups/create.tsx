@@ -3,6 +3,7 @@ import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
 import { AnonModeInfo } from '@/features/posts/components/AnonModeInfo';
 import { ImagePicker } from '@/features/posts/components/ImagePicker';
+import { MoodSelector } from '@/features/posts/components/MoodSelector';
 import { Button } from '@/shared/components/Button';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
@@ -12,7 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useMemo, useState } from 'react';
 import { Controller } from 'react-hook-form';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function GroupCreatePostScreen() {
@@ -20,6 +21,7 @@ export default function GroupCreatePostScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [initialEmotions, setInitialEmotions] = useState<string[]>([]);
   const { groupId: groupIdParam, boardId: boardIdParam } = useLocalSearchParams<{
     groupId: string;
     boardId: string;
@@ -50,7 +52,10 @@ export default function GroupCreatePostScreen() {
     groupId,
     user,
     anonMode,
-    getExtraPostData: () => ({ image_url: imageUrl ?? undefined }),
+    getExtraPostData: () => ({
+      image_url: imageUrl ?? undefined,
+      ...(initialEmotions.length > 0 ? { initial_emotions: initialEmotions } : {}),
+    }),
     onSuccess: () => {
       Alert.alert('완료', '게시글이 작성되었습니다.', [
         { text: '확인', onPress: () => router.back() },
@@ -113,6 +118,13 @@ export default function GroupCreatePostScreen() {
                 />
               )}
             />
+
+            <View className="mb-3">
+              <Text className="text-sm font-medium text-gray-700 dark:text-stone-300 mb-1">
+                지금 어떤 마음인가요? (선택)
+              </Text>
+              <MoodSelector value={initialEmotions} onChange={setInitialEmotions} />
+            </View>
 
             <View className="mt-2 mb-2">
               <AnonModeInfo

@@ -76,6 +76,7 @@ export default function TabLayout() {
         name="create"
         options={{
           href: null,
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tabs.Screen
