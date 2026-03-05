@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { logger } from '@/shared/utils/logger';
+import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import { APIError } from './error';
 import type {
   Comment,
@@ -68,6 +69,7 @@ export async function createComment(
     );
   }
 
+  addBreadcrumb('comment', 'createComment', { postId, commentId: data.id });
   return data as Comment;
 }
 
@@ -108,4 +110,5 @@ export async function deleteComment(id: number): Promise<void> {
       error,
     );
   }
+  addBreadcrumb('comment', 'deleteComment', { commentId: id });
 }

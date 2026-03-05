@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 
 export interface ReactionData {
   reaction_type: string;
@@ -20,4 +21,5 @@ export async function toggleReaction(postId: number, reactionType: string): Prom
     p_type: reactionType,
   });
   if (error) throw error;
+  addBreadcrumb('reaction', 'toggleReaction', { postId, reactionType });
 }

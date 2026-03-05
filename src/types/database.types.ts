@@ -66,6 +66,7 @@ export interface Post {
   comment_count?: number;
   like_count?: number;
   emotions?: string[] | null;
+  initial_emotions?: string[] | null;
   image_url?: string | null;
 }
 
@@ -127,6 +128,7 @@ export interface AppAdmin {
 export interface EmotionTrend {
   emotion: string;
   cnt: number;
+  pct?: number;
 }
 
 /** 감정 기반 추천 게시글 (get_recommended_posts_by_emotion RPC 반환 타입) */
@@ -138,6 +140,20 @@ export interface RecommendedPost {
   comment_count: number;
   emotions: string[];
   created_at: string;
+  score?: number;
+}
+
+/** 트렌딩 게시글 (get_trending_posts RPC 반환 타입) */
+export interface TrendingPost {
+  id: number;
+  title: string;
+  board_id: number | null;
+  like_count: number;
+  comment_count: number;
+  emotions: string[] | null;
+  created_at: string;
+  display_name: string;
+  score: number;
 }
 
 export const REACTION_TYPES = ['like', 'heart', 'laugh', 'sad', 'surprise'] as const;
@@ -152,6 +168,7 @@ export interface CreatePostRequest {
   is_anonymous?: boolean;
   display_name?: string;
   image_url?: string | null;
+  initial_emotions?: string[] | null;
 }
 
 export interface CreateCommentRequest {
@@ -174,6 +191,28 @@ export interface UpdatePostRequest {
 
 export interface UpdateCommentRequest {
   content: string;
+}
+
+export interface UserPreferences {
+  user_id: string;
+  preferred_emotions: string[];
+  onboarding_completed: boolean;
+  theme_preference: 'light' | 'dark' | 'system';
+  notification_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmotionCalendarDay {
+  day: string;
+  emotions: string[];
+  post_count: number;
+}
+
+export interface EmotionTimelineEntry {
+  day: string;
+  emotion: string;
+  cnt: number;
 }
 
 // 응답 타입

@@ -4,6 +4,7 @@ import * as reactions from './reactions';
 import * as analysis from './analysis';
 import * as health from './health';
 import * as recommendations from './recommendations';
+import * as trending from './trending';
 
 export { APIError } from './error';
 export const api = {
@@ -24,4 +25,5 @@ export const api = {
   invokeSmartService: analysis.invokeSmartService,
   healthCheck: health.healthCheck,
   getRecommendedPosts: recommendations.getRecommendedPosts,
+  getTrendingPosts: trending.getTrendingPosts,
 };

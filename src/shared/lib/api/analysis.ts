@@ -7,13 +7,13 @@ const SMART_SERVICE_FUNCTION = 'analyze-post-on-demand';
 
 export async function getEmotionTrend(
   days: number = 7,
-): Promise<{ emotion: string; cnt: number }[]> {
+): Promise<{ emotion: string; cnt: number; pct: number }[]> {
   const { data, error } = await supabase.rpc('get_emotion_trend', { days });
   if (error) {
     logger.error('[API] getEmotionTrend 에러:', error.message);
     return [];
   }
-  return (data ?? []) as { emotion: string; cnt: number }[];
+  return (data ?? []) as { emotion: string; cnt: number; pct: number }[];
 }
 
 export async function getPostAnalysis(postId: number): Promise<PostAnalysis | null> {

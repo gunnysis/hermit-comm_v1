@@ -3,13 +3,15 @@ import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Container } from '@/shared/components/Container';
-import { DEFAULT_PUBLIC_BOARD_ID } from '@/shared/lib/constants';
+import { DEFAULT_PUBLIC_BOARD_ID, EMPTY_STATE_MESSAGES } from '@/shared/lib/constants';
 import { pushAdmin, pushSearch, pushCreate } from '@/shared/lib/navigation';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
 import { PostList } from '@/features/posts/components/PostList';
 import { EmotionTrend } from '@/features/posts/components/EmotionTrend';
+import { TrendingPosts } from '@/features/posts/components/TrendingPosts';
+import { GreetingBanner } from '@/features/posts/components/GreetingBanner';
 import { useBoardPosts } from '@/features/community/hooks/useBoardPosts';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
@@ -102,8 +104,10 @@ export default function HomeScreen() {
           <SortTabs value={sortOrder} onChange={setSortOrder} />
         </ScreenHeader>
 
+        <GreetingBanner />
         <View className="px-4">
           <EmotionTrend days={7} />
+          <TrendingPosts />
         </View>
 
         <PostList
@@ -113,8 +117,8 @@ export default function HomeScreen() {
           onRefresh={handleRefresh}
           onLoadMore={handleLoadMore}
           hasMore={!!hasNextPage}
-          emptyTitle="아직 글이 없어요"
-          emptyDescription="따뜻한 이야기를 남겨주세요."
+          emptyTitle={EMPTY_STATE_MESSAGES.feed.title}
+          emptyDescription={EMPTY_STATE_MESSAGES.feed.description}
         />
 
         <FloatingActionButton onPress={() => pushCreate(router)} accessibilityLabel="새 글 작성" />

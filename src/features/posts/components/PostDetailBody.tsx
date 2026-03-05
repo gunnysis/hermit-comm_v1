@@ -75,7 +75,11 @@ export function PostDetailBody({
             pendingTypes={pendingTypes}
           />
         </View>
-        <RecommendedPosts posts={recommendedPosts} isLoading={recommendedPostsLoading} />
+        <RecommendedPosts
+          posts={recommendedPosts}
+          isLoading={recommendedPostsLoading}
+          hasEmotions={(postAnalysis?.emotions?.length ?? 0) > 0}
+        />
       </View>
     </View>
   );

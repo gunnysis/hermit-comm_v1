@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useEmotionTrend } from '../hooks/useEmotionTrend';
 import { EMOTION_EMOJI } from '@/shared/lib/constants';
 
@@ -9,6 +10,7 @@ interface EmotionTrendProps {
 }
 
 export function EmotionTrend({ days = 7, className = '' }: EmotionTrendProps) {
+  const router = useRouter();
   const { data: trend = [], isLoading } = useEmotionTrend(days);
   const top3 = trend.slice(0, 3);
 
@@ -22,14 +24,17 @@ export function EmotionTrend({ days = 7, className = '' }: EmotionTrendProps) {
       accessibilityLabel={`요즘 마을 분위기: ${top3.map((t) => t.emotion).join(', ')}`}>
       <Text className="text-sm text-gray-500 dark:text-stone-400 mb-2">요즘 마을 분위기</Text>
       <View className="flex-row flex-wrap gap-2">
-        {top3.map(({ emotion, cnt }) => {
+        {top3.map(({ emotion, cnt, pct }) => {
           const emoji = EMOTION_EMOJI[emotion] ?? '💬';
           return (
-            <View key={emotion} className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5">
+            <Pressable
+              key={emotion}
+              onPress={() => router.push({ pathname: '/search', params: { emotion } })}
+              className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 active:opacity-70">
               <Text className="text-sm text-stone-600 dark:text-stone-300">
-                {emoji} {emotion} {cnt}
+                {emoji} {emotion} {pct != null ? `${pct}%` : cnt}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>

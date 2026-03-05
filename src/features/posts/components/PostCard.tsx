@@ -5,7 +5,7 @@ import { pushPost } from '@/shared/lib/navigation';
 import { Post } from '@/types';
 import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { getExcerpt } from '@/shared/utils/html';
-import { EMOTION_EMOJI } from '@/shared/lib/constants';
+import { EMOTION_EMOJI, EMOTION_COLOR_MAP } from '@/shared/lib/constants';
 
 interface PostCardProps {
   post: Post;
@@ -69,6 +69,21 @@ const PostCardComponent = ({ post }: PostCardProps) => {
           className={`rounded-2xl overflow-hidden border ${
             isDark ? 'bg-stone-900 border-stone-700/60' : 'bg-white border-stone-200/80'
           }`}>
+          {post.emotions?.[0] && EMOTION_COLOR_MAP[post.emotions[0]] && (
+            <View
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 3,
+                backgroundColor: EMOTION_COLOR_MAP[post.emotions[0]].gradient[1],
+                borderTopLeftRadius: 16,
+                borderBottomLeftRadius: 16,
+                zIndex: 1,
+              }}
+            />
+          )}
           {post.image_url ? (
             <Image
               source={{ uri: post.image_url }}
