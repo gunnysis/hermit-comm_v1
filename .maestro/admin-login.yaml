@@ -5,15 +5,8 @@ appId: com.gns.hermitcomm.dev
 ---
 - runFlow: common/launch-app-fresh.yaml
 
-# 설정 탭 이동
-- tapOn: "설정"
-
-- extendedWaitUntil:
-    visible: "운영자 관리 페이지"
-    timeout: 5000
-
-# 관리자 페이지 진입
-- tapOn: "운영자 관리 페이지"
+# 홈 타이틀 롱프레스로 관리자 로그인 진입
+- longPressOn: "은둔마을"
 
 # 로그인 화면 로드 대기 (제목 또는 입력 필드)
 - extendedWaitUntil:
