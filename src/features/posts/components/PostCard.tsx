@@ -134,26 +134,22 @@ const PostCardComponent = ({ post }: PostCardProps) => {
                     {post.display_name}
                   </Text>
                 </View>
-                {post.like_count !== undefined && post.like_count > 0 && (
-                  <View
-                    className={`px-2 py-0.5 rounded-full ${
-                      isDark ? 'bg-stone-800/60' : 'bg-stone-50'
-                    }`}>
-                    <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                      👍 {formatReactionCount(post.like_count)}
-                    </Text>
-                  </View>
-                )}
-                {post.comment_count !== undefined && post.comment_count > 0 && (
-                  <View
-                    className={`px-2 py-0.5 rounded-full ${
-                      isDark ? 'bg-stone-800/60' : 'bg-stone-50'
-                    }`}>
-                    <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                      💬 {post.comment_count}
-                    </Text>
-                  </View>
-                )}
+                <View
+                  className={`px-2 py-0.5 rounded-full ${
+                    isDark ? 'bg-stone-800/60' : 'bg-stone-50'
+                  }`}>
+                  <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                    👍 {formatReactionCount(post.like_count ?? 0)}
+                  </Text>
+                </View>
+                <View
+                  className={`px-2 py-0.5 rounded-full ${
+                    isDark ? 'bg-stone-800/60' : 'bg-stone-50'
+                  }`}>
+                  <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                    💬 {post.comment_count ?? 0}
+                  </Text>
+                </View>
               </View>
               <Text className="text-[11px] text-stone-400 dark:text-stone-500">
                 {formatDate(post.created_at)}

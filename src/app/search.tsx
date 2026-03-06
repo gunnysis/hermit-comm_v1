@@ -184,6 +184,22 @@ export default function SearchScreen() {
           })}
         </ScrollView>
 
+        {selectedEmotion && !debouncedQuery.trim() && (
+          <View className="px-4 py-2 bg-cream-50 dark:bg-stone-900 border-b border-cream-200 dark:border-stone-700">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600 dark:text-stone-300">
+                {`'${selectedEmotion}' 감정의 이야기들`}
+              </Text>
+              <Pressable
+                onPress={() => setSelectedEmotion('')}
+                className="px-2 py-1 rounded-full bg-stone-200 dark:bg-stone-700 active:opacity-70"
+                accessibilityLabel="필터 해제">
+                <Text className="text-xs text-stone-600 dark:text-stone-300">초기화</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
         {showRecent && (
           <View className="px-4 py-3 border-b border-cream-200 dark:border-stone-700">
             <Text className="text-sm text-gray-500 dark:text-stone-400 mb-2">최근 검색어</Text>
@@ -205,8 +221,16 @@ export default function SearchScreen() {
         {isEmpty ? (
           <EmptyState
             icon="🔍"
-            title="검색 결과가 없어요."
-            description="다른 검색어로 시도해보세요."
+            title={
+              selectedEmotion && !debouncedQuery.trim()
+                ? `'${selectedEmotion}' 감정의 글이 없어요`
+                : '검색 결과가 없어요.'
+            }
+            description={
+              selectedEmotion && !debouncedQuery.trim()
+                ? '다른 감정을 선택해보세요.'
+                : '다른 검색어로 시도해보세요.'
+            }
           />
         ) : (
           <PostList
