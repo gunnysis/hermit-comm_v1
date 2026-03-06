@@ -6,6 +6,7 @@ import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
 import { PostList } from '@/features/posts/components/PostList';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { api } from '@/shared/lib/api';
 import { draftStorage } from '@/shared/lib/storage';
 import {
@@ -52,6 +53,7 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
 
   useEffect(() => {
     setRecentSearches(getRecentSearches());
@@ -114,18 +116,46 @@ export default function SearchScreen() {
     setSelectedEmotion((prev) => (prev === emotion ? '' : emotion));
   }, []);
 
+  // 감정 필터만 활성화된 경우 (텍스트 없이)
   const { data: emotionPosts, isLoading: emotionLoading } = useQuery({
     queryKey: ['postsByEmotion', selectedEmotion],
     queryFn: () => api.getPostsByEmotion(selectedEmotion, 50, 0),
     enabled: selectedEmotion.length > 0 && debouncedQuery.trim().length === 0,
   });
 
+  // 결과 합성: 텍스트 + 감정 복합 필터 지원
   const displayPosts = useMemo(() => {
-    if (selectedEmotion && !debouncedQuery.trim()) {
-      return (emotionPosts ?? []) as Post[];
+    let result: Post[];
+
+    if (debouncedQuery.trim()) {
+      // 텍스트 검색 결과가 있으면 그것을 기본으로
+      result = [...posts];
+      // 감정 필터가 함께 활성화되면 클라이언트에서 필터링
+      if (selectedEmotion) {
+        result = result.filter((p) => {
+          const emotions = (p as Post & { emotions?: string[] }).emotions;
+          return Array.isArray(emotions) && emotions.includes(selectedEmotion);
+        });
+      }
+    } else if (selectedEmotion) {
+      result = [...((emotionPosts ?? []) as Post[])];
+    } else {
+      return [];
     }
-    return posts;
-  }, [selectedEmotion, debouncedQuery, emotionPosts, posts]);
+
+    // 정렬 적용
+    if (sortOrder === 'popular') {
+      result.sort(
+        (a, b) =>
+          ((b as Post & { like_count?: number }).like_count ?? 0) -
+          ((a as Post & { like_count?: number }).like_count ?? 0),
+      );
+    } else {
+      result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    return result;
+  }, [selectedEmotion, debouncedQuery, emotionPosts, posts, sortOrder]);
 
   const isLoading = selectedEmotion && !debouncedQuery.trim() ? emotionLoading : loading;
 
@@ -161,13 +191,18 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {/* 감정 필터 칩 — flexGrow:0 으로 세로 늘어남 방지 */}
+        {/* 감정 필터 칩 — 고정 높이로 세로 늘어남 방지 */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0 }}
+          style={{ flexGrow: 0, flexShrink: 0 }}
           className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8, alignItems: 'center' }}>
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            gap: 8,
+            alignItems: 'center',
+          }}>
           {ALLOWED_EMOTIONS.map((emotion) => {
             const isActive = selectedEmotion === emotion;
             const emoji = EMOTION_EMOJI[emotion] ?? '💬';
@@ -176,7 +211,11 @@ export default function SearchScreen() {
               <Pressable
                 key={emotion}
                 onPress={() => handleEmotionPress(emotion)}
-                style={
+                style={[
+                  {
+                    height: 36,
+                    justifyContent: 'center' as const,
+                  },
                   isActive && colors
                     ? {
                         backgroundColor: colors.gradient[0],
@@ -192,9 +231,9 @@ export default function SearchScreen() {
                         backgroundColor: isDark ? '#292524' : '#F5F5F4',
                         borderColor: isDark ? '#44403C' : '#E7E5E4',
                         borderWidth: 1.5,
-                      }
-                }
-                className="rounded-full px-3.5 py-2 active:opacity-80"
+                      },
+                ]}
+                className="rounded-full px-3.5 active:opacity-80"
                 accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
                 accessibilityRole="button">
                 <Text
@@ -209,28 +248,39 @@ export default function SearchScreen() {
           })}
         </ScrollView>
 
-        {selectedEmotion && !debouncedQuery.trim() && (
-          <View
-            style={
-              EMOTION_COLOR_MAP[selectedEmotion]
-                ? { backgroundColor: EMOTION_COLOR_MAP[selectedEmotion].gradient[0] + '40' }
-                : undefined
-            }
-            className="px-4 py-2.5 border-b border-cream-200 dark:border-stone-700">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">
-                <Text className="text-lg">{EMOTION_EMOJI[selectedEmotion] ?? '💬'}</Text>
-                <Text className="text-sm font-medium text-stone-700 dark:text-stone-200">
-                  {`'${selectedEmotion}' 감정의 이야기들`}
-                </Text>
+        {/* 활성 필터 요약 + 정렬 */}
+        {hasActiveFilter && (
+          <View className="px-4 pt-2 pb-1 border-b border-cream-200 dark:border-stone-700">
+            {selectedEmotion ? (
+              <View
+                style={
+                  EMOTION_COLOR_MAP[selectedEmotion]
+                    ? {
+                        backgroundColor: EMOTION_COLOR_MAP[selectedEmotion].gradient[0] + '30',
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                      }
+                    : undefined
+                }
+                className="flex-row items-center justify-between mb-2">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-lg">{EMOTION_EMOJI[selectedEmotion] ?? '💬'}</Text>
+                  <Text className="text-sm font-medium text-stone-700 dark:text-stone-200">
+                    {debouncedQuery.trim()
+                      ? `'${selectedEmotion}' + '${debouncedQuery.trim()}'`
+                      : `'${selectedEmotion}' 감정의 이야기들`}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setSelectedEmotion('')}
+                  className="px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-stone-700 active:opacity-70"
+                  accessibilityLabel="감정 필터 해제">
+                  <Text className="text-xs font-medium text-stone-600 dark:text-stone-300">✕</Text>
+                </Pressable>
               </View>
-              <Pressable
-                onPress={() => setSelectedEmotion('')}
-                className="px-2.5 py-1 rounded-full bg-stone-200/80 dark:bg-stone-700 active:opacity-70"
-                accessibilityLabel="필터 해제">
-                <Text className="text-xs font-medium text-stone-600 dark:text-stone-300">✕ 초기화</Text>
-              </Pressable>
-            </View>
+            ) : null}
+            <SortTabs value={sortOrder} onChange={setSortOrder} />
           </View>
         )}
 
@@ -265,7 +315,9 @@ export default function SearchScreen() {
             description={
               selectedEmotion && !debouncedQuery.trim()
                 ? EMPTY_STATE_MESSAGES.emotion_filter.description
-                : '다른 검색어로 시도해보세요.'
+                : selectedEmotion
+                  ? `'${selectedEmotion}' 감정과 일치하는 결과가 없어요.`
+                  : '다른 검색어로 시도해보세요.'
             }
           />
         ) : (
