@@ -161,12 +161,13 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {/* 감정 필터 칩 */}
+        {/* 감정 필터 칩 — flexGrow:0 으로 세로 늘어남 방지 */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
           className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8, alignItems: 'center' }}>
           {ALLOWED_EMOTIONS.map((emotion) => {
             const isActive = selectedEmotion === emotion;
             const emoji = EMOTION_EMOJI[emotion] ?? '💬';
