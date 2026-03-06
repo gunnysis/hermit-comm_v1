@@ -9,7 +9,7 @@ import {
   EMPTY_STATE_MESSAGES,
   GREETING_MESSAGES,
 } from '@/shared/lib/constants';
-import { pushAdmin, pushSearch, pushCreate } from '@/shared/lib/navigation';
+import { pushAdmin, pushAdminLogin, pushSearch, pushCreate } from '@/shared/lib/navigation';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
@@ -21,6 +21,7 @@ import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 import { api } from '@/shared/lib/api';
+import * as Haptics from 'expo-haptics';
 import type { Post } from '@/types';
 
 type TimeSlot = keyof typeof GREETING_MESSAGES;
@@ -97,6 +98,11 @@ export default function HomeScreen() {
     setEmotionFilter(emotion);
   }, []);
 
+  const handleTitleLongPress = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    pushAdminLogin(router);
+  }, [router]);
+
   const adminButton =
     !isAdminLoading && isAdmin === true ? (
       <Pressable
@@ -134,7 +140,11 @@ export default function HomeScreen() {
     <Container>
       <StatusBar style="auto" />
       <View className="flex-1 relative">
-        <ScreenHeader title="은둔마을" greeting={greeting} rightContent={adminButton}>
+        <ScreenHeader
+          title="은둔마을"
+          greeting={greeting}
+          rightContent={adminButton}
+          onTitleLongPress={handleTitleLongPress}>
           <View className="flex-row items-center gap-2 mt-2">
             <Pressable
               onPress={() => pushSearch(router)}

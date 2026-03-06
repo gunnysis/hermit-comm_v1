@@ -14,6 +14,7 @@ interface ScreenHeaderProps {
   backLabel?: string;
   rightContent?: React.ReactNode;
   children?: React.ReactNode;
+  onTitleLongPress?: () => void;
 }
 
 export function ScreenHeader({
@@ -24,6 +25,7 @@ export function ScreenHeader({
   backLabel,
   rightContent,
   children,
+  onTitleLongPress,
 }: ScreenHeaderProps) {
   const router = useRouter();
   const { isWide } = useResponsiveLayout();
@@ -65,14 +67,18 @@ export function ScreenHeader({
       )}
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
-          <View className="flex-row items-baseline gap-2">
+          <Pressable
+            onLongPress={onTitleLongPress}
+            delayLongPress={500}
+            disabled={!onTitleLongPress}
+            className="flex-row items-baseline gap-2">
             <Text className="text-xl font-bold text-gray-800 dark:text-stone-100 tracking-tight">
               {title}
             </Text>
             {greeting && (
               <Text className="text-xs text-gray-400 dark:text-stone-500">{greeting}</Text>
             )}
-          </View>
+          </Pressable>
           {subtitle && (
             <Text className="text-sm text-gray-500 dark:text-stone-400 mt-1">{subtitle}</Text>
           )}

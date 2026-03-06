@@ -91,18 +91,6 @@ export default function TabLayout() {
           tabBarStyle: { display: 'none' },
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: '설정',
-          tabBarLabel: '설정',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? { transform: [{ scale: 1.1 }] } : undefined}>
-              <Ionicons name={focused ? 'settings' : 'settings-outline'} size={23} color={color} />
-            </View>
-          ),
-        }}
-      />
     </Tabs>
   );
 }

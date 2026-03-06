@@ -169,10 +169,6 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
-                  name="settings/index"
-                  options={{ animation: 'slide_from_right', gestureEnabled: true }}
-                />
-                <Stack.Screen
                   name="search"
                   options={{ animation: 'fade', animationDuration: 200 }}
                 />
