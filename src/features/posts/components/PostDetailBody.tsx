@@ -5,11 +5,14 @@ import { EmotionTags } from './EmotionTags';
 import { ReactionBar } from './ReactionBar';
 import { RecommendedPosts } from './RecommendedPosts';
 import { formatDate } from '@/shared/utils/format';
-import type { Post, Reaction, RecommendedPost } from '@/types';
+import type { Post, Reaction, RecommendedPost, AnalysisStatus } from '@/types';
 
 interface PostDetailBodyProps {
   post: Post;
-  postAnalysis: { emotions: string[] } | undefined | null;
+  postAnalysis:
+    | { emotions: string[]; status?: AnalysisStatus; retry_count?: number }
+    | undefined
+    | null;
   analysisLoading: boolean;
   reactions: Reaction[];
   userReactedTypes: string[];
@@ -39,13 +42,13 @@ export function PostDetailBody({
   const isAnalysisDone = !analysisLoading && postAnalysis !== undefined;
 
   return (
-    <View className="mx-4 mt-4 rounded-2xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-md overflow-hidden">
-      <View className="p-4">
-        <Text className="text-2xl font-bold text-gray-800 dark:text-stone-100 mb-3">
+    <View className="mx-3 mt-3 rounded-xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-md overflow-hidden">
+      <View className="p-3.5">
+        <Text className="text-xl font-bold text-gray-800 dark:text-stone-100 mb-2">
           {post.title}
         </Text>
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="bg-happy-100 dark:bg-happy-900/40 px-3 py-1.5 rounded-full">
+        <View className="flex-row justify-between items-center mb-3">
+          <View className="bg-happy-100 dark:bg-happy-900/40 px-2.5 py-1 rounded-full">
             <Text className="text-sm font-semibold text-happy-700 dark:text-happy-300">
               {post.display_name}
             </Text>
@@ -54,7 +57,7 @@ export function PostDetailBody({
             {formatDate(post.created_at)}
           </Text>
         </View>
-        <View className="mb-6" accessibilityLabel="게시글 본문">
+        <View className="mb-4" accessibilityLabel="게시글 본문">
           <PostBody content={post.content} imageUrl={post.image_url} />
         </View>
         <EmotionTags
@@ -63,9 +66,11 @@ export function PostDetailBody({
           onPress={onEmotionPress}
           onRetry={onRetryAnalysis}
           analysisDone={isAnalysisDone}
+          analysisStatus={postAnalysis?.status}
+          retryCount={postAnalysis?.retry_count}
         />
         <View
-          className="border-t border-cream-200 dark:border-stone-700 pt-4"
+          className="border-t border-cream-200 dark:border-stone-700 pt-3"
           accessibilityLabel="반응"
           accessibilityRole="none">
           <ReactionBar

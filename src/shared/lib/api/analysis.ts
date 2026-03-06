@@ -19,7 +19,9 @@ export async function getEmotionTrend(
 export async function getPostAnalysis(postId: number): Promise<PostAnalysis | null> {
   const { data, error } = await supabase
     .from('post_analysis')
-    .select('*')
+    .select(
+      'id, post_id, emotions, analyzed_at, status, retry_count, error_reason, last_attempted_at',
+    )
     .eq('post_id', postId)
     .maybeSingle();
 

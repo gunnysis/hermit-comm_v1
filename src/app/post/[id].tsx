@@ -80,13 +80,17 @@ export default function PostDetailScreen() {
 
   const handleRetryAnalysis = useCallback(async () => {
     if (!post?.content) return;
+    if ((postAnalysis?.retry_count ?? 0) >= 3) {
+      Toast.show({ type: 'info', text1: '더 이상 재시도할 수 없습니다.' });
+      return;
+    }
     try {
       await api.invokeSmartService(postId, post.content, post.title);
       queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
     } catch {
       Toast.show({ type: 'error', text1: '분석 요청에 실패했습니다.' });
     }
-  }, [post, postId, queryClient]);
+  }, [post, postId, postAnalysis, queryClient]);
   const { data: recommendedPosts = [], isLoading: recommendedPostsLoading } =
     useRecommendedPosts(postId);
   const {
