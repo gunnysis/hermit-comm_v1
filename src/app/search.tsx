@@ -5,7 +5,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
 import { PostList } from '@/features/posts/components/PostList';
-import { EmptyState } from '@/shared/components/EmptyState';
 import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { api } from '@/shared/lib/api';
 import { draftStorage } from '@/shared/lib/storage';
@@ -128,9 +127,7 @@ export default function SearchScreen() {
     let result: Post[];
 
     if (debouncedQuery.trim()) {
-      // 텍스트 검색 결과가 있으면 그것을 기본으로
       result = [...posts];
-      // 감정 필터가 함께 활성화되면 클라이언트에서 필터링
       if (selectedEmotion) {
         result = result.filter((p) => {
           const emotions = (p as Post & { emotions?: string[] }).emotions;
@@ -160,93 +157,70 @@ export default function SearchScreen() {
   const isLoading = selectedEmotion && !debouncedQuery.trim() ? emotionLoading : loading;
 
   const hasActiveFilter = debouncedQuery.trim().length > 0 || selectedEmotion.length > 0;
-  const isEmpty = !isLoading && displayPosts.length === 0 && hasActiveFilter;
   const showRecent = !hasActiveFilter && recentSearches.length > 0;
 
-  const listError = useMemo(() => (isEmpty && error ? error : null), [isEmpty, error]);
+  const listError = useMemo(
+    () => (!isLoading && displayPosts.length === 0 && hasActiveFilter && error ? error : null),
+    [isLoading, displayPosts.length, hasActiveFilter, error],
+  );
 
-  return (
-    <Container>
-      <StatusBar style="auto" />
-      <View className="flex-1">
-        <View className="flex-row items-center gap-2 px-4 pt-4 pb-3 bg-cream-50 dark:bg-stone-900 border-b border-cream-200 dark:border-stone-700">
-          <Pressable
-            onPress={() => router.back()}
-            className="p-2 active:opacity-70"
-            accessibilityLabel="뒤로 가기"
-            accessibilityRole="button">
-            <Text className="text-base text-happy-700 dark:text-stone-300 font-semibold">
-              ← 뒤로
-            </Text>
-          </Pressable>
-          <View className="flex-1">
-            <Input
-              value={query}
-              onChangeText={setQuery}
-              placeholder="제목·내용 검색"
-              className="mb-0"
-              accessibilityLabel="검색어 입력"
-              autoFocus={!initialEmotion}
-            />
-          </View>
+  // 감정 칩 + 필터 요약 + 최근 검색어를 PostList의 listHeader로 통합
+  // → flex 배분 문제 없이 하나의 스크롤 영역으로 작동
+  const listHeader = useMemo(
+    () => (
+      <View>
+        {/* 감정 필터 칩 */}
+        <View className="border-b border-cream-200 dark:border-stone-700">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              gap: 8,
+              alignItems: 'center',
+            }}>
+            {ALLOWED_EMOTIONS.map((emotion) => {
+              const isActive = selectedEmotion === emotion;
+              const emoji = EMOTION_EMOJI[emotion] ?? '💬';
+              const colors = EMOTION_COLOR_MAP[emotion];
+              return (
+                <Pressable
+                  key={emotion}
+                  onPress={() => handleEmotionPress(emotion)}
+                  style={
+                    isActive && colors
+                      ? {
+                          backgroundColor: colors.gradient[0],
+                          borderColor: colors.gradient[1],
+                          borderWidth: 1.5,
+                          shadowColor: colors.gradient[1],
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }
+                      : {
+                          backgroundColor: isDark ? '#292524' : '#F5F5F4',
+                          borderColor: isDark ? '#44403C' : '#E7E5E4',
+                          borderWidth: 1.5,
+                        }
+                  }
+                  className="rounded-full px-3.5 py-2 active:opacity-80"
+                  accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
+                  accessibilityRole="button">
+                  <Text
+                    style={isActive && colors ? { color: '#44403C' } : undefined}
+                    className={`text-sm font-medium ${
+                      isActive ? '' : 'text-stone-600 dark:text-stone-300'
+                    }`}>
+                    {emoji} {emotion}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
-
-        {/* 감정 필터 칩 — 고정 높이로 세로 늘어남 방지 */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0, flexShrink: 0 }}
-          className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            gap: 8,
-            alignItems: 'center',
-          }}>
-          {ALLOWED_EMOTIONS.map((emotion) => {
-            const isActive = selectedEmotion === emotion;
-            const emoji = EMOTION_EMOJI[emotion] ?? '💬';
-            const colors = EMOTION_COLOR_MAP[emotion];
-            return (
-              <Pressable
-                key={emotion}
-                onPress={() => handleEmotionPress(emotion)}
-                style={[
-                  {
-                    height: 36,
-                    justifyContent: 'center' as const,
-                  },
-                  isActive && colors
-                    ? {
-                        backgroundColor: colors.gradient[0],
-                        borderColor: colors.gradient[1],
-                        borderWidth: 1.5,
-                        shadowColor: colors.gradient[1],
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      }
-                    : {
-                        backgroundColor: isDark ? '#292524' : '#F5F5F4',
-                        borderColor: isDark ? '#44403C' : '#E7E5E4',
-                        borderWidth: 1.5,
-                      },
-                ]}
-                className="rounded-full px-3.5 active:opacity-80"
-                accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
-                accessibilityRole="button">
-                <Text
-                  style={isActive && colors ? { color: '#44403C' } : undefined}
-                  className={`text-sm font-medium ${
-                    isActive ? '' : 'text-stone-600 dark:text-stone-300'
-                  }`}>
-                  {emoji} {emotion}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
 
         {/* 활성 필터 요약 + 정렬 */}
         {hasActiveFilter && (
@@ -284,6 +258,7 @@ export default function SearchScreen() {
           </View>
         )}
 
+        {/* 최근 검색어 */}
         {showRecent && (
           <View className="px-4 py-3 border-b border-cream-200 dark:border-stone-700">
             <Text className="text-xs font-semibold tracking-wide uppercase text-stone-400 dark:text-stone-500 mb-2.5">
@@ -303,32 +278,75 @@ export default function SearchScreen() {
             </View>
           </View>
         )}
+      </View>
+    ),
+    [
+      selectedEmotion,
+      hasActiveFilter,
+      showRecent,
+      recentSearches,
+      sortOrder,
+      debouncedQuery,
+      isDark,
+      handleEmotionPress,
+      handleRecentPress,
+      setSortOrder,
+    ],
+  );
 
-        {isEmpty ? (
-          <EmptyState
-            icon={selectedEmotion ? (EMOTION_EMOJI[selectedEmotion] ?? '🔍') : '🔍'}
-            title={
-              selectedEmotion && !debouncedQuery.trim()
-                ? EMPTY_STATE_MESSAGES.emotion_filter.title
-                : '검색 결과가 없어요'
-            }
-            description={
-              selectedEmotion && !debouncedQuery.trim()
-                ? EMPTY_STATE_MESSAGES.emotion_filter.description
-                : selectedEmotion
-                  ? `'${selectedEmotion}' 감정과 일치하는 결과가 없어요.`
-                  : '다른 검색어로 시도해보세요.'
-            }
-          />
-        ) : (
-          <PostList
-            posts={displayPosts}
-            loading={isLoading}
-            error={listError}
-            onRefresh={handleRefresh}
-            hasMore={false}
-          />
-        )}
+  // 검색 결과 없을 때 empty 메시지
+  const emptyTitle = hasActiveFilter
+    ? selectedEmotion && !debouncedQuery.trim()
+      ? EMPTY_STATE_MESSAGES.emotion_filter.title
+      : '검색 결과가 없어요'
+    : undefined;
+
+  const emptyDescription = hasActiveFilter
+    ? selectedEmotion && !debouncedQuery.trim()
+      ? EMPTY_STATE_MESSAGES.emotion_filter.description
+      : selectedEmotion
+        ? `'${selectedEmotion}' 감정과 일치하는 결과가 없어요.`
+        : '다른 검색어로 시도해보세요.'
+    : undefined;
+
+  return (
+    <Container>
+      <StatusBar style="auto" />
+      <View className="flex-1">
+        {/* 검색 헤더 — 고정 */}
+        <View className="flex-row items-center gap-2 px-4 pt-4 pb-3 bg-cream-50 dark:bg-stone-900 border-b border-cream-200 dark:border-stone-700">
+          <Pressable
+            onPress={() => router.back()}
+            className="p-2 active:opacity-70"
+            accessibilityLabel="뒤로 가기"
+            accessibilityRole="button">
+            <Text className="text-base text-happy-700 dark:text-stone-300 font-semibold">
+              ← 뒤로
+            </Text>
+          </Pressable>
+          <View className="flex-1">
+            <Input
+              value={query}
+              onChangeText={setQuery}
+              placeholder="제목·내용 검색"
+              className="mb-0"
+              accessibilityLabel="검색어 입력"
+              autoFocus={!initialEmotion}
+            />
+          </View>
+        </View>
+
+        {/* 단일 스크롤 영역: 감정칩 + 필터 + 최근검색 + 검색결과 */}
+        <PostList
+          posts={displayPosts}
+          loading={isLoading}
+          error={listError}
+          onRefresh={handleRefresh}
+          hasMore={false}
+          listHeader={listHeader}
+          emptyTitle={emptyTitle}
+          emptyDescription={emptyDescription}
+        />
       </View>
     </Container>
   );
