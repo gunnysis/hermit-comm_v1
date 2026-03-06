@@ -191,62 +191,58 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {/* 감정 필터 칩 — 고정 높이로 세로 늘어남 방지 */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0, flexShrink: 0 }}
-          className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingVertical: 10,
-            gap: 8,
-            alignItems: 'center',
-          }}>
-          {ALLOWED_EMOTIONS.map((emotion) => {
-            const isActive = selectedEmotion === emotion;
-            const emoji = EMOTION_EMOJI[emotion] ?? '💬';
-            const colors = EMOTION_COLOR_MAP[emotion];
-            return (
-              <Pressable
-                key={emotion}
-                onPress={() => handleEmotionPress(emotion)}
-                style={[
-                  {
-                    height: 36,
-                    justifyContent: 'center' as const,
-                  },
-                  isActive && colors
-                    ? {
-                        backgroundColor: colors.gradient[0],
-                        borderColor: colors.gradient[1],
-                        borderWidth: 1.5,
-                        shadowColor: colors.gradient[1],
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.25,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      }
-                    : {
-                        backgroundColor: isDark ? '#292524' : '#F5F5F4',
-                        borderColor: isDark ? '#44403C' : '#E7E5E4',
-                        borderWidth: 1.5,
-                      },
-                ]}
-                className="rounded-full px-3.5 active:opacity-80"
-                accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
-                accessibilityRole="button">
-                <Text
-                  style={isActive && colors ? { color: '#44403C' } : undefined}
-                  className={`text-sm font-medium ${
-                    isActive ? '' : 'text-stone-600 dark:text-stone-300'
-                  }`}>
-                  {emoji} {emotion}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        {/* 감정 필터 칩 — View 래퍼로 세로 늘어남 완전 차단 */}
+        <View className="border-b border-cream-200 dark:border-stone-700">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              gap: 8,
+              alignItems: 'center',
+            }}>
+            {ALLOWED_EMOTIONS.map((emotion) => {
+              const isActive = selectedEmotion === emotion;
+              const emoji = EMOTION_EMOJI[emotion] ?? '💬';
+              const colors = EMOTION_COLOR_MAP[emotion];
+              return (
+                <Pressable
+                  key={emotion}
+                  onPress={() => handleEmotionPress(emotion)}
+                  style={
+                    isActive && colors
+                      ? {
+                          backgroundColor: colors.gradient[0],
+                          borderColor: colors.gradient[1],
+                          borderWidth: 1.5,
+                          shadowColor: colors.gradient[1],
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }
+                      : {
+                          backgroundColor: isDark ? '#292524' : '#F5F5F4',
+                          borderColor: isDark ? '#44403C' : '#E7E5E4',
+                          borderWidth: 1.5,
+                        }
+                  }
+                  className="rounded-full px-3.5 py-2 active:opacity-80"
+                  accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
+                  accessibilityRole="button">
+                  <Text
+                    style={isActive && colors ? { color: '#44403C' } : undefined}
+                    className={`text-sm font-medium ${
+                      isActive ? '' : 'text-stone-600 dark:text-stone-300'
+                    }`}>
+                    {emoji} {emotion}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* 활성 필터 요약 + 정렬 */}
         {hasActiveFilter && (
