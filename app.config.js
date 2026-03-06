@@ -33,8 +33,8 @@ const EXPO_PROJECT_ID = 'bc4199dd-30ad-42bb-ba1c-4e6fce0eecdd';
 //    · Claude에게 배포 요청하면 NATIVE_VERSION·BUILD_NUMBER 증가 + EAS 빌드를 자동 수행.
 //    · 수동으로 버전을 올릴 필요 없음.
 // ─────────────────────────────────────────────────────────────────────────────
-const NATIVE_VERSION = '1.7.0';
-const BUILD_NUMBER = 1; // production은 EAS autoIncrement 로 자동 관리
+const NATIVE_VERSION = '1.8.0';
+const BUILD_NUMBER = 2; // production은 EAS autoIncrement 로 자동 관리
 
 module.exports = ({ config }) => {
   // EAS Build Profile 또는 APP_ENV 환경 변수로 환경 감지
