@@ -12,7 +12,7 @@ function TrendingPostCard({ post }: { post: TrendingPost }) {
   return (
     <Pressable
       onPress={() => pushPost(router, post.id)}
-      className="w-44 mr-3 p-3 rounded-xl bg-cream-50 dark:bg-stone-800 border border-cream-200 dark:border-stone-700 active:opacity-80"
+      className="w-40 mr-2.5 p-2.5 rounded-xl bg-cream-50 dark:bg-stone-800 border border-cream-200 dark:border-stone-700 active:opacity-80"
       accessibilityLabel={`트렌딩 게시글: ${post.title}`}
       accessibilityRole="button">
       <Text
@@ -65,8 +65,8 @@ export function TrendingPosts() {
   if (posts.length === 0) return null;
 
   return (
-    <View className="mb-4">
-      <Text className="text-base font-bold text-gray-700 dark:text-stone-200 mb-3 px-1">
+    <View className="mb-2">
+      <Text className="text-sm font-bold text-gray-700 dark:text-stone-200 mb-2 px-1">
         지금 뜨는 글
       </Text>
       <ScrollView

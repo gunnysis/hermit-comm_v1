@@ -20,9 +20,9 @@ export function EmotionTrend({ days = 7, className = '' }: EmotionTrendProps) {
 
   return (
     <View
-      className={`rounded-2xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-4 mb-4 ${className}`.trim()}
+      className={`rounded-xl border border-cream-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-3 mb-2 ${className}`.trim()}
       accessibilityLabel={`요즘 마을 분위기: ${top3.map((t) => t.emotion).join(', ')}`}>
-      <Text className="text-sm text-gray-500 dark:text-stone-400 mb-2">요즘 마을 분위기</Text>
+      <Text className="text-xs text-gray-500 dark:text-stone-400 mb-1.5">요즘 마을 분위기</Text>
       <View className="flex-row flex-wrap gap-2">
         {top3.map(({ emotion, cnt, pct }) => {
           const emoji = EMOTION_EMOJI[emotion] ?? '💬';

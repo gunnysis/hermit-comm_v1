@@ -48,7 +48,7 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
   return (
     <View
       onLayout={onLayout}
-      className={`flex-row mt-3 rounded-xl p-1 ${isDark ? 'bg-stone-800/80' : 'bg-stone-100'}`}>
+      className={`flex-row mt-2 rounded-xl p-1 ${isDark ? 'bg-stone-800/80' : 'bg-stone-100'}`}>
       {/* 슬라이딩 인디케이터 */}
       <Animated.View
         style={{

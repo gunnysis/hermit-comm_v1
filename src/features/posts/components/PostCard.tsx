@@ -51,7 +51,7 @@ const PostCardComponent = ({ post }: PostCardProps) => {
   }, [router, post.id]);
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }} className="mx-4 mb-3.5">
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }} className="mx-4 mb-2.5">
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -66,7 +66,7 @@ const PostCardComponent = ({ post }: PostCardProps) => {
             shadowRadius: 12,
             elevation: 4,
           }}
-          className={`rounded-2xl overflow-hidden border ${
+          className={`rounded-xl overflow-hidden border ${
             isDark ? 'bg-stone-900 border-stone-700/60' : 'bg-white border-stone-200/80'
           }`}>
           {post.emotions?.[0] && EMOTION_COLOR_MAP[post.emotions[0]] && (
@@ -78,8 +78,8 @@ const PostCardComponent = ({ post }: PostCardProps) => {
                 bottom: 0,
                 width: 3,
                 backgroundColor: EMOTION_COLOR_MAP[post.emotions[0]].gradient[1],
-                borderTopLeftRadius: 16,
-                borderBottomLeftRadius: 16,
+                borderTopLeftRadius: 12,
+                borderBottomLeftRadius: 12,
                 zIndex: 1,
               }}
             />
@@ -100,13 +100,13 @@ const PostCardComponent = ({ post }: PostCardProps) => {
             </Text>
 
             <Text
-              className="text-[14px] text-gray-500 dark:text-stone-400 mb-3 leading-5"
+              className="text-[14px] text-gray-500 dark:text-stone-400 mb-2 leading-5"
               numberOfLines={3}>
               {excerpt}
             </Text>
 
             {post.emotions && post.emotions.length > 0 ? (
-              <View className="flex-row flex-wrap gap-1.5 mb-3">
+              <View className="flex-row flex-wrap gap-1.5 mb-2">
                 {post.emotions.slice(0, 2).map((emotion) => {
                   const emoji = EMOTION_EMOJI[emotion] ?? '💬';
                   return (

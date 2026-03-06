@@ -17,9 +17,9 @@ export function GreetingBanner() {
   const { greeting, message } = GREETING_MESSAGES[slot];
 
   return (
-    <View className="mx-4 mb-3 rounded-2xl bg-cream-50 dark:bg-stone-800 px-5 py-4">
-      <Text className="text-base font-semibold text-gray-800 dark:text-stone-100">{greeting}</Text>
-      <Text className="text-sm text-gray-500 dark:text-stone-400 mt-0.5">{message}</Text>
+    <View className="mx-4 mb-2 rounded-xl bg-cream-50 dark:bg-stone-800 px-4 py-2.5">
+      <Text className="text-sm font-semibold text-gray-800 dark:text-stone-100">{greeting}</Text>
+      <Text className="text-xs text-gray-500 dark:text-stone-400 mt-0.5">{message}</Text>
     </View>
   );
 }

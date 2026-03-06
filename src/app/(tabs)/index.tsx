@@ -13,7 +13,6 @@ import { EmotionTrend } from '@/features/posts/components/EmotionTrend';
 import { TrendingPosts } from '@/features/posts/components/TrendingPosts';
 import { GreetingBanner } from '@/features/posts/components/GreetingBanner';
 import { useBoardPosts } from '@/features/community/hooks/useBoardPosts';
-import { useBoards } from '@/features/community/hooks/useBoards';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
@@ -24,7 +23,6 @@ export default function HomeScreen() {
   useResponsiveLayout();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
-  const { data: boards } = useBoards();
 
   const {
     data,
@@ -76,39 +74,36 @@ export default function HomeScreen() {
       </Pressable>
     ) : undefined;
 
-  const boardDescription = boards?.find((b) => b.id === DEFAULT_PUBLIC_BOARD_ID)?.description;
-
-  return (
-    <Container>
-      <StatusBar style="auto" />
-      <View className="flex-1 relative">
-        <ScreenHeader
-          title="은둔마을"
-          subtitle="따뜻한 이야기가 있는 곳"
-          rightContent={adminButton}>
-          {boardDescription && (
-            <Text className="text-xs text-gray-500 dark:text-stone-400 mt-1" numberOfLines={2}>
-              {boardDescription}
-            </Text>
-          )}
-          <View className="flex-row items-center gap-2 mt-3">
-            <Pressable
-              onPress={() => pushSearch(router)}
-              className="flex-1 flex-row items-center rounded-2xl border-2 border-cream-200 dark:border-stone-600 bg-cream-50 dark:bg-stone-800 px-4 py-3"
-              accessibilityLabel="검색"
-              accessibilityRole="button"
-              accessibilityHint="검색 화면으로 이동합니다">
-              <Text className="text-base text-gray-500 dark:text-stone-400">🔍 제목·내용 검색</Text>
-            </Pressable>
-          </View>
-          <SortTabs value={sortOrder} onChange={setSortOrder} />
-        </ScreenHeader>
-
+  const listHeader = useMemo(
+    () => (
+      <View>
         <GreetingBanner />
         <View className="px-4">
           <EmotionTrend days={7} />
           <TrendingPosts />
         </View>
+      </View>
+    ),
+    [],
+  );
+
+  return (
+    <Container>
+      <StatusBar style="auto" />
+      <View className="flex-1 relative">
+        <ScreenHeader title="은둔마을" rightContent={adminButton}>
+          <View className="flex-row items-center gap-2 mt-2">
+            <Pressable
+              onPress={() => pushSearch(router)}
+              className="flex-1 flex-row items-center rounded-xl border border-cream-200 dark:border-stone-600 bg-cream-50 dark:bg-stone-800 px-3 py-2"
+              accessibilityLabel="검색"
+              accessibilityRole="button"
+              accessibilityHint="검색 화면으로 이동합니다">
+              <Text className="text-sm text-gray-500 dark:text-stone-400">검색</Text>
+            </Pressable>
+          </View>
+          <SortTabs value={sortOrder} onChange={setSortOrder} />
+        </ScreenHeader>
 
         <PostList
           posts={posts}
@@ -119,6 +114,7 @@ export default function HomeScreen() {
           hasMore={!!hasNextPage}
           emptyTitle={EMPTY_STATE_MESSAGES.feed.title}
           emptyDescription={EMPTY_STATE_MESSAGES.feed.description}
+          listHeader={listHeader}
         />
 
         <FloatingActionButton onPress={() => pushCreate(router)} accessibilityLabel="새 글 작성" />

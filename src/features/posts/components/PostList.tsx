@@ -18,6 +18,8 @@ interface PostListProps {
   /** 빈 목록 시 표시 (홈/그룹별 문구) */
   emptyTitle?: string;
   emptyDescription?: string;
+  /** 리스트 상단에 스크롤 가능한 헤더 (보조 섹션용) */
+  listHeader?: React.ReactElement;
 }
 
 export function PostList({
@@ -29,6 +31,7 @@ export function PostList({
   hasMore = true,
   emptyTitle,
   emptyDescription,
+  listHeader,
 }: PostListProps) {
   const [refreshing, setRefreshing] = useState(false);
   const onEndReachedFired = useRef(false);
@@ -112,6 +115,7 @@ export function PostList({
         data={posts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => <PostCard post={item} />}
+        ListHeaderComponent={listHeader}
         ListEmptyComponent={ListEmpty}
         refreshControl={
           <RefreshControl

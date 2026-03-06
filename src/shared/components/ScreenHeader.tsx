@@ -42,7 +42,7 @@ export function ScreenHeader({
     <BlurView
       intensity={isDark ? 30 : 50}
       tint={isDark ? 'dark' : 'light'}
-      className={`px-4 ${isWide ? 'pt-5' : 'pt-12'} pb-5 border-b ${
+      className={`px-4 ${isWide ? 'pt-4' : 'pt-12'} pb-3 border-b ${
         isDark ? 'border-stone-800/60' : 'border-cream-200/60'
       }`}>
       {showBack && (
@@ -63,7 +63,7 @@ export function ScreenHeader({
       )}
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-gray-800 dark:text-stone-100 tracking-tight">
+          <Text className="text-xl font-bold text-gray-800 dark:text-stone-100 tracking-tight">
             {title}
           </Text>
           {subtitle && (

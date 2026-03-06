@@ -20,8 +20,8 @@ export function PostDetailCommentList({
   currentUserId,
 }: PostDetailCommentListProps) {
   return (
-    <View className="py-4">
-      <Text className="text-lg font-bold text-gray-800 dark:text-stone-100 mb-4 px-4">
+    <View className="py-3">
+      <Text className="text-base font-bold text-gray-800 dark:text-stone-100 mb-3 px-3">
         댓글 {comments.length}개
       </Text>
       {commentsLoading && comments.length === 0 ? (

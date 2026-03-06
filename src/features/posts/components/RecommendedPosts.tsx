@@ -17,7 +17,7 @@ function RecommendedPostCard({ post }: { post: RecommendedPost }) {
   return (
     <Pressable
       onPress={() => pushPost(router, post.id)}
-      className="w-44 mr-3 p-3 rounded-xl bg-cream-50 dark:bg-stone-800 border border-cream-200 dark:border-stone-700 active:opacity-80"
+      className="w-40 mr-2.5 p-2.5 rounded-xl bg-cream-50 dark:bg-stone-800 border border-cream-200 dark:border-stone-700 active:opacity-80"
       accessibilityLabel={`추천 게시글: ${post.title}`}
       accessibilityRole="button">
       {/* 제목 (최대 2줄) */}
@@ -65,8 +65,8 @@ export function RecommendedPosts({ posts, isLoading, hasEmotions = true }: Recom
   const headerText = hasEmotions ? '비슷한 감정의 글' : '다른 인기 글';
 
   return (
-    <View className="mt-4">
-      <Text className="text-base font-bold text-gray-700 dark:text-stone-200 mb-3 px-1">
+    <View className="mt-3">
+      <Text className="text-sm font-bold text-gray-700 dark:text-stone-200 mb-2 px-1">
         {headerText}
       </Text>
       <ScrollView
