@@ -203,7 +203,8 @@ export default function SearchScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerClassName="px-3 py-2 gap-1.5">
+          contentContainerClassName="px-3 py-2 gap-1.5"
+          contentContainerStyle={{ alignItems: 'center' }}>
           {ALLOWED_EMOTIONS.map((emotion) => {
             const isActive = selectedEmotion === emotion;
             const emoji = EMOTION_EMOJI[emotion] ?? '';
