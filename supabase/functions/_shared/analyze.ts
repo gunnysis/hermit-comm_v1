@@ -43,7 +43,7 @@ function sanitizeUserInput(text: string): string {
 export type AnalyzeResult =
   | { ok: true; emotions: string[] }
   | { ok: true; skipped: string }
-  | { ok: false; reason: string };
+  | { ok: false; reason: string; retryable: boolean };
 
 /** 쿨다운 시간 (밀리초). 연속 수정 시 API 호출 방지. */
 const COOLDOWN_MS = 60_000;
@@ -237,12 +237,18 @@ export async function analyzeAndSave(params: {
 
     if (error) {
       console.error('[analyze] post_analysis upsert 오류:', error);
-      return { ok: false, reason: error.message };
+      return { ok: false, reason: error.message, retryable: true };
     }
 
     return { ok: true, emotions };
   } catch (err) {
     const reason = err instanceof Error ? err.message : 'unknown';
+
+    // retryable 판단
+    const retryable =
+      ['gemini_api_error_429', 'json_parse_error', 'no_valid_emotions'].some((r) =>
+        reason.startsWith(r),
+      ) || reason.startsWith('gemini_api_error_5');
 
     // 실패 → failed + retry_count 증가
     const { data: current } = await supabase
@@ -265,6 +271,6 @@ export async function analyzeAndSave(params: {
     );
 
     console.error(`[analyze] 최종 실패 (post_id=${postId}, retry=${newRetryCount}):`, reason);
-    return { ok: false, reason };
+    return { ok: false, reason, retryable };
   }
 }

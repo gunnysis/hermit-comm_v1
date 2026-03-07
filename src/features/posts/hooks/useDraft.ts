@@ -8,7 +8,6 @@ const DEBOUNCE_MS = 500;
 export interface DraftData {
   title: string;
   content: string;
-  author: string;
   updatedAt: number;
 }
 
@@ -21,17 +20,10 @@ function getDraftSync(boardId: number): DraftData | null {
     const raw = draftStorage.getString(draftKey(boardId));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'title' in parsed &&
-      'content' in parsed &&
-      'author' in parsed
-    ) {
+    if (typeof parsed === 'object' && parsed !== null && 'title' in parsed && 'content' in parsed) {
       return {
         title: String((parsed as DraftData).title),
         content: String((parsed as DraftData).content),
-        author: String((parsed as DraftData).author),
         updatedAt: Number((parsed as DraftData).updatedAt) || Date.now(),
       };
     }
@@ -41,7 +33,7 @@ function getDraftSync(boardId: number): DraftData | null {
   }
 }
 
-function setDraftSync(boardId: number, data: Omit<DraftData, 'updatedAt'>): void {
+function setDraftSync(boardId: number, data: { title: string; content: string }): void {
   try {
     const payload: DraftData = {
       ...data,
@@ -61,10 +53,7 @@ function clearDraftSync(boardId: number): void {
   }
 }
 
-export function useDraft(
-  boardId: number,
-  values: { title: string; content: string; author: string },
-) {
+export function useDraft(boardId: number, values: { title: string; content: string }) {
   const [hasDraft, setHasDraft] = useState<boolean>(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -80,7 +69,7 @@ export function useDraft(
   }, [boardId]);
 
   const saveDraft = useCallback(
-    (data: { title: string; content: string; author: string }) => {
+    (data: { title: string; content: string }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         debounceRef.current = null;
@@ -108,7 +97,7 @@ export function useDraft(
     saveDraft(values);
     // 의도적으로 값 필드만 의존: values 객체 참조 변경 시마다 저장하지 않음
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.title, values.content, values.author, saveDraft]);
+  }, [values.title, values.content, saveDraft]);
 
   return { loadDraft, clearDraft, hasDraft };
 }

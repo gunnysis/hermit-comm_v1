@@ -176,7 +176,7 @@ describe('api', () => {
 
       const result = await api.invokeSmartService(1, '오늘 너무 힘들었다', '제목');
 
-      expect(result).toEqual(['슬픔', '외로움']);
+      expect(result).toEqual({ emotions: ['슬픔', '외로움'] });
       expect(supabase.functions.invoke).toHaveBeenCalledWith('analyze-post-on-demand', {
         body: { postId: 1, content: '오늘 너무 힘들었다', title: '제목' },
       });
@@ -190,7 +190,7 @@ describe('api', () => {
 
       const result = await api.invokeSmartService(2, '내용만 있는 글');
 
-      expect(result).toEqual(['불안']);
+      expect(result).toEqual({ emotions: ['불안'] });
       expect(supabase.functions.invoke).toHaveBeenCalledWith('analyze-post-on-demand', {
         body: { postId: 2, content: '내용만 있는 글', title: undefined },
       });
@@ -204,7 +204,7 @@ describe('api', () => {
 
       const result = await api.invokeSmartService(3, '내용');
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ emotions: [], error: 'Function error' });
     });
 
     it('분석 결과가 없으면 빈 배열을 반환한다', async () => {
@@ -215,7 +215,7 @@ describe('api', () => {
 
       const result = await api.invokeSmartService(4, '짧');
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({ emotions: [] });
     });
   });
 

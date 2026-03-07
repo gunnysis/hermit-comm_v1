@@ -21,7 +21,6 @@ import { usePostDetailReactions } from '@/features/posts/hooks/usePostDetailReac
 import { useRecommendedPosts } from '@/features/posts/hooks/useRecommendedPosts';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { useQueryClient } from '@tanstack/react-query';
@@ -36,7 +35,6 @@ export default function PostDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const postId = postIdNum(id ?? '');
-  const { author: savedAuthor } = useAuthor();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsiveLayout();
@@ -106,7 +104,6 @@ export default function PostDetailScreen() {
     postId,
     post,
     anonMode,
-    savedAuthor: savedAuthor ?? '',
     user,
   });
 

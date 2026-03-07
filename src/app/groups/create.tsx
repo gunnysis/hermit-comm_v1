@@ -1,7 +1,6 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
-import { AnonModeInfo } from '@/features/posts/components/AnonModeInfo';
 import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { MoodSelector } from '@/features/posts/components/MoodSelector';
 import { Button } from '@/shared/components/Button';
@@ -44,8 +43,6 @@ export default function GroupCreatePostScreen() {
     handleContentChange,
     errors,
     isSubmitting,
-    showName,
-    setShowName,
     onSubmit: handleFormSubmit,
   } = useCreatePost({
     boardId,
@@ -127,11 +124,9 @@ export default function GroupCreatePostScreen() {
             </View>
 
             <View className="mt-2 mb-2">
-              <AnonModeInfo
-                anonMode={anonMode}
-                showName={showName}
-                onToggle={() => setShowName((prev) => !prev)}
-              />
+              <Text className="text-xs text-gray-500 dark:text-stone-400">
+                모든 게시글은 익명으로 작성됩니다. 게시판별 고유 별칭이 자동 부여돼요.
+              </Text>
             </View>
           </View>
         </ScrollView>

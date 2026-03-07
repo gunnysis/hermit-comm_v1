@@ -12,7 +12,6 @@ interface UsePostDetailCommentsOptions {
   postId: number;
   post: Post | null | undefined;
   anonMode: AnonMode;
-  savedAuthor: string;
   user: { id: string } | null | undefined;
 }
 
@@ -24,7 +23,6 @@ export function usePostDetailComments({
   postId,
   post,
   anonMode,
-  savedAuthor,
   user,
 }: UsePostDetailCommentsOptions) {
   const queryClient = useQueryClient();
@@ -79,15 +77,12 @@ export function usePostDetailComments({
 
       try {
         setCommentLoading(true);
-        const rawAuthor = savedAuthor ?? '';
 
         const { isAnonymous, displayName } = resolveDisplayName({
           anonMode,
-          rawAuthorName: rawAuthor,
           userId: user?.id ?? null,
           boardId: post?.board_id ?? null,
           groupId: post?.group_id ?? null,
-          wantNameOverride: false,
         });
 
         await api.createComment(postId, {
@@ -113,7 +108,6 @@ export function usePostDetailComments({
     },
     [
       commentContent,
-      savedAuthor,
       user?.id,
       post?.board_id,
       post?.group_id,

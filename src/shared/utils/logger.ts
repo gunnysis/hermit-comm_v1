@@ -10,10 +10,38 @@ function reportToSentry(args: unknown[]): void {
   if (IS_DEV) return;
   try {
     const Sentry = require('@sentry/react-native');
-    if (args.length > 0 && args[0] instanceof Error) {
-      Sentry.captureException(args[0], { extra: { args: args.slice(1) } });
+
+    const errors: Error[] = [];
+    const parts: string[] = [];
+    const extras: Record<string, unknown> = {};
+
+    for (const arg of args) {
+      if (arg instanceof Error) {
+        errors.push(arg);
+        parts.push(arg.message || arg.name);
+      } else if (typeof arg === 'object' && arg !== null) {
+        Object.assign(extras, arg);
+        try {
+          parts.push(JSON.stringify(arg));
+        } catch {
+          parts.push(String(arg));
+        }
+      } else if (arg !== undefined && arg !== null) {
+        parts.push(String(arg));
+      }
+    }
+
+    const message = parts.join(' ') || 'Unknown error';
+
+    if (errors.length > 0) {
+      Sentry.captureException(errors[0], {
+        extra: { fullMessage: message, ...extras },
+      });
     } else {
-      Sentry.captureMessage(String(args[0] ?? 'Error'), { extra: { args: args.slice(1) } });
+      Sentry.captureMessage(message, {
+        level: 'error',
+        extra: { args, ...extras },
+      });
     }
   } catch {
     // Sentry 미설정 시 무시

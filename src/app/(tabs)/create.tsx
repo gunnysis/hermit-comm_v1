@@ -10,9 +10,7 @@ import { ContentEditor } from '@/shared/components/ContentEditor';
 import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { MoodSelector } from '@/features/posts/components/MoodSelector';
 import { Button } from '@/shared/components/Button';
-import { AnonModeInfo } from '@/features/posts/components/AnonModeInfo';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
-import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useDraft } from '@/features/posts/hooks/useDraft';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useBoards } from '@/features/community/hooks/useBoards';
@@ -23,7 +21,6 @@ import Toast from 'react-native-toast-message';
 
 export default function CreateScreen() {
   const router = useRouter();
-  const { author: savedAuthor, setAuthor: saveAuthor } = useAuthor();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsiveLayout();
@@ -42,23 +39,16 @@ export default function CreateScreen() {
     handleContentChange,
     errors,
     isSubmitting,
-    showName,
-    setShowName,
     onSubmit: handleFormSubmit,
   } = useCreatePost({
     boardId: DEFAULT_PUBLIC_BOARD_ID,
     user,
     anonMode,
-    defaultValues: { author: savedAuthor ?? '' },
     getExtraPostData: () => ({
       image_url: imageUrl ?? undefined,
       ...(initialEmotions.length > 0 ? { initial_emotions: initialEmotions } : {}),
     }),
-    onSuccess: async (data) => {
-      const rawAuthor = data.author?.trim() ?? '';
-      if (rawAuthor && rawAuthor !== (savedAuthor ?? '')) {
-        await saveAuthor(rawAuthor);
-      }
+    onSuccess: async () => {
       clearDraft();
       Toast.show({ type: 'success', text1: '게시글이 작성되었습니다. ✓' });
       pushTabs(router);
@@ -70,12 +60,7 @@ export default function CreateScreen() {
   const { loadDraft, clearDraft } = useDraft(DEFAULT_PUBLIC_BOARD_ID, {
     title: watched.title ?? '',
     content: watched.content ?? '',
-    author: watched.author ?? '',
   });
-
-  useEffect(() => {
-    if (savedAuthor) setValue('author', savedAuthor);
-  }, [savedAuthor, setValue]);
 
   const draftCheckedRef = React.useRef(false);
   useEffect(() => {
@@ -90,7 +75,6 @@ export default function CreateScreen() {
         onPress: () => {
           setValue('title', draft.title);
           setValue('content', draft.content);
-          setValue('author', draft.author);
         },
       },
     ]);
@@ -172,27 +156,10 @@ export default function CreateScreen() {
               <MoodSelector value={initialEmotions} onChange={setInitialEmotions} />
             </View>
 
-            <Controller
-              control={control}
-              name="author"
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="닉네임 (선택)"
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder="닉네임을 입력하면 다음에도 기억해둘게요 👤"
-                  error={errors.author?.message}
-                  maxLength={50}
-                />
-              )}
-            />
-
             <View className="mt-2 mb-2">
-              <AnonModeInfo
-                anonMode={anonMode}
-                showName={showName}
-                onToggle={() => setShowName((prev) => !prev)}
-              />
+              <Text className="text-xs text-gray-500 dark:text-stone-400">
+                모든 게시글은 익명으로 작성됩니다. 게시판별 고유 별칭이 자동 부여돼요.
+              </Text>
             </View>
           </View>
         </ScrollView>

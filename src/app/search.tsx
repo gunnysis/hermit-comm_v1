@@ -3,10 +3,8 @@ import { View, Text, TextInput, Pressable, ScrollView, useColorScheme } from 're
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
 import { Container } from '@/shared/components/Container';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { HighlightText } from '@/shared/components/HighlightText';
 import { PostCardSkeleton } from '@/shared/components/Skeleton';
 import { api } from '@/shared/lib/api';
 import {
@@ -14,7 +12,6 @@ import {
   EMOTION_EMOJI,
   EMOTION_COLOR_MAP,
   EMPTY_STATE_MESSAGES,
-  SEARCH_HIGHLIGHT,
   SEARCH_CONFIG,
 } from '@/shared/lib/constants';
 import {
@@ -25,10 +22,9 @@ import {
 } from '@/shared/lib/recent-searches';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useThemeColors } from '@/shared/hooks/useThemeColors';
-import { formatDate, formatReactionCount } from '@/shared/utils/format';
-import { pushPost } from '@/shared/lib/navigation';
-import { PostCard } from '@/features/posts/components/PostCard';
-import type { SearchResult, SearchSort, Post } from '@/types';
+import { SearchResultList } from '@/features/search/components/SearchResultList';
+import { EmotionPostList } from '@/features/search/components/EmotionPostList';
+import type { SearchSort, Post } from '@/types';
 
 // --- 정렬 옵션 ---
 
@@ -78,13 +74,7 @@ export default function SearchScreen() {
   const hasTextQuery = trimmedQuery.length >= SEARCH_CONFIG.MIN_QUERY_LENGTH;
 
   // --- v2 검색 (텍스트 있을 때) ---
-  const {
-    data: searchPages,
-    isLoading: searchLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const searchQuery = useInfiniteQuery({
     queryKey: ['search', trimmedQuery, selectedEmotion, sort],
     queryFn: ({ pageParam = 0 }) =>
       api.searchPosts({
@@ -99,14 +89,24 @@ export default function SearchScreen() {
     initialPageParam: 0,
     enabled: hasTextQuery,
     staleTime: SEARCH_CONFIG.STALE_TIME_MS,
+    retry: 1,
   });
+  const {
+    data: searchPages,
+    isLoading: searchLoading,
+    error: searchError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = searchQuery;
 
   // --- 감정 전용 (텍스트 없을 때) ---
-  const { data: emotionPosts, isLoading: emotionLoading } = useQuery({
+  const emotionQuery = useQuery({
     queryKey: ['postsByEmotion', selectedEmotion],
     queryFn: () => api.getPostsByEmotion(selectedEmotion, 50, 0),
     enabled: selectedEmotion.length > 0 && !hasTextQuery,
   });
+  const { data: emotionPosts, isLoading: emotionLoading, error: emotionError } = emotionQuery;
 
   // 검색 성공 시 최근 검색어 저장
   useEffect(() => {
@@ -128,6 +128,9 @@ export default function SearchScreen() {
 
   const resultCount = hasActiveFilter && !isLoading ? displayPosts.length : null;
   const isEmpty = !isLoading && displayPosts.length === 0 && hasActiveFilter;
+
+  const error = isSearchMode ? searchError : isEmotionOnlyMode ? emotionError : null;
+  const refetch = isSearchMode ? searchQuery.refetch : emotionQuery.refetch;
 
   // --- 핸들러 ---
 
@@ -375,6 +378,23 @@ export default function SearchScreen() {
           </ScrollView>
         )}
 
+        {/* 에러 상태 */}
+        {!showInitial && error && !isLoading && (
+          <View className="items-center justify-center py-16 px-4">
+            <Text className="text-base font-semibold text-gray-700 dark:text-stone-200 mb-1">
+              검색 중 문제가 발생했어요
+            </Text>
+            <Text className="text-sm text-gray-500 dark:text-stone-400 mb-4 text-center">
+              네트워크를 확인하고 다시 시도해주세요
+            </Text>
+            <Pressable
+              onPress={() => refetch()}
+              className="px-4 py-2 rounded-xl bg-happy-400 active:bg-happy-500">
+              <Text className="text-sm font-semibold text-white">다시 시도</Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* 빈 상태 */}
         {!showInitial && isEmpty && (
           <EmptyState
@@ -418,158 +438,5 @@ export default function SearchScreen() {
         )}
       </View>
     </Container>
-  );
-}
-
-// --- 검색 결과 카드 (하이라이트 포함) ---
-
-const SearchResultCard = React.memo(function SearchResultCard({
-  result,
-}: {
-  result: SearchResult;
-}) {
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const handlePress = useCallback(() => {
-    pushPost(router, result.id);
-  }, [router, result.id]);
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      className="mx-4 mb-2.5 rounded-xl overflow-hidden border bg-white dark:bg-stone-900 border-stone-200/80 dark:border-stone-700/60 active:opacity-90"
-      accessibilityRole="button"
-      accessibilityLabel={`검색 결과: ${result.title}`}>
-      {result.emotions?.[0] && EMOTION_COLOR_MAP[result.emotions[0]] && (
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 3,
-            backgroundColor: EMOTION_COLOR_MAP[result.emotions[0]].gradient[1],
-            borderTopLeftRadius: 12,
-            borderBottomLeftRadius: 12,
-            zIndex: 1,
-          }}
-        />
-      )}
-      <View className="p-4">
-        <HighlightText
-          text={result.title_highlight}
-          className="text-[17px] font-bold text-gray-800 dark:text-stone-100 leading-6 mb-1.5"
-          numberOfLines={2}
-          highlightStyle={{
-            backgroundColor: isDark ? SEARCH_HIGHLIGHT.dark : SEARCH_HIGHLIGHT.light,
-          }}
-        />
-
-        <HighlightText
-          text={result.content_highlight}
-          className="text-[14px] text-gray-500 dark:text-stone-400 mb-2 leading-5"
-          numberOfLines={3}
-          highlightStyle={{
-            backgroundColor: isDark ? SEARCH_HIGHLIGHT.dark : SEARCH_HIGHLIGHT.light,
-          }}
-        />
-
-        {result.emotions && result.emotions.length > 0 && (
-          <View className="flex-row flex-wrap gap-1.5 mb-2">
-            {result.emotions.slice(0, 2).map((emotion) => {
-              const emoji = EMOTION_EMOJI[emotion] ?? '💬';
-              return (
-                <View
-                  key={emotion}
-                  className={`rounded-full px-2.5 py-0.5 ${
-                    isDark ? 'bg-stone-800/80' : 'bg-stone-50'
-                  }`}>
-                  <Text className="text-xs text-stone-500 dark:text-stone-400">
-                    {emoji} {emotion}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        <View className="flex-row justify-between items-center flex-wrap gap-2">
-          <View className="flex-row items-center gap-1.5">
-            <View
-              className={`px-2.5 py-1 rounded-full ${isDark ? 'bg-happy-900/40' : 'bg-happy-50'}`}>
-              <Text className="text-xs font-semibold text-happy-700 dark:text-happy-300">
-                {result.display_name}
-              </Text>
-            </View>
-            <View
-              className={`px-2 py-0.5 rounded-full ${isDark ? 'bg-stone-800/60' : 'bg-stone-50'}`}>
-              <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                👍 {formatReactionCount(result.like_count ?? 0)}
-              </Text>
-            </View>
-            <View
-              className={`px-2 py-0.5 rounded-full ${isDark ? 'bg-stone-800/60' : 'bg-stone-50'}`}>
-              <Text className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                💬 {result.comment_count ?? 0}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-[11px] text-stone-400 dark:text-stone-500">
-            {formatDate(result.created_at)}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-});
-
-// --- 검색 결과 FlashList ---
-
-function SearchResultList({
-  results,
-  onEndReached,
-  isFetchingMore,
-}: {
-  results: SearchResult[];
-  onEndReached: () => void;
-  isFetchingMore: boolean;
-}) {
-  return (
-    <View style={{ flex: 1 }} className="min-h-0">
-      <FlashList
-        data={results}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <SearchResultCard result={item} />}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.3}
-        ListFooterComponent={
-          isFetchingMore ? (
-            <View className="py-4">
-              {[1, 2].map((i) => (
-                <PostCardSkeleton key={i} />
-              ))}
-            </View>
-          ) : null
-        }
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
-      />
-    </View>
-  );
-}
-
-// --- 감정 전용 결과 리스트 ---
-
-function EmotionPostList({ posts }: { posts: Post[] }) {
-  return (
-    <View style={{ flex: 1 }} className="min-h-0">
-      <FlashList
-        data={posts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <PostCard post={item} />}
-        contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
-      />
-    </View>
   );
 }

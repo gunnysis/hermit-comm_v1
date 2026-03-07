@@ -15,7 +15,6 @@ import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { api } from '@/shared/lib/api';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
-import { useAuthor } from '@/features/posts/hooks/useAuthor';
 import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
 import { useBoards } from '@/features/community/hooks/useBoards';
 import { validatePostTitle, validatePostContent } from '@/shared/utils/validate';
@@ -25,7 +24,6 @@ export default function EditPostScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { author: savedAuthor } = useAuthor();
   const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState('');

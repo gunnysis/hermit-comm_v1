@@ -74,7 +74,7 @@ describe('usePostDetailAnalysis', () => {
     expect(result.current.postAnalysis).toBeNull();
   });
 
-  it('15초 fallback 타이머가 등록된다', () => {
+  it('10초 fallback 타이머가 등록된다', () => {
     jest.useFakeTimers();
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
 
@@ -83,7 +83,7 @@ describe('usePostDetailAnalysis', () => {
       renderHook(() => usePostDetailAnalysis(1), { wrapper });
 
       const calls = setTimeoutSpy.mock.calls;
-      const fallbackTimer = calls.find((call) => call[1] === 15000);
+      const fallbackTimer = calls.find((call) => call[1] === 10000);
       expect(fallbackTimer).toBeDefined();
     } finally {
       jest.useRealTimers();
@@ -109,7 +109,7 @@ describe('usePostDetailAnalysis', () => {
 
   it('캐시가 null이고 게시글 콘텐츠가 있으면 fallback을 호출한다', async () => {
     mockGetPostAnalysis.mockResolvedValue(null);
-    mockInvokeSmartService.mockResolvedValue(['슬픔']);
+    mockInvokeSmartService.mockResolvedValue({ emotions: ['슬픔'] });
 
     jest.useFakeTimers();
     try {
@@ -121,7 +121,7 @@ describe('usePostDetailAnalysis', () => {
 
       // 14초 타이머 발동 + async 콜백 완료 대기
       await act(async () => {
-        jest.advanceTimersByTime(15001);
+        jest.advanceTimersByTime(10001);
         await Promise.resolve(); // async callback microtask flush
       });
 
@@ -144,7 +144,7 @@ describe('usePostDetailAnalysis', () => {
       renderHook(() => usePostDetailAnalysis(1), { wrapper });
 
       await act(async () => {
-        jest.advanceTimersByTime(15001);
+        jest.advanceTimersByTime(10001);
         await Promise.resolve(); // async callback microtask flush
       });
 

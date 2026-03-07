@@ -7,11 +7,6 @@ describe('postSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('author 없이도 통과한다', () => {
-    const result = postSchema.safeParse({ title: '제목', content: '내용' });
-    expect(result.success).toBe(true);
-  });
-
   it('제목이 비어 있으면 실패한다', () => {
     const result = postSchema.safeParse({ title: '', content: '내용' });
     expect(result.success).toBe(false);
@@ -46,13 +41,13 @@ describe('postSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it(`닉네임이 ${VALIDATION.AUTHOR_MAX}자를 초과하면 실패한다`, () => {
+  it('추가 필드는 무시된다 (strict 아님)', () => {
     const result = postSchema.safeParse({
       title: '제목',
       content: '내용',
-      author: 'a'.repeat(VALIDATION.AUTHOR_MAX + 1),
+      extraField: 'ignored',
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 });
 

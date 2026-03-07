@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -39,7 +39,6 @@ export function useCreatePost({
   defaultValues,
 }: UseCreatePostOptions) {
   const queryClient = useQueryClient();
-  const [showName, setShowName] = useState(false);
 
   const {
     control,
@@ -49,7 +48,7 @@ export function useCreatePost({
     formState: { errors, isSubmitting },
   } = useForm<PostFormValues>({
     resolver: zodResolver(postSchema),
-    defaultValues: { title: '', content: '', author: '', ...defaultValues },
+    defaultValues: { title: '', content: '', ...defaultValues },
   });
 
   const handleContentChange = useCallback(
@@ -67,14 +66,11 @@ export function useCreatePost({
       }
 
       try {
-        const rawAuthor = data.author?.trim() ?? '';
         const { isAnonymous, displayName } = resolveDisplayName({
           anonMode,
-          rawAuthorName: rawAuthor,
           userId: user?.id ?? null,
           boardId,
           groupId: groupId ?? null,
-          wantNameOverride: showName,
         });
 
         const extraData = getExtraPostData?.() ?? {};
@@ -98,17 +94,7 @@ export function useCreatePost({
         onError?.(toFriendlyErrorMessage(e, '게시글 작성에 실패했습니다.'));
       }
     },
-    [
-      boardId,
-      groupId,
-      user?.id,
-      anonMode,
-      showName,
-      getExtraPostData,
-      queryClient,
-      onSuccess,
-      onError,
-    ],
+    [boardId, groupId, user?.id, anonMode, getExtraPostData, queryClient, onSuccess, onError],
   );
 
   return {
@@ -119,8 +105,6 @@ export function useCreatePost({
     handleContentChange,
     errors,
     isSubmitting,
-    showName,
-    setShowName,
     onSubmit,
   };
 }

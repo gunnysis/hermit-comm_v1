@@ -14,11 +14,6 @@ export const postSchema = z.object({
       VALIDATION.POST_CONTENT_MAX,
       `내용은 ${VALIDATION.POST_CONTENT_MAX}자 이내로 입력해주세요.`,
     ),
-  /** 닉네임 (폼 전용, DB에 저장하지 않음 — display_name 해석에 사용) */
-  author: z
-    .string()
-    .max(VALIDATION.AUTHOR_MAX, `닉네임은 ${VALIDATION.AUTHOR_MAX}자 이내로 입력해주세요.`)
-    .optional(),
 });
 
 /** 댓글 작성 검증 */

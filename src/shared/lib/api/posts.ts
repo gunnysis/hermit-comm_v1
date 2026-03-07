@@ -33,7 +33,11 @@ export async function getPosts(
           .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error('[API] getPosts 에러:', error.message);
+    logger.error('[API] getPosts 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(500, error.message);
   }
 
@@ -79,14 +83,18 @@ export async function searchPosts(params: {
 
   const { data, error } = await supabase.rpc('search_posts_v2', {
     p_query: q,
-    p_emotion: emotion ?? undefined,
+    p_emotion: emotion || undefined,
     p_sort: sort,
     p_limit: limit,
     p_offset: offset,
   });
 
   if (error) {
-    logger.error('[API] searchPosts 에러:', error.message);
+    logger.error('[API] searchPosts 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(500, error.message);
   }
 
@@ -135,14 +143,22 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
   }
 
   if (error.code !== '42501') {
-    logger.error('[API] createPost 에러:', error.message);
+    logger.error('[API] createPost 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(500, '게시글 생성에 실패했습니다.', error.code, error);
   }
 
   const { error: retryError } = await supabase.from('posts').insert([insertRow]);
 
   if (retryError) {
-    logger.error('[API] createPost 에러:', retryError.message);
+    logger.error('[API] createPost 에러:', retryError.message, {
+      code: retryError.code,
+      details: retryError.details,
+      hint: retryError.hint,
+    });
     throw new APIError(
       retryError.code === '42501' ? 403 : 500,
       '게시글 생성에 실패했습니다.',
@@ -161,7 +177,11 @@ export async function deletePost(id: number): Promise<void> {
   });
 
   if (error) {
-    logger.error('[API] deletePost 에러:', error.message);
+    logger.error('[API] deletePost 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(
       error.code === '42501' ? 403 : 500,
       '게시글 삭제에 실패했습니다.',
@@ -183,7 +203,11 @@ export async function getPostsByEmotion(
   });
 
   if (error) {
-    logger.error('[API] getPostsByEmotion 에러:', error.message);
+    logger.error('[API] getPostsByEmotion 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(500, error.message);
   }
 
@@ -194,7 +218,11 @@ export async function updatePost(id: number, body: UpdatePostRequest): Promise<U
   const { data, error } = await supabase.from('posts').update(body).eq('id', id).select().single();
 
   if (error) {
-    logger.error('[API] updatePost 에러:', error.message);
+    logger.error('[API] updatePost 에러:', error.message, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(
       error.code === '42501' ? 403 : 500,
       '게시글 수정에 실패했습니다.',
