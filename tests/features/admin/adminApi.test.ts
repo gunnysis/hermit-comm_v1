@@ -53,14 +53,18 @@ describe('adminApi', () => {
       });
     });
 
-    it('초대 코드가 없으면 APIError(400)를 던진다', async () => {
+    it('초대 코드가 없으면 자동 생성하여 성공한다', async () => {
       (supabase.auth.getUser as jest.Mock).mockResolvedValue({
         data: { user: { id: 'admin-1' } },
         error: null,
       });
-      await expect(createGroupWithBoard({ name: '그룹명', inviteCode: '' })).rejects.toMatchObject({
-        status: 400,
-      });
+      chain.single.mockResolvedValue({ data: { id: 5 }, error: null });
+      chain.insert.mockReturnValueOnce(chain).mockResolvedValue({ error: null });
+
+      const result = await createGroupWithBoard({ name: '그룹명', inviteCode: '' });
+      expect(result.groupId).toBe(5);
+      expect(result.inviteCode).toBeTruthy();
+      expect(result.inviteCode.length).toBeGreaterThanOrEqual(4);
     });
 
     it('그룹·보드·멤버를 성공적으로 생성한다', async () => {

@@ -4,8 +4,12 @@ import { logger } from '@/shared/utils/logger';
 
 export interface CreateGroupWithBoardInput {
   name: string;
-  inviteCode: string;
+  inviteCode?: string;
   description?: string;
+}
+
+function generateInviteCode(): string {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
 export interface ManagedGroup {
@@ -37,16 +41,15 @@ export async function createGroupWithBoard(
 
   const { name, inviteCode, description } = input;
   const trimmedName = name.trim();
-  const trimmedCode = inviteCode.trim();
+  const finalCode = inviteCode?.trim() || generateInviteCode();
   if (!trimmedName) throw new APIError(400, '그룹명을 입력해주세요.');
-  if (!trimmedCode) throw new APIError(400, '초대 코드를 입력해주세요.');
 
   const { data: group, error: groupError } = await supabase
     .from('groups')
     .insert({
       name: trimmedName,
       description: description?.trim() || null,
-      invite_code: trimmedCode,
+      invite_code: finalCode,
       join_mode: 'invite_only',
       owner_id: user.id,
     })
@@ -81,7 +84,7 @@ export async function createGroupWithBoard(
     throw new APIError(500, boardError.message, boardError.code, boardError);
   }
 
-  return { groupId: group.id, inviteCode: trimmedCode };
+  return { groupId: group.id, inviteCode: finalCode };
 }
 
 /**
@@ -136,4 +139,32 @@ export async function deleteGroup(groupId: number): Promise<void> {
   if (!data) {
     throw new APIError(404, '삭제할 수 없는 그룹이거나 이미 삭제되었습니다.');
   }
+}
+
+/**
+ * 초대 코드 재생성. RLS가 owner_id=auth.uid()를 강제하므로 owner만 가능.
+ * 클라이언트 레벨에서도 owner_id 방어 추가.
+ */
+export async function regenerateInviteCode(groupId: number, ownerId: string): Promise<string> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw new APIError(500, userError.message, undefined, userError);
+  if (user?.id !== ownerId)
+    throw new APIError(403, '그룹 소유자만 초대코드를 재생성할 수 있습니다.');
+
+  const newCode = generateInviteCode();
+  const { error, data } = await supabase
+    .from('groups')
+    .update({ invite_code: newCode })
+    .eq('id', groupId)
+    .select('id');
+  if (error) {
+    logger.error('[adminApi] invite_code 재생성 에러:', error.message);
+    throw new APIError(500, error.message, error.code, error);
+  }
+  if (!data || data.length === 0)
+    throw new APIError(403, '권한이 없거나 그룹이 존재하지 않습니다.');
+  return newCode;
 }

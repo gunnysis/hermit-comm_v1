@@ -19,6 +19,24 @@ jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn(),
 }));
 
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: {
+      View: (props) => React.createElement(View, props),
+      createAnimatedComponent: (comp) => comp,
+    },
+    useSharedValue: (init) => ({ value: init }),
+    useAnimatedStyle: () => ({}),
+    withSequence: (...args) => args[args.length - 1],
+    withTiming: (val) => val,
+    runOnJS: (fn) => fn,
+  };
+});
+
 // Mock expo-blur
 jest.mock('expo-blur', () => {
   const React = require('react');

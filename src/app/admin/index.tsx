@@ -8,6 +8,7 @@ import {
   Share,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -20,6 +21,7 @@ import { ErrorView } from '@/shared/components/ErrorView';
 import {
   createGroupWithBoard,
   getMyManagedGroups,
+  regenerateInviteCode,
   type CreateGroupWithBoardInput,
 } from '@/features/admin/api/adminApi';
 import { QUERY_KEY_MANAGED_GROUPS, useDeleteGroup } from '@/features/admin/hooks/useDeleteGroup';
@@ -28,6 +30,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
+import Constants from 'expo-constants';
 
 function useMyManagedGroups() {
   return useQuery({
@@ -53,6 +56,8 @@ export default function AdminIndexScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0';
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [description, setDescription] = useState('');
@@ -83,18 +88,13 @@ export default function AdminIndexScreen() {
 
   const handleSubmit = useCallback(() => {
     const trimmedName = name.trim();
-    const trimmedCode = inviteCode.trim();
     if (!trimmedName) {
       Alert.alert('입력 오류', '그룹명을 입력해주세요.');
       return;
     }
-    if (!trimmedCode) {
-      Alert.alert('입력 오류', '초대 코드를 입력해주세요.');
-      return;
-    }
     createMutation.mutate({
       name: trimmedName,
-      inviteCode: trimmedCode,
+      inviteCode: inviteCode.trim() || undefined,
       description: description.trim() || undefined,
     });
   }, [name, inviteCode, description, createMutation]);
@@ -106,8 +106,8 @@ export default function AdminIndexScreen() {
   const handleDeleteGroup = useCallback(
     (group: { id: number; name: string }) => {
       Alert.alert(
-        '그룹 삭제',
-        `"${group.name}"을(를) 삭제할까요? 보드와 게시글·댓글이 모두 삭제됩니다.`,
+        `'${group.name}' 그룹을 삭제할까요?`,
+        '그룹의 모든 게시글과 댓글이 함께 삭제됩니다.',
         [
           { text: '취소', style: 'cancel' },
           {
@@ -141,6 +141,31 @@ export default function AdminIndexScreen() {
       Alert.alert('로그아웃 실패', message);
     }
   }, [router]);
+
+  const handleCopyCode = useCallback((code: string) => {
+    Alert.alert('초대 코드', code, [
+      { text: '확인' },
+      { text: '공유하기', onPress: () => shareInviteCode(code) },
+    ]);
+  }, []);
+
+  const handleRegenerateCode = useCallback(
+    async (groupId: number) => {
+      if (!user) return;
+      try {
+        const newCode = await regenerateInviteCode(groupId, user.id);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY_MANAGED_GROUPS });
+        Alert.alert('코드 재생성 완료', `새 초대 코드: ${newCode}`, [
+          { text: '확인' },
+          { text: '공유하기', onPress: () => shareInviteCode(newCode) },
+        ]);
+      } catch (e) {
+        const message = toFriendlyErrorMessage(e, '코드 재생성에 실패했습니다.');
+        Alert.alert('재생성 실패', message);
+      }
+    },
+    [user, queryClient],
+  );
 
   if (isLoading) {
     return (
@@ -202,10 +227,10 @@ export default function AdminIndexScreen() {
               maxLength={100}
             />
             <Input
-              label="초대 코드"
+              label="초대 코드 (선택)"
               value={inviteCode}
               onChangeText={setInviteCode}
-              placeholder="예: WELCOME2025"
+              placeholder="비워두면 자동 생성됩니다"
               maxLength={50}
               autoCapitalize="characters"
             />
@@ -261,15 +286,35 @@ export default function AdminIndexScreen() {
                       </Text>
                       <View className="flex-row items-center gap-2">
                         {group.invite_code ? (
-                          <Pressable
-                            onPress={() => shareInviteCode(group.invite_code!)}
-                            className="px-3 py-1.5 bg-happy-200 dark:bg-happy-800 rounded-lg"
-                            accessibilityLabel="초대 코드 공유"
-                            disabled={isDeleting}>
-                            <Text className="text-xs font-semibold text-gray-700 dark:text-happy-200">
-                              공유
-                            </Text>
-                          </Pressable>
+                          <>
+                            <Pressable
+                              onPress={() => handleCopyCode(group.invite_code!)}
+                              className="px-3 py-1.5 bg-cream-100 dark:bg-stone-700 rounded-lg"
+                              accessibilityLabel="초대 코드 복사"
+                              disabled={isDeleting}>
+                              <Text className="text-xs font-semibold text-gray-700 dark:text-stone-300">
+                                복사
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => handleRegenerateCode(group.id)}
+                              className="px-3 py-1.5 bg-cream-100 dark:bg-stone-700 rounded-lg"
+                              accessibilityLabel="초대 코드 재생성"
+                              disabled={isDeleting}>
+                              <Text className="text-xs font-semibold text-gray-700 dark:text-stone-300">
+                                재생성
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => shareInviteCode(group.invite_code!)}
+                              className="px-3 py-1.5 bg-happy-200 dark:bg-happy-800 rounded-lg"
+                              accessibilityLabel="초대 코드 공유"
+                              disabled={isDeleting}>
+                              <Text className="text-xs font-semibold text-gray-700 dark:text-happy-200">
+                                공유
+                              </Text>
+                            </Pressable>
+                          </>
                         ) : null}
                         <Pressable
                           onPress={() => handleDeleteGroup(group)}
@@ -277,7 +322,7 @@ export default function AdminIndexScreen() {
                           accessibilityLabel="그룹 삭제"
                           disabled={isDeleting}>
                           <Text className="text-xs font-semibold text-coral-600 dark:text-coral-400">
-                            {isDeleting ? '삭제 중…' : '삭제'}
+                            {isDeleting ? '삭제 중...' : '삭제'}
                           </Text>
                         </Pressable>
                       </View>
@@ -286,6 +331,11 @@ export default function AdminIndexScreen() {
                 );
               })
             )}
+          </View>
+
+          {/* 앱 버전 정보 */}
+          <View className="items-center mt-8 px-4 pb-4">
+            <Text className="text-xs text-gray-400 dark:text-stone-500">v{appVersion}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
