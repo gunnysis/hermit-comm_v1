@@ -9,54 +9,26 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { HighlightText } from '@/shared/components/HighlightText';
 import { PostCardSkeleton } from '@/shared/components/Skeleton';
 import { api } from '@/shared/lib/api';
-import { draftStorage } from '@/shared/lib/storage';
 import {
   ALLOWED_EMOTIONS,
   EMOTION_EMOJI,
   EMOTION_COLOR_MAP,
   EMPTY_STATE_MESSAGES,
+  SEARCH_HIGHLIGHT,
+  SEARCH_CONFIG,
 } from '@/shared/lib/constants';
+import {
+  getRecentSearches,
+  addRecentSearch,
+  removeRecentSearch,
+  clearAllRecentSearches,
+} from '@/shared/lib/recent-searches';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useThemeColors } from '@/shared/hooks/useThemeColors';
 import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { pushPost } from '@/shared/lib/navigation';
 import { PostCard } from '@/features/posts/components/PostCard';
 import type { SearchResult, SearchSort, Post } from '@/types';
-
-const RECENT_SEARCHES_KEY = 'search_recent';
-const RECENT_MAX = 8;
-const DEBOUNCE_MS = 300;
-const PAGE_SIZE = 20;
-
-// --- 최근 검색어 ---
-
-function getRecentSearches(): string[] {
-  try {
-    const raw = draftStorage.getString(RECENT_SEARCHES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.slice(0, RECENT_MAX) : [];
-  } catch {
-    return [];
-  }
-}
-
-function addRecentSearch(query: string): void {
-  if (!query.trim()) return;
-  const recent = getRecentSearches().filter((q) => q !== query);
-  recent.unshift(query.trim());
-  draftStorage.set(RECENT_SEARCHES_KEY, JSON.stringify(recent.slice(0, RECENT_MAX)));
-}
-
-function removeRecentSearch(query: string): string[] {
-  const recent = getRecentSearches().filter((q) => q !== query);
-  draftStorage.set(RECENT_SEARCHES_KEY, JSON.stringify(recent));
-  return recent;
-}
-
-function clearAllRecentSearches(): void {
-  draftStorage.remove(RECENT_SEARCHES_KEY);
-}
 
 // --- 정렬 옵션 ---
 
@@ -98,7 +70,7 @@ export default function SearchScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
-    }, DEBOUNCE_MS);
+    }, SEARCH_CONFIG.DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -119,14 +91,14 @@ export default function SearchScreen() {
         query: trimmedQuery,
         emotion: selectedEmotion || null,
         sort,
-        limit: PAGE_SIZE,
+        limit: SEARCH_CONFIG.PAGE_SIZE,
         offset: pageParam,
       }),
     getNextPageParam: (lastPage, allPages) =>
-      lastPage.length === PAGE_SIZE ? allPages.flat().length : undefined,
+      lastPage.length === SEARCH_CONFIG.PAGE_SIZE ? allPages.flat().length : undefined,
     initialPageParam: 0,
     enabled: hasTextQuery,
-    staleTime: 30_000,
+    staleTime: SEARCH_CONFIG.STALE_TIME_MS,
   });
 
   // --- 감정 전용 (텍스트 없을 때) ---
@@ -450,7 +422,11 @@ export default function SearchScreen() {
 
 // --- 검색 결과 카드 (하이라이트 포함) ---
 
-function SearchResultCard({ result }: { result: SearchResult }) {
+const SearchResultCard = React.memo(function SearchResultCard({
+  result,
+}: {
+  result: SearchResult;
+}) {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -485,14 +461,18 @@ function SearchResultCard({ result }: { result: SearchResult }) {
           text={result.title_highlight}
           className="text-[17px] font-bold text-gray-800 dark:text-stone-100 leading-6 mb-1.5"
           numberOfLines={2}
-          highlightStyle={{ backgroundColor: isDark ? '#664E00' : '#FFF3CC' }}
+          highlightStyle={{
+            backgroundColor: isDark ? SEARCH_HIGHLIGHT.dark : SEARCH_HIGHLIGHT.light,
+          }}
         />
 
         <HighlightText
           text={result.content_highlight}
           className="text-[14px] text-gray-500 dark:text-stone-400 mb-2 leading-5"
           numberOfLines={3}
-          highlightStyle={{ backgroundColor: isDark ? '#664E00' : '#FFF3CC' }}
+          highlightStyle={{
+            backgroundColor: isDark ? SEARCH_HIGHLIGHT.dark : SEARCH_HIGHLIGHT.light,
+          }}
         />
 
         {result.emotions && result.emotions.length > 0 && (
@@ -542,7 +522,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       </View>
     </Pressable>
   );
-}
+});
 
 // --- 검색 결과 FlashList ---
 

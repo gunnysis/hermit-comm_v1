@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, type TextStyle } from 'react-native';
+import { SEARCH_HIGHLIGHT } from '@/shared/lib/constants';
 
 interface HighlightTextProps {
   text: string;
@@ -23,7 +24,12 @@ function HighlightTextComponent({
     <Text style={style} className={className} numberOfLines={numberOfLines}>
       {parts.map((part, i) =>
         part.highlighted ? (
-          <Text key={i} style={[{ fontWeight: '700', backgroundColor: '#FFF3CC' }, highlightStyle]}>
+          <Text
+            key={i}
+            style={[
+              { fontWeight: '700', backgroundColor: SEARCH_HIGHLIGHT.light },
+              highlightStyle,
+            ]}>
             {part.text}
           </Text>
         ) : (
