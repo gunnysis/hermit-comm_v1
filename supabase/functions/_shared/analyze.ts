@@ -155,24 +155,47 @@ export async function analyzeAndSave(params: {
     force = false,
   } = params;
 
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   const text = stripHtml(content);
   if (text.length < 10) {
+    // status를 'done'으로 갱신하여 클라이언트 무한 폴링 방지
+    await supabase.from('post_analysis').upsert(
+      {
+        post_id: postId,
+        status: 'done',
+        emotions: [],
+        analyzed_at: new Date().toISOString(),
+        error_reason: 'content_too_short',
+      },
+      { onConflict: 'post_id' },
+    );
     return { ok: true, skipped: 'content_too_short' };
   }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   // 쿨다운: 60초 이내 재분석 방지 (연속 수정 시 비용 보호)
   if (!force) {
     const { data: existing } = await supabase
       .from('post_analysis')
-      .select('analyzed_at')
+      .select('analyzed_at, status, emotions')
       .eq('post_id', postId)
       .maybeSingle();
 
     if (existing?.analyzed_at) {
       const diffMs = Date.now() - new Date(existing.analyzed_at).getTime();
       if (diffMs < COOLDOWN_MS) {
+        // 이전 상태가 done이 아니면 done으로 갱신 (stuck 방지)
+        if (existing.status !== 'done') {
+          await supabase.from('post_analysis').upsert(
+            {
+              post_id: postId,
+              status: 'done',
+              emotions: existing.emotions ?? [],
+              analyzed_at: existing.analyzed_at,
+            },
+            { onConflict: 'post_id' },
+          );
+        }
         return { ok: true, skipped: 'cooldown_60s' };
       }
     }

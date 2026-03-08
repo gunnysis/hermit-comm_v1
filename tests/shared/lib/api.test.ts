@@ -5,7 +5,11 @@ jest.mock('@/shared/lib/supabase', () => ({
   supabase: {
     from: jest.fn(),
     rpc: jest.fn(),
-    auth: { getUser: jest.fn() },
+    auth: {
+      getUser: jest.fn(),
+      getSession: jest.fn().mockResolvedValue({ data: { session: { access_token: 'test' } } }),
+      refreshSession: jest.fn().mockResolvedValue({ error: null }),
+    },
     functions: { invoke: jest.fn() },
   },
 }));

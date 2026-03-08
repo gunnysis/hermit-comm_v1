@@ -10,7 +10,8 @@ export async function getEmotionTrend(
 ): Promise<{ emotion: string; cnt: number; pct: number }[]> {
   const { data, error } = await supabase.rpc('get_emotion_trend', { days });
   if (error) {
-    logger.error('[API] getEmotionTrend 에러:', error.message, {
+    const errorMsg = error.message || error.code || 'unknown_supabase_error';
+    logger.error('[API] getEmotionTrend 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
@@ -30,7 +31,8 @@ export async function getPostAnalysis(postId: number): Promise<PostAnalysis | nu
     .maybeSingle();
 
   if (error) {
-    logger.error('[API] getPostAnalysis 에러:', error.message, {
+    const errorMsg = error.message || error.code || 'unknown_supabase_error';
+    logger.error('[API] getPostAnalysis 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
@@ -40,23 +42,44 @@ export async function getPostAnalysis(postId: number): Promise<PostAnalysis | nu
   return data as PostAnalysis | null;
 }
 
+/** 세션 확인 후 필요 시 갱신. 유효한 세션이 있으면 true. */
+async function ensureValidSession(): Promise<boolean> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session) return true;
+
+  const { error } = await supabase.auth.refreshSession();
+  return !error;
+}
+
 /**
  * analyze-post-on-demand Edge Function을 직접 호출하여 게시글 감정 분석을 수동 트리거.
- * DB Webhook 실패·지연 시 fallback으로 사용. 앱에서 10초 후 자동 호출됨.
+ * DB Webhook 실패·지연 시 fallback으로 사용.
+ *
+ * JWT 만료 시 세션 갱신 후 1회 재시도.
  */
 export async function invokeSmartService(
   postId: number,
   content: string,
   title?: string,
 ): Promise<{ emotions: string[]; error?: string; retryable?: boolean }> {
+  // 세션 확인: JWT 만료 시 갱신 시도
+  const hasSession = await ensureValidSession();
+  if (!hasSession) {
+    return { emotions: [], error: 'session_expired', retryable: false };
+  }
+
   const { data, error } = await supabase.functions.invoke(SMART_SERVICE_FUNCTION, {
     body: { postId, content, title },
   });
 
   if (error) {
     let errorMessage: string;
+    let statusCode: number | undefined;
     try {
       if ('context' in error && error.context instanceof Response) {
+        statusCode = error.context.status;
         const body = await error.context.json();
         errorMessage = body?.reason || body?.message || error.message;
       } else {
@@ -64,6 +87,33 @@ export async function invokeSmartService(
       }
     } catch {
       errorMessage = error.message ?? 'Unknown edge function error';
+    }
+
+    // JWT 만료(401) 시 세션 갱신 후 1회 재시도
+    if (statusCode === 401) {
+      const refreshed = await ensureValidSession();
+      if (refreshed) {
+        const retry = await supabase.functions.invoke(SMART_SERVICE_FUNCTION, {
+          body: { postId, content, title },
+        });
+        if (!retry.error) {
+          const result = retry.data as {
+            ok: boolean;
+            emotions?: string[];
+            reason?: string;
+            retryable?: boolean;
+          } | null;
+          if (result?.ok && result.emotions) return { emotions: result.emotions };
+          if (result && !result.ok)
+            return {
+              emotions: [],
+              error: result.reason ?? 'unknown',
+              retryable: result.retryable ?? false,
+            };
+          return { emotions: [] };
+        }
+      }
+      return { emotions: [], error: 'jwt_refresh_failed', retryable: false };
     }
 
     logger.error('[API] invokeSmartService 에러:', errorMessage, { postId });

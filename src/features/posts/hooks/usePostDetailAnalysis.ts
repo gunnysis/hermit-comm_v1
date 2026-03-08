@@ -4,23 +4,34 @@ import { api } from '@/shared/lib/api';
 import { supabase } from '@/shared/lib/supabase';
 import type { PostAnalysis } from '@/types';
 
+/** 폴링 최대 시간 (2분). 이후 강제 중단. */
+const MAX_POLLING_MS = 2 * 60 * 1000;
+
+/** Fallback 최대 재시도 횟수 */
+const MAX_FALLBACK_RETRIES = 2;
+
+/** Fallback 지연 시간 (ms) — 10초, 20초 */
+const FALLBACK_DELAYS = [10_000, 20_000];
+
 /**
- * 게시글 감정 분석 쿼리 + Realtime 구독 + 상태 기반 폴링 + 10초 후 on-demand fallback.
+ * 게시글 감정 분석 쿼리 + Realtime 구독 + 상태 기반 폴링 + 단계적 on-demand fallback.
  *
  * 전략:
  *  1. post_analysis Realtime 구독으로 INSERT/UPDATE 감지
- *  2. pending/analyzing 상태면 5초 간격 폴링
- *  3. 10초 경과 후 여전히 pending/analyzing/failed이면 analyze-post-on-demand 호출
+ *  2. pending/analyzing 상태면 5초 간격 폴링 (최대 2분)
+ *  3. 10초/20초 후 여전히 미완료이면 analyze-post-on-demand 호출 (최대 2회)
  *  4. Realtime이 변경을 감지하면 자동 invalidate
  *  5. 글 수정 시 DB 트리거가 자동 재분석 → UPSERT → UPDATE 이벤트 수신
  */
 export function usePostDetailAnalysis(postId: number) {
   const queryClient = useQueryClient();
-  const fallbackCalledRef = useRef(false);
+  const fallbackCountRef = useRef(0);
+  const pollingStartRef = useRef<number>(0);
 
-  // postId 변경 시 fallback 플래그 초기화
+  // postId 변경 시 초기화
   useEffect(() => {
-    fallbackCalledRef.current = false;
+    fallbackCountRef.current = 0;
+    pollingStartRef.current = Date.now();
   }, [postId]);
 
   const { data: postAnalysis, isLoading: analysisLoading } = useQuery({
@@ -36,6 +47,12 @@ export function usePostDetailAnalysis(postId: number) {
         const retryCount = (query.state.data as PostAnalysis | null | undefined)?.retry_count ?? 0;
         if (retryCount >= 3) return false;
       }
+
+      // 폴링 최대 시간 초과 시 강제 중단
+      if (Date.now() - pollingStartRef.current > MAX_POLLING_MS) {
+        return false;
+      }
+
       return status === 'pending' || status === 'analyzing' ? 5000 : false;
     },
   });
@@ -63,18 +80,20 @@ export function usePostDetailAnalysis(postId: number) {
     };
   }, [postId, queryClient]);
 
-  // On-demand 폴백: 10초 후 status가 여전히 pending/analyzing/failed이면 수동 분석 요청
+  // 단계적 on-demand fallback: 10초 → 20초
   useEffect(() => {
     if (postId <= 0) return;
 
-    let innerTimer: ReturnType<typeof setTimeout> | undefined;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-    const timer = setTimeout(async () => {
-      if (fallbackCalledRef.current) return;
+    const tryFallback = async (attempt: number) => {
+      // 이미 충분히 재시도했으면 스킵
+      if (attempt >= MAX_FALLBACK_RETRIES) return;
+
       const cached = queryClient.getQueryData<PostAnalysis | null>(['postAnalysis', postId]);
 
-      // status 기반: 아직 완료가 아닌 경우에만 폴백
-      // failed + retry_count >= 3이면 재시도 불필요
+      // 이미 완료됐으면 스킵
+      if (cached?.status === 'done') return;
       if (cached?.status === 'failed' && (cached.retry_count ?? 0) >= 3) return;
 
       const needsFallback =
@@ -84,37 +103,37 @@ export function usePostDetailAnalysis(postId: number) {
         cached.status === 'analyzing' ||
         cached.status === 'failed';
 
-      if (needsFallback) {
-        fallbackCalledRef.current = true;
-        const currentPost = queryClient.getQueryData<{ content?: string; title?: string }>([
-          'post',
-          postId,
-        ]);
-        if (currentPost?.content) {
-          const result = await api.invokeSmartService(
-            postId,
-            currentPost.content,
-            currentPost.title,
-          );
-          if (result.emotions.length > 0) {
-            queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
-          }
-        } else {
-          // content 없으면 postId만 전달 (on-demand가 DB에서 조회)
-          await api.invokeSmartService(postId, '');
-        }
-        // Realtime이 INSERT를 감지하여 자동 invalidate됨
-        // 만약 Realtime이 놓칠 경우를 대비해 3초 후 수동 refetch
-        innerTimer = setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
-        }, 3000);
-      }
-    }, 10000);
+      if (!needsFallback) return;
 
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(innerTimer);
+      fallbackCountRef.current = attempt + 1;
+
+      const currentPost = queryClient.getQueryData<{ content?: string; title?: string }>([
+        'post',
+        postId,
+      ]);
+
+      if (currentPost?.content) {
+        await api.invokeSmartService(postId, currentPost.content, currentPost.title);
+      } else {
+        // content 없으면 postId만 전달 (on-demand가 DB에서 조회)
+        await api.invokeSmartService(postId, '');
+      }
+
+      // Realtime이 INSERT를 감지하여 자동 invalidate됨
+      // 만약 Realtime이 놓칠 경우를 대비해 3초 후 수동 refetch
+      const innerTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
+      }, 3000);
+      timers.push(innerTimer);
     };
+
+    // 단계적 fallback 스케줄
+    FALLBACK_DELAYS.forEach((delay, i) => {
+      const timer = setTimeout(() => tryFallback(i), delay);
+      timers.push(timer);
+    });
+
+    return () => timers.forEach(clearTimeout);
   }, [postId, queryClient]);
 
   return { postAnalysis, analysisLoading };

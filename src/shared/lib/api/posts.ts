@@ -14,6 +14,22 @@ import type {
   SearchSort,
 } from '@/types';
 
+/** Supabase 에러에서 메시지 추출 (빈 message 방지) */
+function extractErrorMessage(error: {
+  message?: string;
+  code?: string;
+  details?: string;
+  hint?: string;
+}): string {
+  return (
+    error.message ||
+    error.code ||
+    (error.details ? `details: ${error.details}` : '') ||
+    (error.hint ? `hint: ${error.hint}` : '') ||
+    'unknown_supabase_error'
+  );
+}
+
 export async function getPosts(
   limit: number = 20,
   offset: number = 0,
@@ -33,12 +49,13 @@ export async function getPosts(
           .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error('[API] getPosts 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] getPosts 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
     });
-    throw new APIError(500, error.message);
+    throw new APIError(500, errorMsg);
   }
 
   const rows = (data || []) as unknown as (Post & {
@@ -90,12 +107,13 @@ export async function searchPosts(params: {
   });
 
   if (error) {
-    logger.error('[API] searchPosts 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] searchPosts 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
     });
-    throw new APIError(500, error.message);
+    throw new APIError(500, errorMsg);
   }
 
   return (data ?? []) as SearchResult[];
@@ -143,7 +161,8 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
   }
 
   if (error.code !== '42501') {
-    logger.error('[API] createPost 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] createPost 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
@@ -154,7 +173,8 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
   const { error: retryError } = await supabase.from('posts').insert([insertRow]);
 
   if (retryError) {
-    logger.error('[API] createPost 에러:', retryError.message, {
+    const retryErrorMsg = extractErrorMessage(retryError);
+    logger.error('[API] createPost 에러:', retryErrorMsg, {
       code: retryError.code,
       details: retryError.details,
       hint: retryError.hint,
@@ -177,7 +197,8 @@ export async function deletePost(id: number): Promise<void> {
   });
 
   if (error) {
-    logger.error('[API] deletePost 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] deletePost 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
@@ -203,12 +224,13 @@ export async function getPostsByEmotion(
   });
 
   if (error) {
-    logger.error('[API] getPostsByEmotion 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] getPostsByEmotion 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
     });
-    throw new APIError(500, error.message);
+    throw new APIError(500, errorMsg);
   }
 
   return (data ?? []) as Post[];
@@ -218,7 +240,8 @@ export async function updatePost(id: number, body: UpdatePostRequest): Promise<U
   const { data, error } = await supabase.from('posts').update(body).eq('id', id).select().single();
 
   if (error) {
-    logger.error('[API] updatePost 에러:', error.message, {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] updatePost 에러:', errorMsg, {
       code: error.code,
       details: error.details,
       hint: error.hint,
