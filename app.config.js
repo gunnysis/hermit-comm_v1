@@ -117,6 +117,8 @@ module.exports = ({ config }) => {
       },
       plugins: [
         'expo-router',
+        'expo-image',
+        'expo-font',
         [
           '@sentry/react-native',
           {
