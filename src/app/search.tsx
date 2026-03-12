@@ -109,12 +109,13 @@ export default function SearchScreen() {
   const { data: emotionPosts, isLoading: emotionLoading, error: emotionError } = emotionQuery;
 
   // 검색 성공 시 최근 검색어 저장
+  const firstPageLength = searchPages?.pages?.[0]?.length;
   useEffect(() => {
-    if (hasTextQuery && searchPages?.pages?.[0]?.length !== undefined) {
+    if (hasTextQuery && firstPageLength !== undefined) {
       addRecentSearch(trimmedQuery);
       setRecentSearches(getRecentSearches());
     }
-  }, [hasTextQuery, trimmedQuery, searchPages?.pages?.[0]?.length]);
+  }, [hasTextQuery, trimmedQuery, firstPageLength]);
 
   const searchResults = useMemo(() => searchPages?.pages.flat() ?? [], [searchPages]);
 

@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import { logger } from '@/shared/utils/logger';
 import { addBreadcrumb } from '@/shared/utils/sentryBreadcrumb';
 import { APIError } from './error';
+import { extractErrorMessage } from './helpers';
 import type {
   Comment,
   CreateCommentRequest,
@@ -24,7 +25,13 @@ export async function getComments(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    throw new APIError(500, error.message);
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] getComments 에러:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new APIError(500, errorMsg);
   }
 
   return (data || []) as Comment[];
@@ -60,7 +67,12 @@ export async function createComment(
     .single();
 
   if (error) {
-    logger.error('[API] createComment 에러:', error.message);
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] createComment 에러:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(
       error.code === '42501' ? 403 : 500,
       '댓글 생성에 실패했습니다.',
@@ -85,6 +97,12 @@ export async function updateComment(
     .single();
 
   if (error) {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] updateComment 에러:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(
       error.code === '42501' ? 403 : 500,
       '댓글 수정에 실패했습니다.',

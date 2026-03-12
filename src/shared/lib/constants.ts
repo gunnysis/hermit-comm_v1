@@ -1,14 +1,6 @@
 /** 공개 게시판 기본 ID. 자유게시판 (visibility='public', group_id=NULL) */
 export const DEFAULT_PUBLIC_BOARD_ID = 12;
 
-/** 입력 유효성 검사 상수 */
-export const VALIDATION = {
-  POST_TITLE_MAX: 100,
-  POST_CONTENT_MAX: 5000,
-  COMMENT_MAX: 1000,
-  AUTHOR_MAX: 50,
-} as const;
-
 /** 익명 별칭 형용사 목록 */
 export const ALIAS_ADJECTIVES = [
   '따뜻한',
@@ -54,5 +46,8 @@ export {
   SEARCH_CONFIG,
   ADMIN_CONSTANTS,
   CONFIRM_MESSAGES,
+  ANALYSIS_STATUS,
+  ANALYSIS_CONFIG,
+  VALIDATION,
 } from './constants.generated';
 export type { AllowedEmotion, ReactionColorKey } from './constants.generated';

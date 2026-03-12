@@ -2,16 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import { supabase } from '@/shared/lib/supabase';
+import { ANALYSIS_STATUS, ANALYSIS_CONFIG } from '@/shared/lib/constants';
 import type { PostAnalysis } from '@/types';
-
-/** 폴링 최대 시간 (2분). 이후 강제 중단. */
-const MAX_POLLING_MS = 2 * 60 * 1000;
-
-/** Fallback 최대 재시도 횟수 */
-const MAX_FALLBACK_RETRIES = 2;
-
-/** Fallback 지연 시간 (ms) — 10초, 20초 */
-const FALLBACK_DELAYS = [10_000, 20_000];
 
 /**
  * 게시글 감정 분석 쿼리 + Realtime 구독 + 상태 기반 폴링 + 단계적 on-demand fallback.
@@ -38,22 +30,24 @@ export function usePostDetailAnalysis(postId: number) {
     queryKey: ['postAnalysis', postId],
     queryFn: () => api.getPostAnalysis(postId),
     enabled: postId > 0,
-    staleTime: 5 * 60 * 1000,
-    // pending/analyzing 상태면 5초 간격 폴링 → done/failed 시 중단
+    staleTime: ANALYSIS_CONFIG.STALE_TIME_MS,
+    // pending/analyzing 상태면 폴링 → done/failed 시 중단
     refetchInterval: (query) => {
       const status = (query.state.data as PostAnalysis | null | undefined)?.status;
-      if (status === 'done') return false;
-      if (status === 'failed') {
+      if (status === ANALYSIS_STATUS.DONE) return false;
+      if (status === ANALYSIS_STATUS.FAILED) {
         const retryCount = (query.state.data as PostAnalysis | null | undefined)?.retry_count ?? 0;
-        if (retryCount >= 3) return false;
+        if (retryCount >= ANALYSIS_CONFIG.MAX_RETRY_COUNT) return false;
       }
 
       // 폴링 최대 시간 초과 시 강제 중단
-      if (Date.now() - pollingStartRef.current > MAX_POLLING_MS) {
+      if (Date.now() - pollingStartRef.current > ANALYSIS_CONFIG.MAX_POLLING_MS) {
         return false;
       }
 
-      return status === 'pending' || status === 'analyzing' ? 5000 : false;
+      return status === ANALYSIS_STATUS.PENDING || status === ANALYSIS_STATUS.ANALYZING
+        ? ANALYSIS_CONFIG.POLLING_INTERVAL_MS
+        : false;
     },
   });
 
@@ -88,20 +82,24 @@ export function usePostDetailAnalysis(postId: number) {
 
     const tryFallback = async (attempt: number) => {
       // 이미 충분히 재시도했으면 스킵
-      if (attempt >= MAX_FALLBACK_RETRIES) return;
+      if (attempt >= ANALYSIS_CONFIG.MAX_FALLBACK_RETRIES) return;
 
       const cached = queryClient.getQueryData<PostAnalysis | null>(['postAnalysis', postId]);
 
       // 이미 완료됐으면 스킵
-      if (cached?.status === 'done') return;
-      if (cached?.status === 'failed' && (cached.retry_count ?? 0) >= 3) return;
+      if (cached?.status === ANALYSIS_STATUS.DONE) return;
+      if (
+        cached?.status === ANALYSIS_STATUS.FAILED &&
+        (cached.retry_count ?? 0) >= ANALYSIS_CONFIG.MAX_RETRY_COUNT
+      )
+        return;
 
       const needsFallback =
         cached === null ||
         cached === undefined ||
-        cached.status === 'pending' ||
-        cached.status === 'analyzing' ||
-        cached.status === 'failed';
+        cached.status === ANALYSIS_STATUS.PENDING ||
+        cached.status === ANALYSIS_STATUS.ANALYZING ||
+        cached.status === ANALYSIS_STATUS.FAILED;
 
       if (!needsFallback) return;
 
@@ -120,15 +118,15 @@ export function usePostDetailAnalysis(postId: number) {
       }
 
       // Realtime이 INSERT를 감지하여 자동 invalidate됨
-      // 만약 Realtime이 놓칠 경우를 대비해 3초 후 수동 refetch
+      // 만약 Realtime이 놓칠 경우를 대비해 수동 refetch
       const innerTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
-      }, 3000);
+      }, ANALYSIS_CONFIG.INNER_REFETCH_DELAY_MS);
       timers.push(innerTimer);
     };
 
     // 단계적 fallback 스케줄
-    FALLBACK_DELAYS.forEach((delay, i) => {
+    ANALYSIS_CONFIG.FALLBACK_DELAYS.forEach((delay, i) => {
       const timer = setTimeout(() => tryFallback(i), delay);
       timers.push(timer);
     });

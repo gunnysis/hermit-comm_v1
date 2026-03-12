@@ -1,5 +1,7 @@
 import { supabase } from '../supabase';
+import { logger } from '@/shared/utils/logger';
 import { APIError } from './error';
+import { extractErrorMessage } from './helpers';
 import type { RecommendedPost } from '@/types';
 
 /**
@@ -17,6 +19,12 @@ export async function getRecommendedPosts(
   });
 
   if (error) {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[API] getRecommendedPosts 에러:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new APIError(500, '추천 게시글 조회에 실패했습니다.', error.code, error);
   }
 

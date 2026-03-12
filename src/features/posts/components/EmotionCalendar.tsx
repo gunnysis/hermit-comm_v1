@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, useColorScheme, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
-import { EMOTION_COLOR_MAP, EMOTION_EMOJI } from '@/shared/lib/constants';
+import { EMOTION_COLOR_MAP } from '@/shared/lib/constants';
 import type { EmotionCalendarDay } from '@/types';
 
 async function getUserEmotionCalendar(userId: string, days = 30): Promise<EmotionCalendarDay[]> {
