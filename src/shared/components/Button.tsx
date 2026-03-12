@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Pressable, Text, ActivityIndicator, Animated, useColorScheme } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { MOTION } from '@/shared/lib/constants';
 
 interface ButtonProps {
   title: string;
@@ -31,8 +32,7 @@ export function Button({
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, {
       toValue: 0.95,
-      friction: 8,
-      tension: 300,
+      ...MOTION.spring.button,
       useNativeDriver: true,
     }).start();
   }, [scaleAnim]);
@@ -40,8 +40,7 @@ export function Button({
   const handlePressOut = useCallback(() => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 4,
-      tension: 200,
+      ...MOTION.spring.release,
       useNativeDriver: true,
     }).start();
   }, [scaleAnim]);

@@ -48,7 +48,7 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
           className="text-5xl text-center mb-4">
           😢
         </Animated.Text>
-        <Text className="text-[15px] text-stone-600 dark:text-stone-300 text-center mb-6 font-medium leading-6">
+        <Text className="text-sm text-stone-600 dark:text-stone-300 text-center mb-6 font-medium leading-6">
           {message}
         </Text>
         {onRetry && (

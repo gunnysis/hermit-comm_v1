@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { View, Text, Pressable, Animated, useColorScheme, LayoutChangeEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { MOTION } from '@/shared/lib/constants';
 
 export type SortOrder = 'latest' | 'popular';
 
@@ -19,8 +20,7 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
     const target = value === 'latest' ? 0 : containerWidth.current / 2;
     Animated.spring(translateX, {
       toValue: target,
-      friction: 7,
-      tension: 180,
+      ...MOTION.spring.tab,
       useNativeDriver: true,
     }).start();
   }, [value, translateX]);
@@ -73,7 +73,7 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
         accessibilityRole="button"
         accessibilityState={{ selected: value === 'latest' }}>
         <Text
-          className={`text-center text-[13px] font-bold ${
+          className={`text-center text-xs font-bold ${
             value === 'latest' ? 'text-white' : isDark ? 'text-stone-400' : 'text-stone-500'
           }`}>
           최신순
@@ -86,7 +86,7 @@ export function SortTabs({ value, onChange }: SortTabsProps) {
         accessibilityRole="button"
         accessibilityState={{ selected: value === 'popular' }}>
         <Text
-          className={`text-center text-[13px] font-bold ${
+          className={`text-center text-xs font-bold ${
             value === 'popular' ? 'text-white' : isDark ? 'text-stone-400' : 'text-stone-500'
           }`}>
           인기순

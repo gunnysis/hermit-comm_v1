@@ -5,7 +5,7 @@ import { pushPost } from '@/shared/lib/navigation';
 import { Post } from '@/types';
 import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { getExcerpt } from '@/shared/utils/html';
-import { EMOTION_EMOJI, EMOTION_COLOR_MAP } from '@/shared/lib/constants';
+import { EMOTION_EMOJI, EMOTION_COLOR_MAP, MOTION } from '@/shared/lib/constants';
 
 interface PostCardProps {
   post: Post;
@@ -31,8 +31,7 @@ const PostCardComponent = ({ post }: PostCardProps) => {
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, {
       toValue: 0.975,
-      friction: 8,
-      tension: 200,
+      ...MOTION.spring.card,
       useNativeDriver: true,
     }).start();
   }, [scaleAnim]);
@@ -40,8 +39,7 @@ const PostCardComponent = ({ post }: PostCardProps) => {
   const handlePressOut = useCallback(() => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 4,
-      tension: 150,
+      ...MOTION.spring.cardAlt,
       useNativeDriver: true,
     }).start();
   }, [scaleAnim]);
@@ -128,13 +126,11 @@ const PostCardComponent = ({ post }: PostCardProps) => {
                         !emotionColors ? (isDark ? 'bg-stone-800/80' : 'bg-stone-50') : ''
                       }`}>
                       <Text
-                        style={
-                          emotionColors && !isDark
-                            ? { color: '#57534E' }
-                            : undefined
-                        }
+                        style={emotionColors && !isDark ? { color: '#57534E' } : undefined}
                         className={`text-xs font-medium ${
-                          !emotionColors ? 'text-stone-500 dark:text-stone-400' : 'dark:text-stone-300'
+                          !emotionColors
+                            ? 'text-stone-500 dark:text-stone-400'
+                            : 'dark:text-stone-300'
                         }`}>
                         {emoji} {emotion}
                       </Text>

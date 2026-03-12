@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useThemeColors } from '@/shared/hooks/useThemeColors';
+import { MOTION } from '@/shared/lib/constants';
 
 interface FloatingActionButtonProps {
   onPress: () => void;
@@ -27,8 +28,7 @@ export function FloatingActionButton({
   useEffect(() => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 5,
-      tension: 120,
+      ...MOTION.spring.fab,
       delay: 300,
       useNativeDriver: true,
     }).start();
@@ -37,8 +37,7 @@ export function FloatingActionButton({
   const handlePressIn = useCallback(() => {
     Animated.spring(pressScale, {
       toValue: 0.88,
-      friction: 8,
-      tension: 300,
+      ...MOTION.spring.button,
       useNativeDriver: true,
     }).start();
   }, [pressScale]);
