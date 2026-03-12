@@ -11,7 +11,6 @@ import type { CreatePostRequest } from '@/types';
 
 export interface UseCreatePostOptions {
   boardId: number | null;
-  groupId?: number | null;
   user?: { id: string } | null;
   anonMode?: AnonMode;
   /** 추가 게시글 데이터 반환 함수 (예: 이미지 URL) */
@@ -30,7 +29,6 @@ export interface UseCreatePostOptions {
  */
 export function useCreatePost({
   boardId,
-  groupId,
   user,
   anonMode = 'always_anon',
   getExtraPostData,
@@ -70,7 +68,6 @@ export function useCreatePost({
           anonMode,
           userId: user?.id ?? null,
           boardId,
-          groupId: groupId ?? null,
         });
 
         const extraData = getExtraPostData?.() ?? {};
@@ -78,23 +75,19 @@ export function useCreatePost({
           title: data.title.trim(),
           content: data.content.trim(),
           board_id: boardId,
-          group_id: groupId ?? undefined,
           is_anonymous: isAnonymous,
           display_name: displayName,
           ...extraData,
         });
 
         queryClient.invalidateQueries({ queryKey: ['boardPosts', boardId] });
-        if (groupId) {
-          queryClient.invalidateQueries({ queryKey: ['groupPosts', groupId, boardId] });
-        }
 
         await onSuccess?.(data);
       } catch (e) {
         onError?.(toFriendlyErrorMessage(e, '게시글 작성에 실패했습니다.'));
       }
     },
-    [boardId, groupId, user?.id, anonMode, getExtraPostData, queryClient, onSuccess, onError],
+    [boardId, user?.id, anonMode, getExtraPostData, queryClient, onSuccess, onError],
   );
 
   return {

@@ -149,26 +149,6 @@ export default function RootLayout() {
                 />
                 <Stack.Screen name="admin" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen
-                  name="groups/index"
-                  options={{ animation: 'slide_from_right', gestureEnabled: true }}
-                />
-                <Stack.Screen
-                  name="groups/[groupId]"
-                  options={{
-                    animation: 'ios_from_right',
-                    gestureEnabled: true,
-                    gestureDirection: 'horizontal',
-                  }}
-                />
-                <Stack.Screen
-                  name="groups/create"
-                  options={{
-                    presentation: 'modal',
-                    headerShown: false,
-                    animation: 'slide_from_bottom',
-                  }}
-                />
-                <Stack.Screen
                   name="search"
                   options={{ animation: 'fade', animationDuration: 200 }}
                 />

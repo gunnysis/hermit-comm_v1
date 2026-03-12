@@ -15,8 +15,7 @@ import { ScreenHeader } from '@/shared/components/ScreenHeader';
 import { api } from '@/shared/lib/api';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 import { usePostDetail } from '@/features/posts/hooks/usePostDetail';
-import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
-import { useBoards } from '@/features/community/hooks/useBoards';
+import { useBoards } from '@/features/boards/hooks/useBoards';
 import { validatePostTitle, validatePostContent } from '@/shared/utils/validate';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -41,22 +40,17 @@ export default function EditPostScreen() {
     refetch,
   } = usePostDetail(Number.isNaN(postId) ? null : postId);
 
-  const groupId = post?.group_id ?? null;
   const boardId = post?.board_id ?? null;
 
-  const { data: groupBoards } = useGroupBoards(groupId);
   const { data: publicBoards } = useBoards();
 
   const board = useMemo(() => {
     if (!boardId) return null;
-    if (groupId && groupBoards) {
-      return groupBoards.find((b) => b.id === boardId) ?? null;
-    }
     if (publicBoards) {
       return publicBoards.find((b) => b.id === boardId) ?? null;
     }
     return null;
-  }, [boardId, groupId, groupBoards, publicBoards]);
+  }, [boardId, publicBoards]);
 
   const anonMode = board?.anon_mode ?? 'always_anon';
 
@@ -94,9 +88,6 @@ export default function EditPostScreen() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      if (groupId) {
-        queryClient.invalidateQueries({ queryKey: ['groupPosts', groupId] });
-      }
       if (boardId) {
         queryClient.invalidateQueries({ queryKey: ['boardPosts', boardId] });
       }
@@ -141,7 +132,7 @@ export default function EditPostScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 48 : insets.top}>
         <ScreenHeader
           title="게시글 수정"
-          subtitle={board?.name ?? (groupId ? '그룹 게시판' : '공개 게시판')}
+          subtitle={board?.name ?? '공개 게시판'}
           showBack
           backLabel="← 취소"
         />

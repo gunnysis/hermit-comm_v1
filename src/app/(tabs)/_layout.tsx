@@ -61,18 +61,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="groups"
-        options={{
-          title: '그룹',
-          tabBarLabel: '그룹',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? { transform: [{ scale: 1.1 }] } : undefined}>
-              <Ionicons name={focused ? 'people' : 'people-outline'} size={23} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="search"
         options={{
           title: '검색',

@@ -1,4 +1,4 @@
-/** 공개 게시판 기본 ID. 자유게시판 (visibility='public', group_id=NULL) */
+/** 공개 게시판 기본 ID. 자유게시판 (visibility='public') */
 export const DEFAULT_PUBLIC_BOARD_ID = 12;
 
 /** 익명 별칭 형용사 목록 */
@@ -45,7 +45,6 @@ export {
   SEARCH_HIGHLIGHT,
   SEARCH_CONFIG,
   ADMIN_CONSTANTS,
-  CONFIRM_MESSAGES,
   ANALYSIS_STATUS,
   ANALYSIS_CONFIG,
   VALIDATION,

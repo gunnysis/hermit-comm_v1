@@ -15,7 +15,3 @@ export const pushPost = (router: Router, postId: number | string) =>
 export const pushCreate = (router: Router) => nav(router, 'push', '/create');
 export const pushSearch = (router: Router) => nav(router, 'push', '/search');
 export const pushTabs = (router: Router) => nav(router, 'push', '/(tabs)');
-export const pushGroup = (router: Router, groupId: string | number) =>
-  nav(router, 'push', `/groups/${groupId}`);
-export const pushGroupCreate = (router: Router, groupId: string | number, boardId: number) =>
-  nav(router, 'push', `/groups/create?groupId=${groupId}&boardId=${boardId}`);

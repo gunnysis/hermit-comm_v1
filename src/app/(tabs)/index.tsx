@@ -16,7 +16,7 @@ import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
 import { PostList } from '@/features/posts/components/PostList';
 import { EmotionTrend } from '@/features/posts/components/EmotionTrend';
 import { TrendingPosts } from '@/features/posts/components/TrendingPosts';
-import { useBoardPosts } from '@/features/community/hooks/useBoardPosts';
+import { useBoardPosts } from '@/features/boards/hooks/useBoardPosts';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';

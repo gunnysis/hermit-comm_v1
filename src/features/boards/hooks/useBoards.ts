@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getBoards } from '../api/communityApi';
+import { getBoards } from '../api/boardsApi';
 import type { Board } from '@/types';
 
 export function useBoards() {

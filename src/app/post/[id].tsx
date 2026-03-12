@@ -21,8 +21,7 @@ import { usePostDetailReactions } from '@/features/posts/hooks/usePostDetailReac
 import { useRecommendedPosts } from '@/features/posts/hooks/useRecommendedPosts';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useGroupBoards } from '@/features/community/hooks/useGroupBoards';
-import { useBoards } from '@/features/community/hooks/useBoards';
+import { useBoards } from '@/features/boards/hooks/useBoards';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { api } from '@/shared/lib/api';
@@ -46,22 +45,17 @@ export default function PostDetailScreen() {
     refetch: refetchPost,
   } = usePostDetail(postId);
 
-  const groupId = post?.group_id ?? null;
   const boardId = post?.board_id ?? null;
 
-  const { data: groupBoards } = useGroupBoards(groupId);
   const { data: publicBoards } = useBoards();
 
   const board = useMemo(() => {
     if (!boardId) return null;
-    if (groupId && groupBoards) {
-      return groupBoards.find((b) => b.id === boardId) ?? null;
-    }
     if (publicBoards) {
       return publicBoards.find((b) => b.id === boardId) ?? null;
     }
     return null;
-  }, [boardId, groupId, groupBoards, publicBoards]);
+  }, [boardId, publicBoards]);
 
   const anonMode = board?.anon_mode ?? 'always_anon';
 
@@ -130,14 +124,6 @@ export default function PostDetailScreen() {
         onPress: async () => {
           try {
             await api.deletePost(Number(id));
-            if (post?.group_id && post?.board_id) {
-              queryClient.invalidateQueries({
-                queryKey: ['groupPosts', post.group_id, post.board_id],
-              });
-              queryClient.invalidateQueries({
-                queryKey: ['groupPosts', post.group_id],
-              });
-            }
             if (post?.board_id) {
               queryClient.invalidateQueries({
                 queryKey: ['boardPosts', post.board_id],

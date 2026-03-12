@@ -8,7 +8,6 @@ export interface ResolveDisplayNameParams {
   rawAuthorName?: string | null;
   userId?: string | null;
   boardId?: number | null;
-  groupId?: number | null;
   /** 사용자가 "닉네임을 공개"하도록 선택했는지 여부 (allow_choice에서 사용) */
   wantNameOverride?: boolean;
 }
@@ -36,15 +35,10 @@ export function generateAlias(seed: string | null | undefined): string {
 }
 
 export function resolveDisplayName(params: ResolveDisplayNameParams): ResolveDisplayNameResult {
-  const { anonMode, rawAuthorName, wantNameOverride, userId, boardId, groupId } = params;
+  const { anonMode, rawAuthorName, wantNameOverride, userId, boardId } = params;
   const trimmedName = rawAuthorName?.trim();
 
-  const seed =
-    userId && groupId != null
-      ? `${userId}:group:${groupId}`
-      : userId && boardId != null
-        ? `${userId}:board:${boardId}`
-        : userId || null;
+  const seed = userId && boardId != null ? `${userId}:board:${boardId}` : userId || null;
 
   // helper
   const anonymous = (): ResolveDisplayNameResult => ({

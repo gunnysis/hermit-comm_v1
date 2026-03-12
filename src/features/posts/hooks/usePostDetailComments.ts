@@ -42,10 +42,7 @@ export function usePostDetailComments({
   const invalidateListQueries = useCallback(() => {
     if (!post?.board_id) return;
     queryClient.invalidateQueries({ queryKey: ['boardPosts', post.board_id] });
-    if (post.group_id) {
-      queryClient.invalidateQueries({ queryKey: ['groupPosts', post.group_id, post.board_id] });
-    }
-  }, [post?.board_id, post?.group_id, queryClient]);
+  }, [post?.board_id, queryClient]);
 
   useRealtimeComments({
     postId,
@@ -82,13 +79,11 @@ export function usePostDetailComments({
           anonMode,
           userId: user?.id ?? null,
           boardId: post?.board_id ?? null,
-          groupId: post?.group_id ?? null,
         });
 
         await api.createComment(postId, {
           content: commentContent.trim(),
           board_id: post?.board_id,
-          group_id: post?.group_id,
           is_anonymous: isAnonymous,
           display_name: displayName,
         });
@@ -110,7 +105,6 @@ export function usePostDetailComments({
       commentContent,
       user?.id,
       post?.board_id,
-      post?.group_id,
       anonMode,
       postId,
       refetchComments,

@@ -13,7 +13,7 @@ import { Button } from '@/shared/components/Button';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
 import { useDraft } from '@/features/posts/hooks/useDraft';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
-import { useBoards } from '@/features/community/hooks/useBoards';
+import { useBoards } from '@/features/boards/hooks/useBoards';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DEFAULT_PUBLIC_BOARD_ID } from '@/shared/lib/constants';
 import { pushTabs } from '@/shared/lib/navigation';

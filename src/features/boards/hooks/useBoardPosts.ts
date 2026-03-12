@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import type { BoardSortOrder } from '../api/communityApi';
-import { getBoardPosts } from '../api/communityApi';
+import type { BoardSortOrder } from '../api/boardsApi';
+import { getBoardPosts } from '../api/boardsApi';
 import type { Post } from '@/types';
 
 const PAGE_SIZE = 20;
