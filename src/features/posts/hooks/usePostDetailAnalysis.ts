@@ -70,7 +70,7 @@ export function usePostDetailAnalysis(postId: number) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel).catch(() => {});
     };
   }, [postId, queryClient]);
 
