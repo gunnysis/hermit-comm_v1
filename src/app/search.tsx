@@ -197,43 +197,46 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {/* 감정 필터 칩 */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="border-b border-cream-200 dark:border-stone-700"
-          contentContainerClassName="px-3 py-2 gap-1.5"
-          contentContainerStyle={{ alignItems: 'center' }}>
-          {ALLOWED_EMOTIONS.map((emotion) => {
-            const isActive = selectedEmotion === emotion;
-            const emoji = EMOTION_EMOJI[emotion] ?? '';
-            const colors = EMOTION_COLOR_MAP[emotion];
-            const gradientBg = colors?.gradient[0];
+        {/* 감정 필터 칩 — 검색/감정 필터 활성 시에만 표시 */}
+        {hasActiveFilter && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="border-b border-cream-200 dark:border-stone-700"
+            contentContainerClassName="px-3 py-2 gap-1.5"
+            contentContainerStyle={{ alignItems: 'center' }}
+            style={{ flexGrow: 0, flexShrink: 0 }}>
+            {ALLOWED_EMOTIONS.map((emotion) => {
+              const isActive = selectedEmotion === emotion;
+              const emoji = EMOTION_EMOJI[emotion] ?? '';
+              const colors = EMOTION_COLOR_MAP[emotion];
+              const gradientBg = colors?.gradient[0];
 
-            return (
-              <Pressable
-                key={emotion}
-                onPress={() => handleEmotionPress(emotion)}
-                style={isActive && gradientBg ? { backgroundColor: gradientBg } : undefined}
-                className={`rounded-full px-3 py-1.5 active:opacity-80 ${
-                  isActive
-                    ? 'border border-stone-300 dark:border-stone-500'
-                    : 'bg-stone-100 dark:bg-stone-800'
-                }`}
-                accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
-                accessibilityRole="button">
-                <Text
-                  className={`text-xs ${
+              return (
+                <Pressable
+                  key={emotion}
+                  onPress={() => handleEmotionPress(emotion)}
+                  style={isActive && gradientBg ? { backgroundColor: gradientBg } : undefined}
+                  className={`rounded-full px-3 py-1.5 active:opacity-80 ${
                     isActive
-                      ? 'font-semibold text-stone-800 dark:text-stone-100'
-                      : 'text-stone-600 dark:text-stone-300'
-                  }`}>
-                  {emoji} {emotion}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+                      ? 'border border-stone-300 dark:border-stone-500'
+                      : 'bg-stone-100 dark:bg-stone-800'
+                  }`}
+                  accessibilityLabel={`${emotion} 필터${isActive ? ' (선택됨)' : ''}`}
+                  accessibilityRole="button">
+                  <Text
+                    className={`text-xs ${
+                      isActive
+                        ? 'font-semibold text-stone-800 dark:text-stone-100'
+                        : 'text-stone-600 dark:text-stone-300'
+                    }`}>
+                    {emoji} {emotion}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
 
         {/* 정렬 + 필터 상태 바 */}
         {hasActiveFilter && (
