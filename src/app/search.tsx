@@ -379,7 +379,7 @@ export default function SearchScreen() {
 
         {/* 에러 상태 */}
         {!showInitial && error && !isLoading && (
-          <View className="items-center justify-center py-16 px-4">
+          <View className="items-center justify-center py-8 px-4">
             <Text className="text-base font-semibold text-gray-700 dark:text-stone-200 mb-1">
               검색 중 문제가 발생했어요
             </Text>
