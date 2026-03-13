@@ -13,6 +13,7 @@ import {
   EMOTION_COLOR_MAP,
   EMPTY_STATE_MESSAGES,
   SEARCH_CONFIG,
+  SEARCH_SORT_OPTIONS,
 } from '@/shared/lib/constants';
 import {
   getRecentSearches,
@@ -26,13 +27,7 @@ import { SearchResultList } from '@/features/search/components/SearchResultList'
 import { EmotionPostList } from '@/features/search/components/EmotionPostList';
 import type { SearchSort, Post } from '@/types';
 
-// --- 정렬 옵션 ---
-
-const SORT_OPTIONS: { value: SearchSort; label: string }[] = [
-  { value: 'relevance', label: '관련도순' },
-  { value: 'recent', label: '최신순' },
-  { value: 'popular', label: '인기순' },
-];
+// --- 정렬 옵션 (중앙 상수 사용) ---
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -103,7 +98,7 @@ export default function SearchScreen() {
   // --- 감정 전용 (텍스트 없을 때) ---
   const emotionQuery = useQuery({
     queryKey: ['postsByEmotion', selectedEmotion],
-    queryFn: () => api.getPostsByEmotion(selectedEmotion, 50, 0),
+    queryFn: () => api.getPostsByEmotion(selectedEmotion, SEARCH_CONFIG.EMOTION_ONLY_LIMIT, 0),
     enabled: selectedEmotion.length > 0 && !hasTextQuery,
   });
   const { data: emotionPosts, isLoading: emotionLoading, error: emotionError } = emotionQuery;
@@ -246,7 +241,7 @@ export default function SearchScreen() {
             {/* 정렬 토글 (텍스트 검색 시에만) */}
             {isSearchMode && (
               <View className="flex-row gap-1.5 mb-2">
-                {SORT_OPTIONS.map((opt) => (
+                {SEARCH_SORT_OPTIONS.map((opt) => (
                   <Pressable
                     key={opt.value}
                     onPress={() => setSort(opt.value)}
@@ -300,9 +295,9 @@ export default function SearchScreen() {
               {selectedEmotion && (
                 <Pressable
                   onPress={() => setSelectedEmotion('')}
-                  className="px-2 py-1 rounded-full bg-stone-200 dark:bg-stone-700 active:opacity-70"
+                  className="p-1.5 rounded-full bg-stone-200 dark:bg-stone-700 active:opacity-70"
                   accessibilityLabel="감정 필터 해제">
-                  <Text className="text-xs text-stone-600 dark:text-stone-300">필터 해제</Text>
+                  <Ionicons name="close" size={12} color={isDark ? '#D6D3D1' : '#57534E'} />
                 </Pressable>
               )}
             </View>
@@ -365,10 +360,10 @@ export default function SearchScreen() {
                     <Pressable
                       key={emotion}
                       onPress={() => handleEmotionPress(emotion)}
-                      className="rounded-xl bg-stone-50 dark:bg-stone-800 px-3 py-2 active:opacity-70 border border-stone-100 dark:border-stone-700"
+                      className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 active:opacity-70 border border-stone-200 dark:border-stone-700"
                       accessibilityLabel={`${emotion} 감정 검색`}
                       accessibilityRole="button">
-                      <Text className="text-sm text-stone-600 dark:text-stone-300">
+                      <Text className="text-xs text-stone-600 dark:text-stone-300">
                         {emoji} {emotion}
                       </Text>
                     </Pressable>
@@ -402,15 +397,17 @@ export default function SearchScreen() {
             icon="🔍"
             title={
               selectedEmotion && !hasTextQuery
-                ? `'${selectedEmotion}' 감정의 글이 없어요`
+                ? EMPTY_STATE_MESSAGES.search_emotion.title
                 : selectedEmotion && hasTextQuery
                   ? `'${trimmedQuery}' + ${selectedEmotion} 결과가 없어요`
                   : EMPTY_STATE_MESSAGES.search.title
             }
             description={
-              selectedEmotion
-                ? '다른 감정이나 검색어를 시도해보세요.'
-                : EMPTY_STATE_MESSAGES.search.description
+              selectedEmotion && !hasTextQuery
+                ? EMPTY_STATE_MESSAGES.search_emotion.description
+                : selectedEmotion
+                  ? '다른 감정이나 검색어를 시도해보세요.'
+                  : EMPTY_STATE_MESSAGES.search.description
             }
           />
         )}

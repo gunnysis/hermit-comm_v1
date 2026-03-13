@@ -15,6 +15,7 @@ import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
 import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
 import { PostList } from '@/features/posts/components/PostList';
 import { EmotionTrend } from '@/features/posts/components/EmotionTrend';
+import { EmotionFilterBar } from '@/features/posts/components/EmotionFilterBar';
 import { TrendingPosts } from '@/features/posts/components/TrendingPosts';
 import { useBoardPosts } from '@/features/boards/hooks/useBoardPosts';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
@@ -122,8 +123,13 @@ export default function HomeScreen() {
             selectedEmotion={emotionFilter}
             onEmotionSelect={handleEmotionSelect}
           />
-          {!emotionFilter && <TrendingPosts />}
         </View>
+        <EmotionFilterBar selected={emotionFilter} onSelect={handleEmotionSelect} />
+        {!emotionFilter && (
+          <View className="px-4">
+            <TrendingPosts />
+          </View>
+        )}
       </View>
     ),
     [emotionFilter, handleEmotionSelect],
