@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { EMOTION_EMOJI } from '@/shared/lib/constants';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { EMOTION_EMOJI, ANALYSIS_CONFIG } from '@/shared/lib/constants';
 import type { AnalysisStatus } from '@/types';
 
 interface EmotionTagsProps {
@@ -17,6 +17,10 @@ interface EmotionTagsProps {
   analysisStatus?: AnalysisStatus;
   /** 재시도 횟수 */
   retryCount?: number;
+  /** 재시도 중 여부 */
+  isRetrying?: boolean;
+  /** 분석 실패 사유 */
+  errorReason?: string | null;
 }
 
 /** 분석 완료 전 스켈레톤 2~3개 */
@@ -34,9 +38,6 @@ function EmotionTagsSkeleton() {
   );
 }
 
-/** 최대 재시도 횟수 */
-const MAX_RETRY_COUNT = 3;
-
 export function EmotionTags({
   emotions,
   isLoading,
@@ -46,7 +47,10 @@ export function EmotionTags({
   analysisDone,
   analysisStatus,
   retryCount = 0,
+  isRetrying = false,
+  errorReason,
 }: EmotionTagsProps) {
+  const MAX_RETRY_COUNT = ANALYSIS_CONFIG.MAX_RETRY_COUNT;
   // 1. 로딩 / pending / analyzing → 스켈레톤
   if (isLoading || analysisStatus === 'pending' || analysisStatus === 'analyzing') {
     return (
@@ -68,10 +72,14 @@ export function EmotionTags({
         </Text>
         <Pressable
           onPress={onRetry}
-          className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 self-start active:opacity-70"
+          disabled={isRetrying}
+          className="flex-row items-center gap-1.5 rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 self-start active:opacity-70"
           accessibilityLabel="감정 분석 재시도"
           accessibilityRole="button">
-          <Text className="text-sm text-stone-600 dark:text-stone-300">다시 시도하기</Text>
+          {isRetrying && <ActivityIndicator size="small" color="#78716c" />}
+          <Text className="text-sm text-stone-600 dark:text-stone-300">
+            {isRetrying ? '분석 중...' : '다시 시도하기'}
+          </Text>
         </Pressable>
       </View>
     );
@@ -128,8 +136,19 @@ export function EmotionTags({
     );
   }
 
-  // 5. (레거시 호환) analysisStatus 없이 analysisDone 기반 재시도
-  if (analysisDone && !emotions?.length && onRetry) {
+  // 5. done + 감정 없음 + content_too_short → 재시도 불가 (글이 너무 짧음)
+  if (analysisStatus === 'done' && !emotions?.length && errorReason === 'content_too_short') {
+    return (
+      <View className={`mb-4 ${className}`.trim()}>
+        <Text className="text-sm text-stone-400 dark:text-stone-500">
+          글이 짧아 감정을 분석하지 못했어요
+        </Text>
+      </View>
+    );
+  }
+
+  // 6. (레거시 호환) analysisDone이지만 감정 없음 — done 상태면 재시도 불필요
+  if (analysisDone && !emotions?.length && onRetry && analysisStatus !== 'done') {
     return (
       <View className={`mb-4 ${className}`.trim()}>
         <Text className="text-sm text-stone-500 dark:text-stone-400 mb-2">
@@ -137,15 +156,23 @@ export function EmotionTags({
         </Text>
         <Pressable
           onPress={onRetry}
-          className="rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 self-start active:opacity-70"
+          disabled={isRetrying}
+          className="flex-row items-center gap-1.5 rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1.5 self-start active:opacity-70"
           accessibilityLabel="감정 분석 재시도"
           accessibilityRole="button">
-          <Text className="text-sm text-stone-600 dark:text-stone-300">다시 시도하기</Text>
+          {isRetrying && <ActivityIndicator size="small" color="#78716c" />}
+          <Text className="text-sm text-stone-600 dark:text-stone-300">
+            {isRetrying ? '분석 중...' : '다시 시도하기'}
+          </Text>
         </Pressable>
       </View>
     );
   }
 
-  // 6. done이지만 감정 없음 (글이 너무 짧은 경우 등)
+  // 7. done이지만 감정 없음 (기타 사유)
+  if (analysisStatus === 'done' && !emotions?.length) {
+    return null;
+  }
+
   return null;
 }

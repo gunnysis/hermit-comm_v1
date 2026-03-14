@@ -10,7 +10,12 @@ import type { Post, Reaction, RecommendedPost, AnalysisStatus } from '@/types';
 interface PostDetailBodyProps {
   post: Post;
   postAnalysis:
-    | { emotions: string[]; status?: AnalysisStatus; retry_count?: number }
+    | {
+        emotions: string[];
+        status?: AnalysisStatus;
+        retry_count?: number;
+        error_reason?: string | null;
+      }
     | undefined
     | null;
   analysisLoading: boolean;
@@ -24,6 +29,8 @@ interface PostDetailBodyProps {
   onEmotionPress?: (emotion: string) => void;
   /** 분석 재시도 콜백 */
   onRetryAnalysis?: () => void;
+  /** 재시도 중 여부 */
+  isRetryingAnalysis?: boolean;
 }
 
 export function PostDetailBody({
@@ -38,6 +45,7 @@ export function PostDetailBody({
   recommendedPostsLoading = false,
   onEmotionPress,
   onRetryAnalysis,
+  isRetryingAnalysis = false,
 }: PostDetailBodyProps) {
   const isAnalysisDone = !analysisLoading && postAnalysis !== undefined;
 
@@ -68,6 +76,8 @@ export function PostDetailBody({
           analysisDone={isAnalysisDone}
           analysisStatus={postAnalysis?.status}
           retryCount={postAnalysis?.retry_count}
+          isRetrying={isRetryingAnalysis}
+          errorReason={postAnalysis?.error_reason}
         />
         <View
           className="border-t border-cream-200 dark:border-stone-700 pt-3"

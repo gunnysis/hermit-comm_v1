@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,6 +25,7 @@ import { useBoards } from '@/features/boards/hooks/useBoards';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { api } from '@/shared/lib/api';
+import { ANALYSIS_CONFIG } from '@/shared/lib/constants';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 
 const postIdNum = (id: string) => Number(id);
@@ -70,19 +71,31 @@ export default function PostDetailScreen() {
     [router],
   );
 
+  const [isRetryingAnalysis, setIsRetryingAnalysis] = useState(false);
+
   const handleRetryAnalysis = useCallback(async () => {
-    if (!post?.content) return;
-    if ((postAnalysis?.retry_count ?? 0) >= 3) {
+    if (!post?.content || isRetryingAnalysis) return;
+    if ((postAnalysis?.retry_count ?? 0) >= ANALYSIS_CONFIG.MAX_RETRY_COUNT) {
       Toast.show({ type: 'info', text1: '더 이상 재시도할 수 없습니다.' });
       return;
     }
+    setIsRetryingAnalysis(true);
     try {
-      await api.invokeSmartService(postId, post.content, post.title);
+      const result = await api.invokeSmartService(postId, post.content, post.title);
+      if (result.error) {
+        Toast.show({
+          type: 'error',
+          text1: '분석에 실패했어요',
+          text2: result.retryable ? '잠시 후 다시 시도해주세요' : undefined,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['postAnalysis', postId] });
     } catch {
       Toast.show({ type: 'error', text1: '분석 요청에 실패했습니다.' });
+    } finally {
+      setIsRetryingAnalysis(false);
     }
-  }, [post, postId, postAnalysis, queryClient]);
+  }, [post, postId, postAnalysis, queryClient, isRetryingAnalysis]);
   const { data: recommendedPosts = [], isLoading: recommendedPostsLoading } =
     useRecommendedPosts(postId);
   const {
@@ -237,6 +250,7 @@ export default function PostDetailScreen() {
             recommendedPostsLoading={recommendedPostsLoading}
             onEmotionPress={handleEmotionPress}
             onRetryAnalysis={handleRetryAnalysis}
+            isRetryingAnalysis={isRetryingAnalysis}
           />
 
           <PostDetailCommentList
