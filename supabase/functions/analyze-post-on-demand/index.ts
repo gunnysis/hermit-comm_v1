@@ -16,6 +16,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // JWT 검증: 인증된 사용자만 호출 가능
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ ok: false, reason: 'unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { createClient: createAuthClient } =
+      await import('https://esm.sh/@supabase/supabase-js@2');
+    const authSupabase = createAuthClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { authorization: authHeader } } },
+    );
+    const {
+      data: { user },
+      error: authError,
+    } = await authSupabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ ok: false, reason: 'invalid_jwt' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = (await req.json()) as {
       postId?: number;
       content?: string;

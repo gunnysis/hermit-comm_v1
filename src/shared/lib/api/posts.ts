@@ -155,7 +155,11 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
     throw new APIError(500, '게시글 생성에 실패했습니다.', error.code, error);
   }
 
-  const { error: retryError } = await supabase.from('posts').insert([insertRow]);
+  const { data: retryData, error: retryError } = await supabase
+    .from('posts')
+    .insert([insertRow])
+    .select()
+    .single();
 
   if (retryError) {
     const retryErrorMsg = extractErrorMessage(retryError);
@@ -173,7 +177,7 @@ export async function createPost(postData: CreatePostRequest): Promise<CreatePos
   }
 
   addBreadcrumb('post', '게시글 작성 성공', { board_id: postData.board_id });
-  return { ...insertRow, id: 0, created_at: new Date().toISOString() } as unknown as Post;
+  return retryData as Post;
 }
 
 export async function deletePost(id: number): Promise<void> {

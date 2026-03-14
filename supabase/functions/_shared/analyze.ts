@@ -257,6 +257,7 @@ export async function analyzeAndSave(params: {
         emotions: [],
         analyzed_at: new Date().toISOString(),
         error_reason: 'content_too_short',
+        retry_count: 0,
       },
       { onConflict: 'post_id' },
     );
@@ -271,21 +272,9 @@ export async function analyzeAndSave(params: {
       .eq('post_id', postId)
       .maybeSingle();
 
-    if (existing?.analyzed_at) {
+    if (existing?.analyzed_at && existing.status === 'done') {
       const diffMs = Date.now() - new Date(existing.analyzed_at).getTime();
       if (diffMs < COOLDOWN_MS) {
-        // 이전 상태가 done이 아니면 done으로 갱신 (stuck 방지)
-        if (existing.status !== 'done') {
-          await supabase.from('post_analysis').upsert(
-            {
-              post_id: postId,
-              status: 'done',
-              emotions: existing.emotions ?? [],
-              analyzed_at: existing.analyzed_at,
-            },
-            { onConflict: 'post_id' },
-          );
-        }
         return { ok: true, skipped: 'cooldown_60s' };
       }
     }
