@@ -33,7 +33,7 @@ const EXPO_PROJECT_ID = 'bc4199dd-30ad-42bb-ba1c-4e6fce0eecdd';
 //    · Claude에게 배포 요청하면 NATIVE_VERSION·BUILD_NUMBER 증가 + EAS 빌드를 자동 수행.
 //    · 수동으로 버전을 올릴 필요 없음.
 // ─────────────────────────────────────────────────────────────────────────────
-const NATIVE_VERSION = '1.7.0';
+const NATIVE_VERSION = '2.0.0';
 const BUILD_NUMBER = 1; // production은 EAS autoIncrement 로 자동 관리
 
 module.exports = ({ config }) => {
