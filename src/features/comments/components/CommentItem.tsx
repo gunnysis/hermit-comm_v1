@@ -9,10 +9,19 @@ interface CommentItemProps {
   comment: Comment;
   onDelete?: (id: number) => void;
   onEdit?: (id: number, content: string) => void;
+  onReply?: (parentId: number) => void;
   canEdit?: boolean;
+  isReply?: boolean;
 }
 
-const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentItemProps) => {
+const CommentItemComponent = ({
+  comment,
+  onDelete,
+  onEdit,
+  onReply,
+  canEdit,
+  isReply,
+}: CommentItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [saving, setSaving] = useState(false);
@@ -41,7 +50,8 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
   };
 
   return (
-    <View className="bg-cream-50 dark:bg-stone-800 rounded-2xl p-4 mb-3 border border-cream-200 dark:border-stone-700">
+    <View
+      className={`bg-cream-50 dark:bg-stone-800 rounded-2xl p-4 mb-3 border border-cream-200 dark:border-stone-700 ${isReply ? 'ml-8' : ''}`}>
       <View className="flex-row justify-between items-center mb-2">
         <View className="bg-mint-100 dark:bg-mint-900/40 px-3 py-1 rounded-full">
           <Text className="text-sm font-semibold text-mint-700 dark:text-mint-300">
@@ -81,32 +91,39 @@ const CommentItemComponent = ({ comment, onDelete, onEdit, canEdit }: CommentIte
           <Text className="text-base text-gray-700 dark:text-stone-200 leading-6">
             {comment.content}
           </Text>
-          {canEdit && (onEdit || onDelete) && (
-            <View className="flex-row gap-3 mt-3 self-end">
-              {onEdit && (
-                <Pressable
-                  onPress={() => setIsEditing(true)}
-                  className="active:opacity-70"
-                  accessibilityLabel="댓글 수정"
-                  accessibilityHint="이 댓글을 수정합니다"
-                  accessibilityRole="button">
-                  <Text className="text-sm text-happy-700 dark:text-happy-400 font-semibold">
-                    수정
-                  </Text>
-                </Pressable>
-              )}
-              {onDelete && (
-                <Pressable
-                  onPress={() => onDelete(comment.id)}
-                  className="active:opacity-70"
-                  accessibilityLabel="댓글 삭제"
-                  accessibilityHint="이 댓글을 삭제합니다"
-                  accessibilityRole="button">
-                  <Text className="text-sm text-coral-500 font-semibold">삭제</Text>
-                </Pressable>
-              )}
-            </View>
-          )}
+          <View className="flex-row gap-3 mt-3 self-end items-center">
+            {onReply && !isReply && (
+              <Pressable
+                onPress={() => onReply(comment.id)}
+                className="active:opacity-70"
+                accessibilityLabel="답글 달기"
+                accessibilityRole="button">
+                <Text className="text-sm text-gray-500 dark:text-stone-400">답글</Text>
+              </Pressable>
+            )}
+            {canEdit && onEdit && (
+              <Pressable
+                onPress={() => setIsEditing(true)}
+                className="active:opacity-70"
+                accessibilityLabel="댓글 수정"
+                accessibilityHint="이 댓글을 수정합니다"
+                accessibilityRole="button">
+                <Text className="text-sm text-happy-700 dark:text-happy-400 font-semibold">
+                  수정
+                </Text>
+              </Pressable>
+            )}
+            {canEdit && onDelete && (
+              <Pressable
+                onPress={() => onDelete(comment.id)}
+                className="active:opacity-70"
+                accessibilityLabel="댓글 삭제"
+                accessibilityHint="이 댓글을 삭제합니다"
+                accessibilityRole="button">
+                <Text className="text-sm text-coral-500 font-semibold">삭제</Text>
+              </Pressable>
+            )}
+          </View>
         </>
       )}
     </View>

@@ -49,5 +49,8 @@ export {
   ANALYSIS_STATUS,
   ANALYSIS_CONFIG,
   VALIDATION,
+  ACTIVITY_PRESETS,
+  DAILY_CONFIG,
+  DAILY_INSIGHTS_CONFIG,
 } from './constants.generated';
 export type { AllowedEmotion, ReactionColorKey } from './constants.generated';

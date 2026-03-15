@@ -40,6 +40,7 @@ export async function getComments(
 export async function createComment(
   postId: number,
   commentData: CreateCommentRequest,
+  parentId?: number,
 ): Promise<CreateCommentResponse> {
   const {
     data: { user },
@@ -61,6 +62,7 @@ export async function createComment(
         display_name: displayName,
         post_id: postId,
         author_id: user.id,
+        parent_id: parentId ?? null,
       },
     ])
     .select()

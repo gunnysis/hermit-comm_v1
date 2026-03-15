@@ -9,6 +9,7 @@ interface PostDetailCommentListProps {
   commentsLoading: boolean;
   onDelete: (id: number) => void;
   onEdit: (id: number, content: string) => Promise<void>;
+  onReply?: (parentId: number) => void;
   currentUserId?: string;
 }
 
@@ -17,6 +18,7 @@ export function PostDetailCommentList({
   commentsLoading,
   onDelete,
   onEdit,
+  onReply,
   currentUserId,
 }: PostDetailCommentListProps) {
   return (
@@ -31,6 +33,7 @@ export function PostDetailCommentList({
           comments={comments}
           onDelete={onDelete}
           onEdit={onEdit}
+          onReply={onReply}
           currentUserId={currentUserId}
         />
       )}

@@ -2,10 +2,11 @@ import React, { useMemo, useCallback, useRef } from 'react';
 import { View, Text, Pressable, Image, Animated, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { pushPost } from '@/shared/lib/navigation';
-import { Post } from '@/types';
+import { Post, PostWithCounts } from '@/types';
 import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { getExcerpt } from '@/shared/utils/html';
 import { EMOTION_EMOJI, EMOTION_COLOR_MAP, MOTION } from '@/shared/lib/constants';
+import { DailyPostCard } from './DailyPostCard';
 
 interface PostCardProps {
   post: Post;
@@ -47,6 +48,10 @@ const PostCardComponent = ({ post }: PostCardProps) => {
   const handlePress = useCallback(() => {
     pushPost(router, post.id);
   }, [router, post.id]);
+
+  if (post.post_type === 'daily') {
+    return <DailyPostCard post={post as PostWithCounts} />;
+  }
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }} className="mx-4 mb-2.5">

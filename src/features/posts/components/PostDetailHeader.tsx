@@ -9,6 +9,7 @@ interface PostDetailHeaderProps {
   onShare: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onBlock?: () => void;
   canDelete: boolean;
   /** 넓은 화면일 때 상단 패딩 축소 */
   isWide?: boolean;
@@ -61,11 +62,13 @@ function MoreMenu({
   onClose,
   onEdit,
   onDelete,
+  onBlock,
 }: {
   visible: boolean;
   onClose: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onBlock?: () => void;
 }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -91,6 +94,23 @@ function MoreMenu({
 
   if (!visible) return null;
 
+  const items: {
+    label: string;
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    onPress: () => void;
+    destructive?: boolean;
+  }[] = [];
+
+  if (onEdit) {
+    items.push({ label: '수정', icon: 'pencil-outline', onPress: onEdit });
+  }
+  if (onDelete) {
+    items.push({ label: '삭제', icon: 'trash-outline', onPress: onDelete, destructive: true });
+  }
+  if (onBlock) {
+    items.push({ label: '차단', icon: 'ban-outline', onPress: onBlock, destructive: true });
+  }
+
   return (
     <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
       <Pressable className="flex-1" onPress={onClose}>
@@ -107,44 +127,39 @@ function MoreMenu({
               shadowRadius: 16,
               elevation: 8,
             }}>
-            {onEdit && (
-              <Pressable
-                onPress={() => {
-                  onClose();
-                  onEdit();
-                }}
-                className={`flex-row items-center px-5 py-3.5 ${
-                  isDark ? 'active:bg-stone-700' : 'active:bg-stone-50'
-                }`}
-                accessibilityLabel="게시글 수정"
-                accessibilityRole="menuitem">
-                <Ionicons name="pencil-outline" size={18} color={isDark ? '#D6D3D1' : '#57534E'} />
-                <Text
-                  className={`ml-3 text-[15px] font-medium ${
-                    isDark ? 'text-stone-200' : 'text-stone-700'
-                  }`}>
-                  수정
-                </Text>
-              </Pressable>
-            )}
-            {onEdit && onDelete && (
-              <View className={`h-px ${isDark ? 'bg-stone-700' : 'bg-stone-100'}`} />
-            )}
-            {onDelete && (
-              <Pressable
-                onPress={() => {
-                  onClose();
-                  onDelete();
-                }}
-                className={`flex-row items-center px-5 py-3.5 ${
-                  isDark ? 'active:bg-stone-700' : 'active:bg-stone-50'
-                }`}
-                accessibilityLabel="게시글 삭제"
-                accessibilityRole="menuitem">
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                <Text className="ml-3 text-[15px] font-medium text-red-500">삭제</Text>
-              </Pressable>
-            )}
+            {items.map((item, index) => (
+              <React.Fragment key={item.label}>
+                {index > 0 && (
+                  <View className={`h-px ${isDark ? 'bg-stone-700' : 'bg-stone-100'}`} />
+                )}
+                <Pressable
+                  onPress={() => {
+                    onClose();
+                    item.onPress();
+                  }}
+                  className={`flex-row items-center px-5 py-3.5 ${
+                    isDark ? 'active:bg-stone-700' : 'active:bg-stone-50'
+                  }`}
+                  accessibilityLabel={`게시글 ${item.label}`}
+                  accessibilityRole="menuitem">
+                  <Ionicons
+                    name={item.icon}
+                    size={18}
+                    color={item.destructive ? '#EF4444' : isDark ? '#D6D3D1' : '#57534E'}
+                  />
+                  <Text
+                    className={`ml-3 text-[15px] font-medium ${
+                      item.destructive
+                        ? 'text-red-500'
+                        : isDark
+                          ? 'text-stone-200'
+                          : 'text-stone-700'
+                    }`}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              </React.Fragment>
+            ))}
           </View>
         </Animated.View>
       </Pressable>
@@ -156,6 +171,7 @@ export function PostDetailHeader({
   onShare,
   onEdit,
   onDelete,
+  onBlock,
   canDelete,
   isWide,
 }: PostDetailHeaderProps) {
@@ -165,7 +181,7 @@ export function PostDetailHeader({
   const [menuVisible, setMenuVisible] = useState(false);
 
   const iconColor = isDark ? '#E7E5E4' : '#44403C';
-  const hasMenu = canDelete && (onEdit || onDelete);
+  const hasMenu = (canDelete && (onEdit || onDelete)) || onBlock;
 
   return (
     <>
@@ -198,7 +214,7 @@ export function PostDetailHeader({
             <IconButton
               icon="ellipsis-horizontal"
               label="더보기"
-              hint="수정, 삭제 메뉴를 엽니다"
+              hint="수정, 삭제, 차단 메뉴를 엽니다"
               onPress={() => setMenuVisible(true)}
               color={iconColor}
             />
@@ -212,6 +228,7 @@ export function PostDetailHeader({
         onClose={() => setMenuVisible(false)}
         onEdit={canDelete ? onEdit : undefined}
         onDelete={canDelete ? onDelete : undefined}
+        onBlock={onBlock}
       />
     </>
   );

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Controller } from 'react-hook-form';
 import { Container } from '@/shared/components/Container';
 import { Input } from '@/shared/components/Input';
@@ -18,8 +18,30 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DEFAULT_PUBLIC_BOARD_ID } from '@/shared/lib/constants';
 import { pushTabs } from '@/shared/lib/navigation';
 import Toast from 'react-native-toast-message';
+import { useQuery } from '@tanstack/react-query';
+import { DailyPostForm } from '@/features/posts/components/DailyPostForm';
+import { Loading } from '@/shared/components/Loading';
+import { api } from '@/shared/lib/api';
 
 export default function CreateScreen() {
+  const { type, edit } = useLocalSearchParams<{ type?: string; edit?: string }>();
+
+  if (type === 'daily') {
+    if (edit) {
+      return <DailyEditWrapper postId={Number(edit)} />;
+    }
+    return (
+      <Container>
+        <StatusBar style="auto" />
+        <DailyPostForm />
+      </Container>
+    );
+  }
+
+  return <RegularCreateForm />;
+}
+
+function RegularCreateForm() {
   const router = useRouter();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
@@ -175,6 +197,37 @@ export default function CreateScreen() {
           />
         </View>
       </KeyboardAvoidingView>
+    </Container>
+  );
+}
+
+function DailyEditWrapper({ postId }: { postId: number }) {
+  const { data: post, isLoading } = useQuery({
+    queryKey: ['post', postId],
+    queryFn: () => api.getPost(postId),
+  });
+
+  if (isLoading || !post) {
+    return (
+      <Container>
+        <StatusBar style="auto" />
+        <Loading />
+      </Container>
+    );
+  }
+
+  return (
+    <Container>
+      <StatusBar style="auto" />
+      <DailyPostForm
+        mode="edit"
+        initialData={{
+          id: post.id,
+          emotions: post.initial_emotions ?? post.emotions ?? [],
+          activities: post.activities ?? [],
+          content: post.content || '',
+        }}
+      />
     </Container>
   );
 }

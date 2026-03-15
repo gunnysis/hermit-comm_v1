@@ -245,3 +245,63 @@ export async function updatePost(id: number, body: UpdatePostRequest): Promise<U
 
   return data as Post;
 }
+
+export async function createDailyPost(data: {
+  emotions: string[];
+  activities?: string[];
+  content?: string;
+}): Promise<Post> {
+  const { data: result, error } = await supabase.rpc('create_daily_post', {
+    p_emotions: data.emotions,
+    p_activities: data.activities ?? [],
+    p_content: data.content ?? '',
+  });
+  if (error) {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[createDailyPost] failed:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new APIError(500, errorMsg, error.code, error);
+  }
+  return result as unknown as Post;
+}
+
+export async function updateDailyPost(data: {
+  postId: number;
+  emotions: string[];
+  activities?: string[];
+  content?: string;
+}): Promise<Post> {
+  const { data: result, error } = await supabase.rpc('update_daily_post', {
+    p_post_id: data.postId,
+    p_emotions: data.emotions,
+    p_activities: data.activities ?? [],
+    p_content: data.content ?? '',
+  });
+  if (error) {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[updateDailyPost] failed:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new APIError(500, errorMsg, error.code, error);
+  }
+  return result as unknown as Post;
+}
+
+export async function getTodayDaily(): Promise<Post | null> {
+  const { data, error } = await supabase.rpc('get_today_daily');
+  if (error) {
+    const errorMsg = extractErrorMessage(error);
+    logger.error('[getTodayDaily] failed:', errorMsg, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new APIError(500, errorMsg, error.code, error);
+  }
+  return data as Post | null;
+}

@@ -79,6 +79,18 @@ export default function TabLayout() {
           tabBarStyle: { display: 'none' },
         }}
       />
+      <Tabs.Screen
+        name="my"
+        options={{
+          title: '나',
+          tabBarLabel: '나',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={focused ? { transform: [{ scale: 1.1 }] } : undefined}>
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={23} color={color} />
+            </View>
+          ),
+        }}
+      />
     </Tabs>
   );
 }

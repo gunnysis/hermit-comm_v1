@@ -22,6 +22,7 @@ import { useRecommendedPosts } from '@/features/posts/hooks/useRecommendedPosts'
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBoards } from '@/features/boards/hooks/useBoards';
+import { useBlockUser } from '@/features/blocks/hooks/useBlocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { api } from '@/shared/lib/api';
@@ -38,6 +39,7 @@ export default function PostDetailScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsiveLayout();
+  const { mutate: blockUser } = useBlockUser();
 
   const {
     data: post,
@@ -104,6 +106,9 @@ export default function PostDetailScreen() {
     handleSubmitComment,
     handleEditComment,
     handleDeleteComment,
+    handleReply,
+    cancelReply,
+    replyTo,
     commentContent,
     setCommentContent,
     commentLoading,
@@ -129,7 +134,12 @@ export default function PostDetailScreen() {
   }, [post, id]);
 
   const handleDeletePost = useCallback(() => {
-    Alert.alert('게시글 삭제', '정말로 이 게시글을 삭제하시겠습니까?', [
+    const isDaily = post?.post_type === 'daily';
+    const title = isDaily ? '오늘의 하루 삭제' : '게시글 삭제';
+    const message = isDaily
+      ? '오늘의 하루를 삭제할까요?\n삭제하면 오늘 다시 나눌 수 있어요.'
+      : '정말로 이 게시글을 삭제하시겠습니까?';
+    Alert.alert(title, message, [
       { text: '취소', style: 'cancel' },
       {
         text: '삭제',
@@ -154,14 +164,41 @@ export default function PostDetailScreen() {
     ]);
   }, [post, id, queryClient, router]);
 
+  const handleBlockUser = useCallback(() => {
+    if (!post || user?.id === post.author_id) return;
+    Alert.alert(
+      '차단',
+      `${post.display_name}님을 차단할까요?\n차단하면 이 사용자의 글이 피드에서 숨겨집니다.`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '차단',
+          style: 'destructive',
+          onPress: () => {
+            blockUser(post.display_name, {
+              onSuccess: () => {
+                Toast.show({ type: 'success', text1: '차단되었습니다.' });
+                queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
+                router.back();
+              },
+              onError: () => {
+                Toast.show({ type: 'error', text1: '차단에 실패했습니다.' });
+              },
+            });
+          },
+        },
+      ],
+    );
+  }, [post, user, blockUser, queryClient, router]);
+
   const onSubmitComment = useCallback(async () => {
     const result = await handleSubmitComment(() => {
-      Toast.show({ type: 'success', text1: '댓글을 남겼어요 ✓' });
+      Toast.show({ type: 'success', text1: replyTo ? '답글을 남겼어요 ✓' : '댓글을 남겼어요 ✓' });
     });
     if (result?.error) {
       Alert.alert('오류', result.error);
     }
-  }, [handleSubmitComment]);
+  }, [handleSubmitComment, replyTo]);
 
   const onDeleteComment = useCallback(
     async (commentId: number) => {
@@ -216,6 +253,7 @@ export default function PostDetailScreen() {
   }
 
   const canDeletePost = user?.id === post.author_id;
+  const canBlock = !!user && user.id !== post.author_id;
 
   return (
     <Container>
@@ -228,8 +266,15 @@ export default function PostDetailScreen() {
         }>
         <PostDetailHeader
           onShare={handleShare}
-          onEdit={() => router.push(`/post/edit/${id}`)}
+          onEdit={() => {
+            if (post.post_type === 'daily') {
+              router.push(`/create?type=daily&edit=${id}`);
+            } else {
+              router.push(`/post/edit/${id}`);
+            }
+          }}
           onDelete={handleDeletePost}
+          onBlock={canBlock ? handleBlockUser : undefined}
           canDelete={canDeletePost}
           isWide={isWide}
         />
@@ -258,6 +303,7 @@ export default function PostDetailScreen() {
             commentsLoading={commentsLoading}
             onDelete={onDeleteComment}
             onEdit={onEditComment}
+            onReply={handleReply}
             currentUserId={user?.id}
           />
         </ScrollView>
@@ -268,6 +314,8 @@ export default function PostDetailScreen() {
           onSubmit={onSubmitComment}
           loading={commentLoading}
           disabled={commentLoading || !commentContent.trim()}
+          replyTo={replyTo?.displayName}
+          onCancelReply={cancelReply}
         />
       </KeyboardAvoidingView>
     </Container>

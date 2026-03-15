@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Container } from '@/shared/components/Container';
@@ -10,7 +9,6 @@ import Constants from 'expo-constants';
 
 export default function AdminIndexScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   const handleBack = useCallback(() => {

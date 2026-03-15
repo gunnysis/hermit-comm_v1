@@ -28,6 +28,7 @@ export function usePostDetailComments({
   const queryClient = useQueryClient();
   const [commentContent, setCommentContent] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: number; displayName: string } | null>(null);
 
   const {
     data: comments = [],
@@ -65,6 +66,20 @@ export function usePostDetailComments({
     ),
   });
 
+  const handleReply = useCallback(
+    (parentId: number) => {
+      const parent = comments.find((c) => c.id === parentId);
+      if (parent) {
+        setReplyTo({ id: parentId, displayName: parent.display_name });
+      }
+    },
+    [comments],
+  );
+
+  const cancelReply = useCallback(() => {
+    setReplyTo(null);
+  }, []);
+
   const handleSubmitComment = useCallback(
     async (onSuccess?: () => void) => {
       const validation = validateCommentContent(commentContent);
@@ -81,14 +96,19 @@ export function usePostDetailComments({
           boardId: post?.board_id ?? null,
         });
 
-        await api.createComment(postId, {
-          content: commentContent.trim(),
-          board_id: post?.board_id,
-          is_anonymous: isAnonymous,
-          display_name: displayName,
-        });
+        await api.createComment(
+          postId,
+          {
+            content: commentContent.trim(),
+            board_id: post?.board_id,
+            is_anonymous: isAnonymous,
+            display_name: displayName,
+          },
+          replyTo?.id,
+        );
 
         setCommentContent('');
+        setReplyTo(null);
         await refetchComments();
         invalidateListQueries();
         onSuccess?.();
@@ -107,6 +127,7 @@ export function usePostDetailComments({
       post?.board_id,
       anonMode,
       postId,
+      replyTo,
       refetchComments,
       invalidateListQueries,
     ],
@@ -149,6 +170,9 @@ export function usePostDetailComments({
     handleSubmitComment,
     handleEditComment,
     handleDeleteComment,
+    handleReply,
+    cancelReply,
+    replyTo,
     commentContent,
     setCommentContent,
     commentLoading,

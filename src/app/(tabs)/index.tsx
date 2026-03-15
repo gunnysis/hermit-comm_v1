@@ -21,7 +21,11 @@ import { useBoardPosts } from '@/features/boards/hooks/useBoardPosts';
 import { useRealtimePosts } from '@/features/posts/hooks/useRealtimePosts';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
+import { useBlockedAliases } from '@/features/blocks/hooks/useBlocks';
 import { api } from '@/shared/lib/api';
+import { HomeCheckinBanner } from '@/shared/components/HomeCheckinBanner';
+import { YesterdayReactionBanner } from '@/shared/components/YesterdayReactionBanner';
+import { NotificationBell } from '@/shared/components/NotificationBell';
 import * as Haptics from 'expo-haptics';
 import type { Post } from '@/types';
 
@@ -41,6 +45,7 @@ export default function HomeScreen() {
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [emotionFilter, setEmotionFilter] = useState<string | null>(null);
+  const { data: blockedAliases = [] } = useBlockedAliases();
 
   const greeting = useMemo(() => GREETING_MESSAGES[getTimeSlot()].greeting, []);
 
@@ -60,13 +65,13 @@ export default function HomeScreen() {
     enabled: !!emotionFilter,
   });
 
-  const posts = useMemo(
-    () =>
-      emotionFilter
-        ? ((filteredPosts ?? []) as Post[])
-        : ((data?.pages.flatMap((p: Post[]) => p) ?? []) as Post[]),
-    [emotionFilter, filteredPosts, data?.pages],
-  );
+  const posts = useMemo(() => {
+    const raw = emotionFilter
+      ? ((filteredPosts ?? []) as Post[])
+      : ((data?.pages.flatMap((p: Post[]) => p) ?? []) as Post[]);
+    if (blockedAliases.length === 0) return raw;
+    return raw.filter((p) => !blockedAliases.includes(p.display_name));
+  }, [emotionFilter, filteredPosts, data?.pages, blockedAliases]);
 
   const isLoading = emotionFilter ? isFilterLoading : loading;
 
@@ -104,19 +109,28 @@ export default function HomeScreen() {
     pushAdminLogin(router);
   }, [router]);
 
-  const adminButton =
-    !isAdminLoading && isAdmin === true ? (
-      <Pressable
-        onPress={() => pushAdmin(router)}
-        className="ml-3 px-2 py-1.5 rounded-lg"
-        accessibilityLabel="관리자 페이지">
-        <Text className="text-xs font-semibold text-gray-600 dark:text-stone-400">관리자</Text>
-      </Pressable>
-    ) : undefined;
+  const rightContent = useMemo(
+    () => (
+      <View className="flex-row items-center">
+        <NotificationBell />
+        {!isAdminLoading && isAdmin === true && (
+          <Pressable
+            onPress={() => pushAdmin(router)}
+            className="ml-1 px-2 py-1.5 rounded-lg"
+            accessibilityLabel="관리자 페이지">
+            <Text className="text-xs font-semibold text-gray-600 dark:text-stone-400">관리자</Text>
+          </Pressable>
+        )}
+      </View>
+    ),
+    [isAdminLoading, isAdmin, router],
+  );
 
   const listHeader = useMemo(
     () => (
       <View>
+        <YesterdayReactionBanner />
+        <HomeCheckinBanner />
         <View className="px-4">
           <EmotionTrend
             days={7}
@@ -149,7 +163,7 @@ export default function HomeScreen() {
         <ScreenHeader
           title="은둔마을"
           greeting={greeting}
-          rightContent={adminButton}
+          rightContent={rightContent}
           onTitleLongPress={handleTitleLongPress}>
           <View className="flex-row items-center gap-2 mt-2">
             <Pressable
