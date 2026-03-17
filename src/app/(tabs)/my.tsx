@@ -13,6 +13,7 @@ import { WeeklySummary } from '@/features/my/components/WeeklySummary';
 import { BlockedUsersSection } from '@/features/my/components/BlockedUsersSection';
 import { ReminderSetting } from '@/features/my/components/ReminderSetting';
 import { StreakBadge } from '@/features/my/components/StreakBadge';
+import { EmotionTrendChart } from '@/features/my/components/EmotionTrendChart';
 import { Loading } from '@/shared/components/Loading';
 
 export default function MyScreen() {
@@ -57,6 +58,7 @@ export default function MyScreen() {
         <ActivitySummary enabled={!!user} />
 
         <WeeklySummary enabled={!!user} />
+        <EmotionTrendChart enabled={!!user} />
         <DailyInsights enabled={!!user} />
 
         <EmotionCalendar userId={user.id} />
