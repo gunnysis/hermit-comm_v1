@@ -6,7 +6,11 @@ import { useTodayDaily } from '@/features/my/hooks/useTodayDaily';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { EMOTION_EMOJI, SHARED_PALETTE } from '@/shared/lib/constants';
 
-export function HomeCheckinBanner() {
+interface HomeCheckinBannerProps {
+  onCreatePress?: () => void;
+}
+
+export function HomeCheckinBanner({ onCreatePress }: HomeCheckinBannerProps = {}) {
   const isDark = useColorScheme() === 'dark';
   const router = useRouter();
   const { user } = useAuth();
@@ -94,7 +98,7 @@ export function HomeCheckinBanner() {
       </Text>
       <View className="flex-row items-center gap-2">
         <Pressable
-          onPress={() => router.push('/create?type=daily')}
+          onPress={() => (onCreatePress ? onCreatePress() : router.push('/create?type=daily'))}
           className="rounded-full px-3 py-1.5"
           style={{ backgroundColor: SHARED_PALETTE.happy[500] }}>
           <Text className="text-xs font-semibold" style={{ color: '#1c1917' }}>

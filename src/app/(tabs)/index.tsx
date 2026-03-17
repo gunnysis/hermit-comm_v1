@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -26,6 +26,8 @@ import { api } from '@/shared/lib/api';
 import { HomeCheckinBanner } from '@/shared/components/HomeCheckinBanner';
 import { YesterdayReactionBanner } from '@/shared/components/YesterdayReactionBanner';
 import { NotificationBell } from '@/shared/components/NotificationBell';
+import { DailyBottomSheet } from '@/features/posts/components/DailyBottomSheet';
+import BottomSheet from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import type { Post } from '@/types';
 
@@ -45,6 +47,11 @@ export default function HomeScreen() {
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [emotionFilter, setEmotionFilter] = useState<string | null>(null);
+  const dailySheetRef = useRef<BottomSheet>(null);
+
+  const openDailySheet = useCallback(() => {
+    dailySheetRef.current?.snapToIndex(0);
+  }, []);
   const { data: blockedAliases = [] } = useBlockedAliases();
 
   const greeting = useMemo(() => GREETING_MESSAGES[getTimeSlot()].greeting, []);
@@ -130,7 +137,7 @@ export default function HomeScreen() {
     () => (
       <View>
         <YesterdayReactionBanner />
-        <HomeCheckinBanner />
+        <HomeCheckinBanner onCreatePress={openDailySheet} />
         <View className="px-4">
           <EmotionTrend
             days={7}
@@ -204,6 +211,7 @@ export default function HomeScreen() {
         />
 
         <FloatingActionButton onPress={() => pushCreate(router)} accessibilityLabel="새 글 작성" />
+        <DailyBottomSheet ref={dailySheetRef} />
       </View>
     </Container>
   );
