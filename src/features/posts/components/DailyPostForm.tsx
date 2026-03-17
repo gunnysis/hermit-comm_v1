@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, useColorScheme, Alert } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+  withTiming,
+  FadeIn,
+  FadeOut,
+  Layout,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import {
@@ -13,6 +24,8 @@ import { ActivityTagSelector } from '@/shared/components/ActivityTagSelector';
 import { useCreateDaily, useUpdateDaily } from '@/features/my/hooks/useCreateDaily';
 import { useQueryClient } from '@tanstack/react-query';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 interface DailyPostFormProps {
   mode?: 'create' | 'edit';
   initialData?: { id: number; emotions: string[]; activities: string[]; content: string };
@@ -23,36 +36,58 @@ export function DailyPostForm({ mode = 'create', initialData }: DailyPostFormPro
   const [emotions, setEmotions] = useState<string[]>(initialData?.emotions ?? []);
   const [activities, setActivities] = useState<string[]>(initialData?.activities ?? []);
   const [note, setNote] = useState(initialData?.content ?? '');
+  const [showSuccess, setShowSuccess] = useState(false);
   const queryClient = useQueryClient();
   const { mutate: createDaily, isPending } = useCreateDaily();
   const { mutate: updateDaily, isPending: isUpdating } = useUpdateDaily();
+  const submitScale = useSharedValue(1);
 
-  const toggleEmotion = (emotion: string) => {
-    if (emotions.includes(emotion)) {
-      setEmotions(emotions.filter((e) => e !== emotion));
-    } else if (emotions.length < DAILY_CONFIG.MAX_EMOTIONS) {
-      setEmotions([...emotions, emotion]);
-    }
-  };
+  const toggleEmotion = useCallback(
+    (emotion: string) => {
+      Haptics.selectionAsync();
+      if (emotions.includes(emotion)) {
+        setEmotions(emotions.filter((e) => e !== emotion));
+      } else if (emotions.length < DAILY_CONFIG.MAX_EMOTIONS) {
+        setEmotions([...emotions, emotion]);
+      }
+    },
+    [emotions],
+  );
 
   const isBusy = isPending || isUpdating;
 
   const handleSubmit = () => {
     if (emotions.length === 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('감정을 선택해주세요', '오늘의 기분을 하나 이상 골라주세요.');
       return;
     }
+    // 제출 버튼 바운스
+    submitScale.value = withSequence(
+      withSpring(0.95, { damping: 12, stiffness: 200 }),
+      withSpring(1, { damping: 15, stiffness: 150 }),
+    );
+
     const callbacks = {
       onSuccess: () => {
-        // 첫 daily 여부: 이전에 todayDaily가 없었으면 첫 daily일 가능성
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setShowSuccess(true);
         const summary = queryClient.getQueryData<{ post_count?: number }>(['activitySummary']);
         const isFirst = mode === 'create' && (!summary || (summary.post_count ?? 0) <= 1);
-        if (isFirst) {
-          Toast.show({ type: 'success', text1: '🌱 첫 하루를 나눴어요' });
-        }
-        router.back();
+        setTimeout(() => {
+          if (isFirst) {
+            Toast.show({ type: 'success', text1: '🌱 첫 하루를 나눴어요' });
+          } else {
+            Toast.show({
+              type: 'success',
+              text1: mode === 'edit' ? '수정했어요' : '오늘의 하루를 나눴어요',
+            });
+          }
+          router.back();
+        }, 400);
       },
       onError: (err: unknown) => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         const code = (err as { code?: string })?.code;
         if (code === 'P0002') {
           Alert.alert('오늘은 이미 나눴어요', '하루에 한 번만 나눌 수 있어요.');
@@ -67,6 +102,25 @@ export function DailyPostForm({ mode = 'create', initialData }: DailyPostFormPro
       createDaily({ emotions, activities, content: note }, callbacks);
     }
   };
+
+  const submitAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: submitScale.value }],
+  }));
+
+  if (showSuccess) {
+    return (
+      <Animated.View entering={FadeIn.duration(300)} className="flex-1 items-center justify-center">
+        <Animated.Text entering={FadeIn.delay(100).duration(400)} className={`text-4xl mb-4`}>
+          ✨
+        </Animated.Text>
+        <Animated.Text
+          entering={FadeIn.delay(200).duration(400)}
+          className={`text-lg font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+          기록 완료!
+        </Animated.Text>
+      </Animated.View>
+    );
+  }
 
   return (
     <ScrollView
@@ -83,30 +137,34 @@ export function DailyPostForm({ mode = 'create', initialData }: DailyPostFormPro
         오늘 기분이 어때요?
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-6">
-        {ALLOWED_EMOTIONS.map((emotion) => {
+        {ALLOWED_EMOTIONS.map((emotion, index) => {
           const isActive = emotions.includes(emotion);
           const colors = EMOTION_COLOR_MAP[emotion];
           return (
-            <Pressable
+            <Animated.View
               key={emotion}
-              onPress={() => toggleEmotion(emotion)}
-              style={isActive ? { backgroundColor: colors?.gradient[0] } : undefined}
-              className={`rounded-full px-3 py-1.5 ${
-                isActive ? '' : isDark ? 'bg-stone-800' : 'bg-stone-100'
-              }`}
-              accessibilityLabel={`${emotion} ${isActive ? '선택됨' : '선택'}`}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive }}>
-              <Text
-                className={`text-xs ${isActive ? 'font-semibold' : ''}`}
-                style={
-                  isActive
-                    ? { color: isDark ? '#fff' : '#1c1917' }
-                    : { color: isDark ? '#a8a29e' : '#57534e' }
-                }>
-                {EMOTION_EMOJI[emotion]} {emotion}
-              </Text>
-            </Pressable>
+              entering={FadeIn.delay(index * 30).duration(250)}
+              layout={Layout.springify()}>
+              <Pressable
+                onPress={() => toggleEmotion(emotion)}
+                style={isActive ? { backgroundColor: colors?.gradient[0] } : undefined}
+                className={`rounded-full px-3 py-1.5 ${
+                  isActive ? '' : isDark ? 'bg-stone-800' : 'bg-stone-100'
+                }`}
+                accessibilityLabel={`감정 선택: ${emotion}`}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isActive }}>
+                <Text
+                  className={`text-xs ${isActive ? 'font-semibold' : ''}`}
+                  style={
+                    isActive
+                      ? { color: isDark ? '#fff' : '#1c1917' }
+                      : { color: isDark ? '#a8a29e' : '#57534e' }
+                  }>
+                  {EMOTION_EMOJI[emotion]} {emotion}
+                </Text>
+              </Pressable>
+            </Animated.View>
           );
         })}
       </View>
@@ -137,15 +195,18 @@ export function DailyPostForm({ mode = 'create', initialData }: DailyPostFormPro
       </Text>
 
       {/* 나누기 버튼 */}
-      <Pressable
+      <AnimatedPressable
         onPress={handleSubmit}
         disabled={isBusy || emotions.length === 0}
         className="rounded-xl py-3.5 mt-6 items-center"
-        style={{
-          backgroundColor:
-            emotions.length > 0 ? SHARED_PALETTE.happy[500] : isDark ? '#292524' : '#e7e5e4',
-          opacity: isBusy ? 0.6 : 1,
-        }}
+        style={[
+          submitAnimStyle,
+          {
+            backgroundColor:
+              emotions.length > 0 ? SHARED_PALETTE.happy[500] : isDark ? '#292524' : '#e7e5e4',
+            opacity: isBusy ? 0.6 : 1,
+          },
+        ]}
         accessibilityLabel={mode === 'edit' ? '오늘의 하루 수정하기' : '오늘의 하루 나누기'}
         accessibilityRole="button">
         <Text
@@ -161,7 +222,7 @@ export function DailyPostForm({ mode = 'create', initialData }: DailyPostFormPro
               ? '수정하기'
               : '나누기'}
         </Text>
-      </Pressable>
+      </AnimatedPressable>
     </ScrollView>
   );
 }

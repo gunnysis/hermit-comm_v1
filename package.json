@@ -32,6 +32,7 @@
   "dependencies": {
     "@10play/tentap-editor": "^1.0.1",
     "@expo/vector-icons": "^15.0.3",
+    "@gorhom/bottom-sheet": "^5.2.8",
     "@hookform/resolvers": "^3.9.1",
     "@react-native-async-storage/async-storage": "~2.2.0",
     "@react-native-community/netinfo": "11.5.2",
@@ -52,6 +53,7 @@
     "expo-insights": "~55.0.10",
     "expo-linear-gradient": "~55.0.8",
     "expo-linking": "~55.0.7",
+    "expo-notifications": "~55.0.12",
     "expo-router": "~55.0.5",
     "expo-status-bar": "~55.0.4",
     "expo-updates": "~55.0.13",
@@ -61,6 +63,7 @@
     "react-hook-form": "^7.54.0",
     "react-native": "0.83.2",
     "react-native-css-interop": "^0.2.1",
+    "react-native-gesture-handler": "~2.30.0",
     "react-native-mmkv": "^4.1.2",
     "react-native-nitro-modules": "^0.33.2",
     "react-native-reanimated": "4.2.1",
