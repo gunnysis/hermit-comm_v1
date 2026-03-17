@@ -181,8 +181,10 @@ export default function PostDetailScreen() {
                 queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
                 router.back();
               },
-              onError: () => {
-                Toast.show({ type: 'error', text1: '차단에 실패했습니다.' });
+              onError: (err: Error & { code?: string }) => {
+                const msg =
+                  err.code === 'P0002' ? '차단할 수 없는 사용자입니다.' : '차단에 실패했습니다.';
+                Toast.show({ type: 'error', text1: msg });
               },
             });
           },
@@ -253,7 +255,7 @@ export default function PostDetailScreen() {
   }
 
   const canDeletePost = user?.id === post.author_id;
-  const canBlock = !!user && user.id !== post.author_id;
+  const canBlock = !!user && user.id !== post.author_id && post.display_name !== '익명';
 
   return (
     <Container>
