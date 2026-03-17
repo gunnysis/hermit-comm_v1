@@ -6,7 +6,7 @@ export function useUnreadCount(enabled = true) {
     queryKey: ['unreadNotificationCount'],
     queryFn: api.getUnreadCount,
     enabled,
-    refetchInterval: 30000, // 30초마다 폴링
+    refetchInterval: 30000,
   });
 }
 
@@ -17,13 +17,24 @@ export function useNotifications() {
   });
 }
 
+export function useMarkRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => api.markNotificationsRead(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+      qc.invalidateQueries({ queryKey: ['unreadNotificationCount'] });
+    },
+  });
+}
+
 export function useMarkAllRead() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: api.markAllNotificationsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotificationCount'] });
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+      qc.invalidateQueries({ queryKey: ['unreadNotificationCount'] });
     },
   });
 }

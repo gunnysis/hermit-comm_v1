@@ -5,7 +5,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Container } from '@/shared/components/Container';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
-import { useNotifications, useMarkAllRead } from '@/features/notifications/hooks/useNotifications';
+import {
+  useNotifications,
+  useMarkAllRead,
+  useMarkRead,
+} from '@/features/notifications/hooks/useNotifications';
 import type { Notification } from '@/shared/lib/api/notifications';
 
 export default function NotificationsScreen() {
@@ -13,6 +17,7 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { data: notifications = [] } = useNotifications();
   const { mutate: markAllRead } = useMarkAllRead();
+  const { mutate: markRead } = useMarkRead();
 
   const getLabel = (n: Notification) => {
     const actor = n.actor_alias ?? '누군가';
@@ -40,7 +45,10 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <Pressable
-            onPress={() => item.post_id && router.push(`/post/${item.post_id}`)}
+            onPress={() => {
+              if (!item.read) markRead([item.id]);
+              if (item.post_id) router.push(`/post/${item.post_id}`);
+            }}
             className={`px-4 py-3 border-b ${
               item.read
                 ? isDark

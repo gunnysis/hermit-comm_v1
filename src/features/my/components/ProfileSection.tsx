@@ -24,8 +24,7 @@ export function ProfileSection({ user }: { user: User }) {
 
   const todayEmotions: string[] = useMemo(() => {
     if (!todayDaily) return [];
-    const raw = (todayDaily as { emotions?: string[] }).emotions;
-    return Array.isArray(raw) ? raw : [];
+    return Array.isArray(todayDaily.emotions) ? todayDaily.emotions : [];
   }, [todayDaily]);
 
   return (

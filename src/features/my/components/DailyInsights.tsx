@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 import { useDailyInsights } from '../hooks/useDailyInsights';
+import { Skeleton } from '@/shared/components/Skeleton';
 import {
   ACTIVITY_PRESETS,
   EMOTION_EMOJI,
@@ -12,7 +13,19 @@ export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
   const isDark = useColorScheme() === 'dark';
   const { data, isLoading } = useDailyInsights(30, enabled);
 
-  if (isLoading || !data) return null;
+  if (isLoading) {
+    return (
+      <View className="mb-4">
+        <Text
+          className={`text-sm font-semibold mb-2 ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+          나의 패턴
+        </Text>
+        <Skeleton className="w-full h-20 rounded-xl" />
+      </View>
+    );
+  }
+
+  if (!data) return null;
 
   const { total_dailies, activity_emotion_map } = data;
 
