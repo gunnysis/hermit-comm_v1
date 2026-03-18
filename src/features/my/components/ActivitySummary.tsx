@@ -46,8 +46,13 @@ export function ActivitySummary({ enabled = true }: { enabled?: boolean }) {
   return (
     <View className="flex-row gap-2 mb-4">
       <StatItem emoji="📝" label="작성한 글" value={summary?.post_count ?? 0} isDark={isDark} />
-      <StatItem emoji="💬" label="댓글" value={summary?.comment_count ?? 0} isDark={isDark} />
-      <StatItem emoji="💛" label="반응" value={summary?.reaction_count ?? 0} isDark={isDark} />
+      <StatItem
+        emoji="💬"
+        label="작성한 댓글"
+        value={summary?.comment_count ?? 0}
+        isDark={isDark}
+      />
+      <StatItem emoji="💛" label="보낸 반응" value={summary?.reaction_count ?? 0} isDark={isDark} />
     </View>
   );
 }
