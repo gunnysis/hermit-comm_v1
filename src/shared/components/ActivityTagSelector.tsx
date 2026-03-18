@@ -3,6 +3,7 @@ import { View, Text, Pressable, TextInput, useColorScheme } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { ACTIVITY_PRESETS, DAILY_CONFIG } from '@/shared/lib/constants';
 import { supabase } from '@/shared/lib/supabase';
+import { logger } from '@/shared/utils/logger';
 
 interface ActivityTagSelectorProps {
   selected: string[];
@@ -54,14 +55,19 @@ export function ActivityTagSelector({ selected, onSelect }: ActivityTagSelectorP
       if (!ACTIVITY_PRESETS.some((p) => p.id === trimmed) && !savedCustoms.includes(trimmed)) {
         const updated = [...savedCustoms, trimmed].slice(-10); // 최대 10개 유지
         setSavedCustoms(updated);
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          await supabase
-            .from('user_preferences')
-            .update({ custom_activities: updated })
-            .eq('user_id', user.id);
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            const { error } = await supabase
+              .from('user_preferences')
+              .update({ custom_activities: updated })
+              .eq('user_id', user.id);
+            if (error) throw error;
+          }
+        } catch (e) {
+          logger.error('[ActivityTagSelector] 커스텀 활동 저장 실패:', e);
         }
       }
     }
