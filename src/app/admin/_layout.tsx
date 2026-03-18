@@ -5,6 +5,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 import { auth } from '@/features/auth/auth';
+import { logger } from '@/shared/utils/logger';
 
 export default function AdminLayout() {
   const router = useRouter();
@@ -36,9 +37,14 @@ export default function AdminLayout() {
     if (isAdmin === false) {
       // 권한 없음: 로그아웃 후 탭으로
       (async () => {
-        await auth.signOut();
-        await auth.signInAnonymously();
-        router.replace('/(tabs)');
+        try {
+          await auth.signOut();
+          await auth.signInAnonymously();
+          router.replace('/(tabs)');
+        } catch (e) {
+          logger.error('[Admin] 자동 로그아웃 실패:', e);
+          router.replace('/(tabs)');
+        }
       })();
     }
   }, [authLoading, user, isAdmin, isAdminLoading, isLoginScreen, router]);

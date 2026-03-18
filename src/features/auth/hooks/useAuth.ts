@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { auth } from '../auth';
 import { supabase } from '@/shared/lib/supabase';
+import { queryClient } from '@/shared/lib/queryClient';
 import { logger } from '@/shared/utils/logger';
 
 /**
@@ -71,6 +72,7 @@ export function useAuth() {
           setUser(session.user);
         }
       } else if (event === 'SIGNED_OUT') {
+        queryClient.clear();
         setUser(null);
       }
     });

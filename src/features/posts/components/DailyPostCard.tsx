@@ -8,6 +8,7 @@ import {
   ACTIVITY_PRESETS,
   SHARED_PALETTE,
 } from '@/shared/lib/constants';
+import { getActivityLabel } from '@/shared/lib/utils.generated';
 import type { PostWithCounts } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -24,11 +25,6 @@ function DailyPostCardInner({ post }: DailyPostCardProps) {
   const emotions = post.emotions ?? post.initial_emotions ?? [];
   const activities = post.activities ?? [];
   const content = post.content || '';
-
-  const getActivityLabel = (id: string) => {
-    const preset = ACTIVITY_PRESETS.find((p) => p.id === id);
-    return preset ? `${preset.icon} ${preset.name}` : id;
-  };
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, {
@@ -101,7 +97,7 @@ function DailyPostCardInner({ post }: DailyPostCardProps) {
                   isDark ? 'border-stone-600' : 'border-stone-300'
                 }`}>
                 <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-                  {getActivityLabel(act)}
+                  {getActivityLabel(act, ACTIVITY_PRESETS)}
                 </Text>
               </View>
             ))}

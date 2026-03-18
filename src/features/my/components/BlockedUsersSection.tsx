@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, useColorScheme, ActivityIndicator } from 'react-native';
 import { useBlockedAliases, useUnblockUser } from '@/features/blocks/hooks/useBlocks';
 import { Skeleton } from '@/shared/components/Skeleton';
-import Toast from 'react-native-toast-message';
 
 export function BlockedUsersSection({ enabled = true }: { enabled?: boolean }) {
   const isDark = useColorScheme() === 'dark';
@@ -27,9 +26,6 @@ export function BlockedUsersSection({ enabled = true }: { enabled?: boolean }) {
   const handleUnblock = (alias: string) => {
     setUnblockingAlias(alias);
     unblock(alias, {
-      onError: () => {
-        Toast.show({ type: 'error', text1: '차단 해제에 실패했어요' });
-      },
       onSettled: () => setUnblockingAlias(null),
     });
   };

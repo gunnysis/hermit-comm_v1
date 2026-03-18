@@ -8,6 +8,7 @@ import {
   EMOTION_COLOR_MAP,
   DAILY_INSIGHTS_CONFIG,
 } from '@/shared/lib/constants';
+import { getActivityLabel } from '@/shared/lib/utils.generated';
 
 export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
   const isDark = useColorScheme() === 'dark';
@@ -29,11 +30,6 @@ export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
 
   const { total_dailies, activity_emotion_map } = data;
 
-  const getActivityLabel = (id: string) => {
-    const preset = ACTIVITY_PRESETS.find((p) => p.id === id);
-    return preset ? `${preset.icon} ${preset.name}` : id;
-  };
-
   // Not enough data
   if (total_dailies < DAILY_INSIGHTS_CONFIG.MIN_DAILIES_FOR_INSIGHTS) {
     return (
@@ -44,7 +40,7 @@ export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
         </Text>
         <View className={`rounded-xl px-4 py-4 ${isDark ? 'bg-stone-800' : 'bg-stone-50'}`}>
           <Text className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-            아직 패턴을 찾고 있어요.
+            💡 아직 패턴을 찾고 있어요.
           </Text>
           <Text className={`text-xs mt-1 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
             하루를 나눌수록 더 잘 보여요 :) ({total_dailies}/
@@ -104,7 +100,7 @@ export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
         <View key={item.activity} className="mb-3">
           <View className="flex-row items-center justify-between mb-1">
             <Text className={`text-xs font-medium ${isDark ? 'text-stone-200' : 'text-stone-700'}`}>
-              {getActivityLabel(item.activity)} ({item.count}회)
+              {getActivityLabel(item.activity, ACTIVITY_PRESETS)} ({item.count}회)
             </Text>
           </View>
           {/* Emotion bar */}
@@ -136,8 +132,8 @@ export function DailyInsights({ enabled = true }: { enabled?: boolean }) {
       {topActivity && topEmotion && (
         <View className={`rounded-xl px-3 py-2 mt-1 ${isDark ? 'bg-stone-800' : 'bg-stone-50'}`}>
           <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-            {getActivityLabel(topActivity.activity).replace(/^[^\s]+ /, '')}한 날에{' '}
-            {topEmotion.emotion}을 자주 느끼는 경향이 있어요.
+            💡 {getActivityLabel(topActivity.activity, ACTIVITY_PRESETS).replace(/^[^\s]+ /, '')}한
+            날에 {topEmotion.emotion}을 자주 느끼는 경향이 있어요.
           </Text>
         </View>
       )}

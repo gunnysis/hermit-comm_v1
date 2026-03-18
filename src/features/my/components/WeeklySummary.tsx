@@ -3,6 +3,7 @@ import { View, Text, Pressable, useColorScheme } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useWeeklySummary } from '../hooks/useWeeklySummary';
 import { EMOTION_EMOJI, ACTIVITY_PRESETS } from '@/shared/lib/constants';
+import { getActivityLabel } from '@/shared/lib/utils.generated';
 import { Skeleton } from '@/shared/components/Skeleton';
 
 interface WeeklySummaryProps {
@@ -60,16 +61,11 @@ export function WeeklySummary({ enabled = true }: WeeklySummaryProps) {
           </View>
         </View>
         <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-          이번 주는 아직 기록이 없어요
+          {weekLabel}에는 기록이 없어요
         </Text>
       </Animated.View>
     );
   }
-
-  const getActivityLabel = (id: string) => {
-    const preset = ACTIVITY_PRESETS.find((p) => p.id === id);
-    return preset ? `${preset.icon} ${preset.name}` : id;
-  };
 
   return (
     <Animated.View
@@ -128,7 +124,7 @@ export function WeeklySummary({ enabled = true }: WeeklySummaryProps) {
       {/* Top 활동 */}
       {data.top_activity && (
         <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-          가장 많이 한 활동: {getActivityLabel(data.top_activity)}
+          가장 많이 한 활동: {getActivityLabel(data.top_activity, ACTIVITY_PRESETS)}
         </Text>
       )}
     </Animated.View>

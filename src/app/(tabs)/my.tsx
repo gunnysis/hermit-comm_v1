@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, View, Text, Pressable, Alert, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { auth } from '@/features/auth/auth';
 import { ScreenHeader } from '@/shared/components/ScreenHeader';
@@ -91,7 +92,14 @@ export default function MyScreen() {
                     {
                       text: '로그아웃',
                       style: 'destructive',
-                      onPress: () => auth.signOut(),
+                      onPress: async () => {
+                        try {
+                          await auth.signOut();
+                          await auth.signInAnonymously();
+                        } catch {
+                          Toast.show({ type: 'error', text1: '로그아웃에 실패했어요' });
+                        }
+                      },
                     },
                   ],
                 );

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { getWeeklyEmotionSummary } from '@/shared/lib/api/my';
 import { EMOTION_EMOJI, EMOTION_COLOR_MAP } from '@/shared/lib/constants';
 
@@ -16,46 +16,42 @@ export function EmotionTrendChart({ enabled = true }: EmotionTrendChartProps) {
   const isDark = useColorScheme() === 'dark';
 
   // 최근 4주 데이터 병렬 조회
-  const week0 = useQuery({
-    queryKey: ['weeklySummary', 0],
-    queryFn: () => getWeeklyEmotionSummary(0),
-    enabled,
-    staleTime: 30 * 60 * 1000,
-    meta: { silent: true },
-  });
-  const week1 = useQuery({
-    queryKey: ['weeklySummary', 1],
-    queryFn: () => getWeeklyEmotionSummary(1),
-    enabled,
-    staleTime: 30 * 60 * 1000,
-    meta: { silent: true },
-  });
-  const week2 = useQuery({
-    queryKey: ['weeklySummary', 2],
-    queryFn: () => getWeeklyEmotionSummary(2),
-    enabled,
-    staleTime: 30 * 60 * 1000,
-    meta: { silent: true },
-  });
-  const week3 = useQuery({
-    queryKey: ['weeklySummary', 3],
-    queryFn: () => getWeeklyEmotionSummary(3),
-    enabled,
-    staleTime: 30 * 60 * 1000,
-    meta: { silent: true },
+  const weekQueries = useQueries({
+    queries: [3, 2, 1, 0].map((offset) => ({
+      queryKey: ['weeklySummary', offset],
+      queryFn: () => getWeeklyEmotionSummary(offset),
+      enabled,
+      staleTime: 30 * 60 * 1000,
+      meta: { silent: true },
+    })),
   });
 
-  const weeks = [week3.data, week2.data, week1.data, week0.data].filter(Boolean);
-  if (weeks.length < 2) return null;
+  const weeks = useMemo(
+    () => weekQueries.map((q) => q.data).filter(Boolean),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [weekQueries.map((q) => q.dataUpdatedAt).join(',')],
+  );
 
   // 주별 Top 감정 추출
-  const weekData = weeks.map((w) => ({
-    label: w!.days_logged > 0 ? `${w!.days_logged}일` : '-',
-    topEmotion: w!.top_emotions?.[0]?.emotion ?? null,
-    daysLogged: w!.days_logged ?? 0,
-  }));
+  const weekData = useMemo(
+    () =>
+      weeks.map((w) => ({
+        label: w!.days_logged > 0 ? `${w!.days_logged}일` : '-',
+        topEmotion: w!.top_emotions?.[0]?.emotion ?? null,
+        daysLogged: w!.days_logged ?? 0,
+      })),
+    [weeks],
+  );
 
-  const maxDays = Math.max(...weekData.map((w) => w.daysLogged), 1);
+  const maxDays = useMemo(() => Math.max(...weekData.map((w) => w.daysLogged), 1), [weekData]);
+
+  // 범례: 유니크 감정만
+  const legendEmotions = useMemo(
+    () => [...new Set(weekData.filter((w) => w.topEmotion).map((w) => w.topEmotion!))],
+    [weekData],
+  );
+
+  if (weeks.length < 2) return null;
 
   return (
     <Animated.View
@@ -94,24 +90,13 @@ export function EmotionTrendChart({ enabled = true }: EmotionTrendChartProps) {
 
       {/* 범례 */}
       <View className="flex-row flex-wrap gap-2 mt-3 pt-2 border-t border-stone-200 dark:border-stone-700">
-        {weekData
-          .filter((w) => w.topEmotion)
-          .reduce(
-            (acc, w) => {
-              if (!acc.find((a) => a.emotion === w.topEmotion)) {
-                acc.push({ emotion: w.topEmotion! });
-              }
-              return acc;
-            },
-            [] as { emotion: string }[],
-          )
-          .map((item) => (
-            <Text
-              key={item.emotion}
-              className={`text-[10px] ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-              {EMOTION_EMOJI[item.emotion]} {item.emotion}
-            </Text>
-          ))}
+        {legendEmotions.map((emotion) => (
+          <Text
+            key={emotion}
+            className={`text-[10px] ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+            {EMOTION_EMOJI[emotion]} {emotion}
+          </Text>
+        ))}
       </View>
     </Animated.View>
   );

@@ -85,7 +85,6 @@ export function processEmotionTimeline(
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([e]) => e)
-  const topSet = new Set(topEmotions)
 
   // Today (KST)
   const now = new Date()
@@ -132,5 +131,14 @@ export function processEmotionTimeline(
     maxTotal: Math.max(maxTotal, 1),
     topEmotion: topEmotions[0] ?? null,
   }
+}
+
+/** 활동 ID → 아이콘 + 이름 라벨 변환 (외부 import 없는 순수 함수) */
+export function getActivityLabel(
+  id: string,
+  presets: readonly { id: string; icon: string; name: string }[]
+): string {
+  const preset = presets.find((p) => p.id === id)
+  return preset ? `${preset.icon} ${preset.name}` : id
 }
 
