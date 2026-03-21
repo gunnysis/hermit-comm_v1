@@ -4,12 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { Container } from '@/shared/components/Container';
-import { Input } from '@/shared/components/Input';
-import { ContentEditor } from '@/shared/components/ContentEditor';
+import { Container } from '@/shared/components/primitives/Container';
+import { Input } from '@/shared/components/primitives/Input';
+import { ContentEditor } from '@/shared/components/composed/ContentEditor';
 import { ImagePicker } from '@/features/posts/components/ImagePicker';
 import { MoodSelector } from '@/features/posts/components/MoodSelector';
-import { Button } from '@/shared/components/Button';
+import { Button } from '@/shared/components/primitives/Button';
 import { useCreatePost } from '@/features/posts/hooks/useCreatePost';
 import { useDraft } from '@/features/posts/hooks/useDraft';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
@@ -20,7 +20,7 @@ import { pushTabs } from '@/shared/lib/navigation';
 import Toast from 'react-native-toast-message';
 import { useQuery } from '@tanstack/react-query';
 import { DailyPostForm } from '@/features/posts/components/DailyPostForm';
-import { Loading } from '@/shared/components/Loading';
+import { Loading } from '@/shared/components/primitives/Loading';
 import { api } from '@/shared/lib/api';
 
 export default function CreateScreen() {

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Comment } from '@/types';
 import { formatDate } from '@/shared/utils/format';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
+import { Input } from '@/shared/components/primitives/Input';
+import { Button } from '@/shared/components/primitives/Button';
 
 interface CommentItemProps {
   comment: Comment;

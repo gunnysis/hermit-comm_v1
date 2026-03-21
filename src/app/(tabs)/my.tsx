@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { auth } from '@/features/auth/auth';
-import { ScreenHeader } from '@/shared/components/ScreenHeader';
+import { ScreenHeader } from '@/shared/components/composed/ScreenHeader';
 import { ProfileSection } from '@/features/my/components/ProfileSection';
 import { ActivitySummary } from '@/features/my/components/ActivitySummary';
 import { EmotionCalendar } from '@/features/posts/components/EmotionCalendar';
@@ -17,7 +17,7 @@ import { StreakBadge } from '@/features/my/components/StreakBadge';
 import { EmotionTrendChart } from '@/features/my/components/EmotionTrendChart';
 import { MonthlyReport } from '@/features/my/components/MonthlyReport';
 import { DailyHistory } from '@/features/my/components/DailyHistory';
-import { Loading } from '@/shared/components/Loading';
+import { Loading } from '@/shared/components/primitives/Loading';
 
 export default function MyScreen() {
   const isDark = useColorScheme() === 'dark';

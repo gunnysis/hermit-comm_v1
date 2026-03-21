@@ -4,7 +4,7 @@ import { useMyAlias } from '../hooks/useMyAlias';
 import { useActivitySummary } from '../hooks/useActivitySummary';
 import { useTodayDaily } from '../hooks/useTodayDaily';
 import { EMOTION_EMOJI, EMOTION_COLOR_MAP } from '@/shared/lib/constants';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 import type { User } from '@supabase/supabase-js';
 
 function getDaysSince(dateStr: string): number {

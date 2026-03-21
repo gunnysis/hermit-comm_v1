@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated } from 'react-native';
-import { Button } from './Button';
+import { Button } from '../primitives/Button';
 
 interface ErrorViewProps {
   message: string;

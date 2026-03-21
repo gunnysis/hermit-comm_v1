@@ -3,16 +3,16 @@ import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { Container } from '@/shared/components/Container';
+import { Container } from '@/shared/components/primitives/Container';
 import {
   DEFAULT_PUBLIC_BOARD_ID,
   EMPTY_STATE_MESSAGES,
   GREETING_MESSAGES,
 } from '@/shared/lib/constants';
 import { pushAdmin, pushAdminLogin, pushSearch, pushCreate } from '@/shared/lib/navigation';
-import { ScreenHeader } from '@/shared/components/ScreenHeader';
-import { SortTabs, type SortOrder } from '@/shared/components/SortTabs';
-import { FloatingActionButton } from '@/shared/components/FloatingActionButton';
+import { ScreenHeader } from '@/shared/components/composed/ScreenHeader';
+import { SortTabs, type SortOrder } from '@/shared/components/composed/SortTabs';
+import { FloatingActionButton } from '@/shared/components/composed/FloatingActionButton';
 import { PostList } from '@/features/posts/components/PostList';
 import { EmotionTrend } from '@/features/posts/components/EmotionTrend';
 import { EmotionFilterBar } from '@/features/posts/components/EmotionFilterBar';
@@ -23,9 +23,9 @@ import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin';
 import { useBlockedAliases } from '@/features/blocks/hooks/useBlocks';
 import { api } from '@/shared/lib/api';
-import { HomeCheckinBanner } from '@/shared/components/HomeCheckinBanner';
-import { YesterdayReactionBanner } from '@/shared/components/YesterdayReactionBanner';
-import { NotificationBell } from '@/shared/components/NotificationBell';
+import { HomeCheckinBanner } from '@/shared/components/composed/HomeCheckinBanner';
+import { YesterdayReactionBanner } from '@/shared/components/composed/YesterdayReactionBanner';
+import { NotificationBell } from '@/shared/components/composed/NotificationBell';
 import { DailyBottomSheet } from '@/features/posts/components/DailyBottomSheet';
 import BottomSheet from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';

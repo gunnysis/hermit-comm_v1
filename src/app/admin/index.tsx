@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { Container } from '@/shared/components/Container';
+import { Container } from '@/shared/components/primitives/Container';
 import { auth } from '@/features/auth/auth';
 import { toFriendlyErrorMessage } from '@/shared/lib/errors';
 import Constants from 'expo-constants';

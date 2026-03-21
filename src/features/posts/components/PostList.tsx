@@ -3,10 +3,10 @@ import { RefreshControl, View, Pressable, Text } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Post } from '@/types';
 import { PostCard } from './PostCard';
-import { PostCardSkeleton } from '@/shared/components/Skeleton';
-import { Loading } from '@/shared/components/Loading';
-import { ErrorView } from '@/shared/components/ErrorView';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { PostCardSkeleton } from '@/shared/components/primitives/Skeleton';
+import { Loading } from '@/shared/components/primitives/Loading';
+import { ErrorView } from '@/shared/components/composed/ErrorView';
+import { EmptyState } from '@/shared/components/primitives/EmptyState';
 import { useTabBarHeight } from '@/shared/hooks/useTabBarHeight';
 
 interface PostListProps {

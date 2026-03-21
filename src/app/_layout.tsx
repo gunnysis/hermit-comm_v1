@@ -9,8 +9,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { queryClient } from '@/shared/lib/queryClient';
 import { supabase } from '@/shared/lib/supabase';
-import { AppErrorBoundary } from '@/shared/components/AppErrorBoundary';
-import { NetworkBanner } from '@/shared/components/NetworkBanner';
+import { AppErrorBoundary } from '@/shared/components/composed/AppErrorBoundary';
+import { NetworkBanner } from '@/shared/components/composed/NetworkBanner';
 import Toast from 'react-native-toast-message';
 import '@/global.css';
 

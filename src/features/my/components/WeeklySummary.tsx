@@ -4,7 +4,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useWeeklySummary } from '../hooks/useWeeklySummary';
 import { EMOTION_EMOJI, ACTIVITY_PRESETS } from '@/shared/lib/constants';
 import { getActivityLabel } from '@/shared/lib/utils.generated';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 
 interface WeeklySummaryProps {
   enabled?: boolean;

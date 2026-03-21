@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { Input } from '@/shared/components/Input';
-import { Button } from '@/shared/components/Button';
+import { Input } from '@/shared/components/primitives/Input';
+import { Button } from '@/shared/components/primitives/Button';
 
 interface PostDetailCommentFormProps {
   value: string;

@@ -6,9 +6,9 @@ import { StatusBar } from 'expo-status-bar';
 import * as Linking from 'expo-linking';
 import Toast from 'react-native-toast-message';
 
-import { Container } from '@/shared/components/Container';
-import { ErrorView } from '@/shared/components/ErrorView';
-import { Loading } from '@/shared/components/Loading';
+import { Container } from '@/shared/components/primitives/Container';
+import { ErrorView } from '@/shared/components/composed/ErrorView';
+import { Loading } from '@/shared/components/primitives/Loading';
 import { PostDetailHeader } from '@/features/posts/components/PostDetailHeader';
 import { PostDetailBody } from '@/features/posts/components/PostDetailBody';
 import { PostDetailCommentForm } from '@/features/posts/components/PostDetailCommentForm';

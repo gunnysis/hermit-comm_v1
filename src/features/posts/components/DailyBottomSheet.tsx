@@ -11,7 +11,7 @@ import {
   DAILY_CONFIG,
   SHARED_PALETTE,
 } from '@/shared/lib/constants';
-import { ActivityTagSelector } from '@/shared/components/ActivityTagSelector';
+import { ActivityTagSelector } from '@/shared/components/composed/ActivityTagSelector';
 import { useTabBarHeight } from '@/shared/hooks/useTabBarHeight';
 import { useCreateDaily } from '@/features/my/hooks/useCreateDaily';
 import { useQueryClient } from '@tanstack/react-query';

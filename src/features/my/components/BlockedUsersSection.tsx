@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, useColorScheme, ActivityIndicator } from 'react-native';
 import { useBlockedAliases, useUnblockUser } from '@/features/blocks/hooks/useBlocks';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 
 export function BlockedUsersSection({ enabled = true }: { enabled?: boolean }) {
   const isDark = useColorScheme() === 'dark';

@@ -3,9 +3,9 @@ import { View, Text, TextInput, Pressable, ScrollView, useColorScheme } from 're
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Container } from '@/shared/components/Container';
-import { EmptyState } from '@/shared/components/EmptyState';
-import { PostCardSkeleton } from '@/shared/components/Skeleton';
+import { Container } from '@/shared/components/primitives/Container';
+import { EmptyState } from '@/shared/components/primitives/EmptyState';
+import { PostCardSkeleton } from '@/shared/components/primitives/Skeleton';
 import { api } from '@/shared/lib/api';
 import {
   ALLOWED_EMOTIONS,

@@ -3,7 +3,7 @@ import { View, Text, useColorScheme, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import { EMOTION_COLOR_MAP, EMOTION_EMOJI } from '@/shared/lib/constants';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 import type { EmotionCalendarDay } from '@/types';
 
 interface EmotionCalendarProps {

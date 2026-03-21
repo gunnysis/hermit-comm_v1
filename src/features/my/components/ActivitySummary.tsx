@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 import { useActivitySummary } from '../hooks/useActivitySummary';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 
 interface StatItemProps {
   emoji: string;

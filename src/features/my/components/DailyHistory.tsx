@@ -3,7 +3,7 @@ import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { EMOTION_EMOJI } from '@/shared/lib/constants';
 import { useDailyHistory } from '../hooks/useDailyHistory';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 
 interface DailyHistoryProps {
   enabled?: boolean;

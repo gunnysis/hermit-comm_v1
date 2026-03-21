@@ -3,7 +3,7 @@ import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { EMOTION_EMOJI, ACTIVITY_PRESETS } from '@/shared/lib/constants';
 import { getActivityLabel, getCurrentKST } from '@/shared/lib/utils.generated';
 import { useMonthlyReport } from '../hooks/useMonthlyReport';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 
 const MONTH_NAMES = [
   '1월',

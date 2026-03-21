@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { PostCardSkeleton } from '@/shared/components/Skeleton';
+import { PostCardSkeleton } from '@/shared/components/primitives/Skeleton';
 import { SearchResultCard } from './SearchResultCard';
 import { useTabBarHeight } from '@/shared/hooks/useTabBarHeight';
 import type { SearchResult } from '@/types';

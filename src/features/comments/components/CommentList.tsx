@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Comment } from '@/types';
 import { CommentItem } from './CommentItem';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { EmptyState } from '@/shared/components/primitives/EmptyState';
 
 interface CommentListProps {
   comments: Comment[];

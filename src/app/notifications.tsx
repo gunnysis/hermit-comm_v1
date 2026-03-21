@@ -3,8 +3,8 @@ import { View, Text, FlatList, Pressable, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Container } from '@/shared/components/Container';
-import { ScreenHeader } from '@/shared/components/ScreenHeader';
+import { Container } from '@/shared/components/primitives/Container';
+import { ScreenHeader } from '@/shared/components/composed/ScreenHeader';
 import {
   useNotifications,
   useMarkAllRead,

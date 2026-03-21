@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { CommentList } from '@/features/comments/components/CommentList';
-import { Loading } from '@/shared/components/Loading';
+import { Loading } from '@/shared/components/primitives/Loading';
 import type { Comment } from '@/types';
 
 interface PostDetailCommentListProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 import { useDailyInsights } from '../hooks/useDailyInsights';
-import { Skeleton } from '@/shared/components/Skeleton';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 import {
   ACTIVITY_PRESETS,
   EMOTION_EMOJI,

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, Pressable, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
-import { HighlightText } from '@/shared/components/HighlightText';
+import { HighlightText } from '@/shared/components/primitives/HighlightText';
 import { EMOTION_EMOJI, EMOTION_COLOR_MAP, SEARCH_HIGHLIGHT } from '@/shared/lib/constants';
 import { formatDate, formatReactionCount } from '@/shared/utils/format';
 import { pushPost } from '@/shared/lib/navigation';
