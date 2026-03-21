@@ -138,6 +138,55 @@ export async function getUserEmotionCalendar(
   return (data ?? []) as EmotionCalendarDay[];
 }
 
+export interface DailyHistoryItem {
+  id: number;
+  emotions: string[] | null;
+  activities: string[] | null;
+  content: string | null;
+  created_date_kst: string;
+  created_at: string;
+  like_count: number;
+  comment_count: number;
+}
+
+export async function getDailyHistory(limit = 20, offset = 0): Promise<DailyHistoryItem[]> {
+  const { data, error } = await supabase.rpc('get_my_daily_history', {
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) {
+    logger.error('[getDailyHistory] failed:', error);
+    throw error;
+  }
+  return (data ?? []) as unknown as DailyHistoryItem[];
+}
+
+export interface MonthlyEmotionReport {
+  year: number;
+  month: number;
+  days_in_month: number;
+  days_logged: number;
+  top_emotions: { emotion: string; count: number }[];
+  top_activities: { activity: string; count: number }[];
+  total_reactions: number;
+  total_comments: number;
+}
+
+export async function getMonthlyEmotionReport(
+  year: number,
+  month: number,
+): Promise<MonthlyEmotionReport> {
+  const { data, error } = await supabase.rpc('get_monthly_emotion_report', {
+    p_year: year,
+    p_month: month,
+  });
+  if (error) {
+    logger.error('[getMonthlyEmotionReport] failed:', error);
+    throw error;
+  }
+  return data as unknown as MonthlyEmotionReport;
+}
+
 export async function getMyAlias(): Promise<string | null> {
   const { data, error } = await supabase.rpc('get_my_alias');
   if (error) {
