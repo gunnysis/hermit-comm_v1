@@ -8,6 +8,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { Skeleton } from '@/shared/components/primitives/Skeleton';
 import { useStreak } from '../hooks/useStreak';
 
 const MILESTONES = [
@@ -44,7 +45,20 @@ export function StreakBadge({ enabled = true }: StreakBadgeProps) {
     transform: [{ scale: scale.value }],
   }));
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <View className={`mx-0 mt-3 rounded-2xl p-4 ${isDark ? 'bg-stone-800/50' : 'bg-cream-50'}`}
+        style={{ borderWidth: 1, borderColor: isDark ? 'rgba(68,64,60,0.4)' : '#E8DCC8' }}>
+        <View className="flex-row items-center gap-2">
+          <Skeleton className="w-8 h-8 rounded-full" />
+          <View>
+            <Skeleton className="w-28 h-4 mb-1" />
+            <Skeleton className="w-16 h-3" />
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   const currentMilestone = MILESTONES.filter((m) => data.current_streak >= m.days).pop();
   const nextMilestone = MILESTONES.find((m) => data.current_streak < m.days);

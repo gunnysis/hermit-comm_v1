@@ -41,11 +41,15 @@ export const DailyBottomSheet = forwardRef<BottomSheet, DailyBottomSheetProps>(
 
     const toggleEmotion = useCallback(
       (emotion: string) => {
-        Haptics.selectionAsync();
         if (emotions.includes(emotion)) {
+          Haptics.selectionAsync();
           setEmotions(emotions.filter((e) => e !== emotion));
         } else if (emotions.length < DAILY_CONFIG.MAX_EMOTIONS) {
+          Haptics.selectionAsync();
           setEmotions([...emotions, emotion]);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          Toast.show({ type: 'info', text1: `감정은 최대 ${DAILY_CONFIG.MAX_EMOTIONS}개까지 선택할 수 있어요` });
         }
       },
       [emotions],
@@ -167,12 +171,15 @@ export const DailyBottomSheet = forwardRef<BottomSheet, DailyBottomSheetProps>(
                 placeholderTextColor={isDark ? '#78716c' : '#a8a29e'}
                 returnKeyType="done"
                 blurOnSubmit
-                className={`rounded-xl px-4 py-3 text-sm mb-4 ${
+                className={`rounded-xl px-4 py-3 text-sm mb-1 ${
                   isDark
                     ? 'bg-stone-800 text-stone-100 border-stone-700'
                     : 'bg-stone-50 text-stone-900 border-stone-200'
                 } border`}
               />
+              <Text className={`text-right text-[10px] mb-3 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
+                {note.length}/{DAILY_CONFIG.MAX_NOTE_LENGTH}
+              </Text>
             </Animated.View>
           )}
 

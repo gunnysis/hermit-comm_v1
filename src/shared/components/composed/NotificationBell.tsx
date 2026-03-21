@@ -17,7 +17,7 @@ export function NotificationBell() {
   };
 
   return (
-    <Pressable onPress={handlePress} className="relative p-2">
+    <Pressable onPress={handlePress} className="relative p-2.5" hitSlop={6} accessibilityLabel={`알림${count > 0 ? ` ${count}개 읽지 않음` : ''}`} accessibilityRole="button">
       <Ionicons name="notifications-outline" size={22} color={text} />
       {count > 0 && (
         <View className="absolute top-1 right-1 bg-coral-500 rounded-full w-4 h-4 items-center justify-center">

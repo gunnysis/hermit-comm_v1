@@ -75,7 +75,8 @@ export function MonthlyReport({ enabled = true }: MonthlyReportProps) {
         <View className="flex-row gap-2">
           <Pressable
             onPress={goToPrev}
-            className="px-2 py-1"
+            className="px-3 py-2"
+            hitSlop={8}
             accessibilityLabel="이전 달"
             accessibilityRole="button">
             <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>◀</Text>
@@ -83,7 +84,8 @@ export function MonthlyReport({ enabled = true }: MonthlyReportProps) {
           {!isCurrentMonth && (
             <Pressable
               onPress={goToNext}
-              className="px-2 py-1"
+              className="px-3 py-2"
+              hitSlop={8}
               accessibilityLabel="다음 달"
               accessibilityRole="button">
               <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>▶</Text>

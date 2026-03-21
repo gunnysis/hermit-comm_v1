@@ -52,7 +52,8 @@ export function WeeklySummary({ enabled = true }: WeeklySummaryProps) {
           <View className="flex-row gap-2">
             <Pressable
               onPress={() => setWeekOffset(weekOffset + 1)}
-              className="px-2 py-1"
+              className="px-3 py-2"
+              hitSlop={8}
               accessibilityLabel="이전 주"
               accessibilityRole="button">
               <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>◀</Text>
@@ -60,7 +61,8 @@ export function WeeklySummary({ enabled = true }: WeeklySummaryProps) {
             {weekOffset > 0 && (
               <Pressable
                 onPress={() => setWeekOffset(weekOffset - 1)}
-                className="px-2 py-1"
+                className="px-3 py-2"
+                hitSlop={8}
                 accessibilityLabel="다음 주"
                 accessibilityRole="button">
                 <Text className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>▶</Text>
