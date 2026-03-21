@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Alert, AppState, View, Text, ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { queryClient } from '@/shared/lib/queryClient';
 import { supabase } from '@/shared/lib/supabase';
@@ -118,46 +119,48 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <AppErrorBoundary>
-          <View className="flex-1 bg-cream-100">
-            <NetworkBanner />
-            <View className="flex-1">
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                  animationDuration: 250,
-                }}>
-                <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
-                <Stack.Screen
-                  name="post/[id]"
-                  options={{
-                    animation: 'ios_from_right',
-                    gestureEnabled: true,
-                    gestureDirection: 'horizontal',
-                  }}
-                />
-                <Stack.Screen
-                  name="post/edit/[id]"
-                  options={{
-                    presentation: 'modal',
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <AppErrorBoundary>
+            <View className="flex-1 bg-cream-100">
+              <NetworkBanner />
+              <View className="flex-1">
+                <Stack
+                  screenOptions={{
                     headerShown: false,
-                    animation: 'slide_from_bottom',
-                  }}
-                />
-                <Stack.Screen name="admin" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen
-                  name="search"
-                  options={{ animation: 'fade', animationDuration: 200 }}
-                />
-              </Stack>
+                    animation: 'slide_from_right',
+                    animationDuration: 250,
+                  }}>
+                  <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+                  <Stack.Screen
+                    name="post/[id]"
+                    options={{
+                      animation: 'ios_from_right',
+                      gestureEnabled: true,
+                      gestureDirection: 'horizontal',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="post/edit/[id]"
+                    options={{
+                      presentation: 'modal',
+                      headerShown: false,
+                      animation: 'slide_from_bottom',
+                    }}
+                  />
+                  <Stack.Screen name="admin" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen
+                    name="search"
+                    options={{ animation: 'fade', animationDuration: 200 }}
+                  />
+                </Stack>
+              </View>
+              <Toast />
             </View>
-            <Toast />
-          </View>
-        </AppErrorBoundary>
-      </SafeAreaProvider>
-    </QueryClientProvider>
+          </AppErrorBoundary>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

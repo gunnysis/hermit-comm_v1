@@ -1,12 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import { experimental_createQueryPersister } from '@tanstack/query-persist-client-core';
 import Toast from 'react-native-toast-message';
-
-const persister = experimental_createQueryPersister({
-  storage: AsyncStorage,
-  maxAge: 1000 * 60 * 60 * 12, // 12시간
-});
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -29,12 +22,15 @@ export const queryClient = new QueryClient({
   }),
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5분
+      staleTime: 1000 * 60 * 2, // 2분 (앱 특성에 맞게 조정)
       gcTime: 1000 * 60 * 30, // 30분
-      retry: 2,
+      retry: (failureCount, error) => {
+        // 4xx 에러는 재시도 안함 (웹과 동일 전략)
+        if (error instanceof Error && /\b4\d{2}\b/.test(error.message)) return false;
+        return failureCount < 2;
+      },
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
       refetchOnWindowFocus: false,
-      persister: persister.persisterFn,
     },
     mutations: {
       retry: 1,
