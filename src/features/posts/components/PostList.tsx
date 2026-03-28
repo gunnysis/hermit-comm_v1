@@ -9,6 +9,8 @@ import { ErrorView } from '@/shared/components/composed/ErrorView';
 import { EmptyState } from '@/shared/components/primitives/EmptyState';
 import { useTabBarHeight } from '@/shared/hooks/useTabBarHeight';
 
+const renderPostCard = ({ item }: { item: Post }) => <PostCard post={item} />;
+
 interface PostListProps {
   posts: Post[];
   loading: boolean;
@@ -116,7 +118,7 @@ export function PostList({
       <FlashList
         data={posts}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={renderPostCard}
         getItemType={(item) => item.post_type ?? 'post'}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={ListEmpty}

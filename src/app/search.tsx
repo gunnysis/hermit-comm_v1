@@ -79,8 +79,10 @@ export default function SearchScreen() {
         limit: SEARCH_CONFIG.PAGE_SIZE,
         offset: pageParam,
       }),
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length === SEARCH_CONFIG.PAGE_SIZE ? allPages.flat().length : undefined,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length === SEARCH_CONFIG.PAGE_SIZE
+        ? (lastPageParam ?? 0) + SEARCH_CONFIG.PAGE_SIZE
+        : undefined,
     initialPageParam: 0,
     enabled: hasTextQuery,
     staleTime: SEARCH_CONFIG.STALE_TIME_MS,

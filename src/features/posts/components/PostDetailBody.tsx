@@ -80,7 +80,7 @@ export function PostDetailBody({
                   className="rounded-full px-4 py-2"
                   style={{ backgroundColor: colors?.gradient[0] ?? '#E7D7FF' }}>
                   <Text className="text-sm font-semibold" style={{ color: '#1c1917' }}>
-                    {EMOTION_EMOJI[emotion]} {emotion}
+                    {EMOTION_EMOJI[emotion] ?? '💬'} {emotion}
                   </Text>
                 </Pressable>
               );

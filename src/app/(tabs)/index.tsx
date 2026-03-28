@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Container } from '@/shared/components/primitives/Container';
 import {
   DEFAULT_PUBLIC_BOARD_ID,
@@ -38,6 +38,7 @@ function getTimeSlot(): TimeSlot {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   useResponsiveLayout();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
   const selectedBoardId = DEFAULT_PUBLIC_BOARD_ID;
@@ -70,19 +71,17 @@ export default function HomeScreen() {
 
   const isLoading = emotionFilter ? isFilterLoading : loading;
 
+  // Realtime 구독 — 캐시 무효화로 자동 갱신 (명시적 refetch 불필요)
   useRealtimePosts({
-    onInsert: useCallback(
-      (_newPost: Post) => {
-        refetch();
-      },
-      [refetch],
-    ),
+    onInsert: useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['boardPosts', selectedBoardId] });
+    }, [queryClient, selectedBoardId]),
     onDelete: useCallback(() => {
-      refetch();
-    }, [refetch]),
+      queryClient.invalidateQueries({ queryKey: ['boardPosts', selectedBoardId] });
+    }, [queryClient, selectedBoardId]),
     onUpdate: useCallback(() => {
-      refetch();
-    }, [refetch]),
+      queryClient.invalidateQueries({ queryKey: ['boardPosts', selectedBoardId] });
+    }, [queryClient, selectedBoardId]),
   });
 
   const handleLoadMore = useCallback(() => {
