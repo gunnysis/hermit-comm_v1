@@ -8,7 +8,6 @@ import {
   DEFAULT_PUBLIC_BOARD_ID,
   EMPTY_STATE_MESSAGES,
   GREETING_MESSAGES,
-  PUBLIC_BOARDS,
 } from '@/shared/lib/constants';
 import { pushAdmin, pushAdminLogin, pushSearch, pushCreate } from '@/shared/lib/navigation';
 import { ScreenHeader } from '@/shared/components/composed/ScreenHeader';
@@ -41,7 +40,7 @@ export default function HomeScreen() {
   const router = useRouter();
   useResponsiveLayout();
   const { isAdmin, isLoading: isAdminLoading } = useIsAdmin();
-  const [selectedBoardId, setSelectedBoardId] = useState(DEFAULT_PUBLIC_BOARD_ID);
+  const selectedBoardId = DEFAULT_PUBLIC_BOARD_ID;
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [emotionFilter, setEmotionFilter] = useState<string | null>(null);
 
@@ -100,19 +99,10 @@ export default function HomeScreen() {
     setEmotionFilter(emotion);
   }, []);
 
-  const handleBoardChange = useCallback((boardId: number) => {
-    setSelectedBoardId(boardId);
-    setEmotionFilter(null);
-    setSortOrder('latest');
-  }, []);
-
   const handleTitleLongPress = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     pushAdminLogin(router);
   }, [router]);
-
-  const selectedBoard = PUBLIC_BOARDS.find((b) => b.id === selectedBoardId);
-  const isPoetryBoard = selectedBoard?.name === '시 게시판';
 
   const rightContent = useMemo(
     () => (
@@ -134,32 +124,6 @@ export default function HomeScreen() {
   const listHeader = useMemo(
     () => (
       <View>
-        {/* 게시판 탭 */}
-        <View className="flex-row gap-2 px-4 mt-2 mb-2">
-          {PUBLIC_BOARDS.map((board) => (
-            <Pressable
-              key={board.id}
-              onPress={() => handleBoardChange(board.id)}
-              className={`flex-1 py-2 rounded-xl items-center ${
-                selectedBoardId === board.id
-                  ? 'bg-stone-800 dark:bg-stone-100'
-                  : 'bg-stone-100 dark:bg-stone-800'
-              }`}
-              accessibilityLabel={board.name}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: selectedBoardId === board.id }}>
-              <Text
-                className={`text-sm font-medium ${
-                  selectedBoardId === board.id
-                    ? 'text-white dark:text-stone-900'
-                    : 'text-stone-500 dark:text-stone-400'
-                }`}>
-                {board.icon} {board.name}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
         <View className="px-4">
           <EmotionTrend
             days={7}
@@ -175,19 +139,15 @@ export default function HomeScreen() {
         )}
       </View>
     ),
-    [emotionFilter, handleEmotionSelect, selectedBoardId, handleBoardChange],
+    [emotionFilter, handleEmotionSelect],
   );
 
   const emptyTitle = emotionFilter
     ? `'${emotionFilter}' 감정의 글이 아직 없어요`
-    : isPoetryBoard
-      ? '아직 시가 없어요'
-      : EMPTY_STATE_MESSAGES.feed.title;
+    : EMPTY_STATE_MESSAGES.feed.title;
   const emptyDescription = emotionFilter
     ? '다른 감정을 선택해보세요'
-    : isPoetryBoard
-      ? '첫 번째 시를 작성해보세요.\n마음을 시로 표현해보는 건 어떨까요?'
-      : EMPTY_STATE_MESSAGES.feed.description;
+    : EMPTY_STATE_MESSAGES.feed.description;
 
   return (
     <Container>

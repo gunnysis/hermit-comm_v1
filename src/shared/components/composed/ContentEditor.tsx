@@ -26,10 +26,18 @@ export interface ContentEditorProps {
   minHeight?: number;
 }
 
+/** HTML 태그/엔티티를 제거한 순수 텍스트 길이 */
+function textLength(html: string): number {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(?:[a-z]+|#\d+|#x[\da-f]+);/gi, 'X')
+    .trim().length;
+}
+
 export function ContentEditor({
   value,
   onChange,
-  placeholder: _placeholder,
+  placeholder,
   error,
   maxLength = DEFAULT_MAX_LENGTH,
   editable = true,
@@ -52,7 +60,11 @@ export function ContentEditor({
     debounceInterval: 300,
   });
 
-  const currentLength = typeof htmlContent === 'string' ? htmlContent.length : value.length;
+  const currentLength =
+    typeof htmlContent === 'string' ? textLength(htmlContent) : textLength(value);
+  const isOverLimit = currentLength > maxLength;
+  const charPercent = Math.min((currentLength / maxLength) * 100, 100);
+  const readTimeMin = Math.max(1, Math.ceil(currentLength / 500));
 
   const isInitialMount = useRef(true);
   useEffect(() => {
@@ -87,17 +99,37 @@ export function ContentEditor({
         </View>
         <View
           className="bg-cream-50 dark:bg-stone-900 flex-1"
-          style={{ minHeight: 160, maxHeight: 400 }}>
+          style={{ minHeight: 180, maxHeight: 600 }}>
           <RichText editor={editor} />
         </View>
       </View>
-      <Text
-        className={`text-xs mt-1 ${currentLength > maxLength ? 'text-coral-500' : 'text-gray-500 dark:text-stone-400'}`}
-        accessibilityLabel={`글자 수 ${currentLength}자, 최대 ${maxLength}자`}>
-        {currentLength} / {maxLength}자
-      </Text>
+
+      {/* 하단 바: 읽기 시간 + 글자수 + 프로그레스 바 */}
+      <View className="flex-row items-center justify-between mt-1.5 px-1">
+        <Text className="text-xs text-gray-400 dark:text-stone-500">
+          {currentLength > 0 ? `약 ${readTimeMin}분 읽기` : ''}
+        </Text>
+        <View className="flex-row items-center">
+          <Text
+            className={`text-xs ${isOverLimit ? 'text-coral-500' : 'text-gray-500 dark:text-stone-400'}`}
+            accessibilityLabel={`글자 수 ${currentLength}자, 최대 ${maxLength}자`}>
+            {currentLength} / {maxLength}자
+          </Text>
+          {charPercent > 0 && (
+            <View className="ml-2 w-10 h-1.5 rounded-full bg-stone-200 dark:bg-stone-700 overflow-hidden">
+              <View
+                className={`h-full rounded-full ${
+                  isOverLimit ? 'bg-coral-500' : charPercent > 80 ? 'bg-amber-400' : 'bg-stone-400'
+                }`}
+                style={{ width: `${charPercent}%` }}
+              />
+            </View>
+          )}
+        </View>
+      </View>
+
       {error ? (
-        <Text className="text-xs text-coral-500 dark:text-coral-400 mt-2">{error}</Text>
+        <Text className="text-xs text-coral-500 dark:text-coral-400 mt-1">{error}</Text>
       ) : null}
     </View>
   );

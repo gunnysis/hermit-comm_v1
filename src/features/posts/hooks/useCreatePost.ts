@@ -15,8 +15,8 @@ export interface UseCreatePostOptions {
   anonMode?: AnonMode;
   /** 추가 게시글 데이터 반환 함수 (예: 이미지 URL) */
   getExtraPostData?: () => Partial<CreatePostRequest>;
-  /** 성공 시 호출 콜백 (폼 데이터 전달) */
-  onSuccess?: (data: PostFormValues) => void | Promise<void>;
+  /** 성공 시 호출 콜백 (폼 데이터 + 생성된 게시글 ID 전달) */
+  onSuccess?: (data: PostFormValues, postId?: number) => void | Promise<void>;
   /** 에러 시 호출 콜백 */
   onError?: (message: string) => void;
   /** 기본 폼 값 */
@@ -71,7 +71,7 @@ export function useCreatePost({
         });
 
         const extraData = getExtraPostData?.() ?? {};
-        await api.createPost({
+        const created = await api.createPost({
           title: data.title.trim(),
           content: data.content.trim(),
           board_id: boardId,
@@ -82,7 +82,7 @@ export function useCreatePost({
 
         queryClient.invalidateQueries({ queryKey: ['boardPosts', boardId] });
 
-        await onSuccess?.(data);
+        await onSuccess?.(data, created?.id);
       } catch (e) {
         onError?.(toFriendlyErrorMessage(e, '게시글 작성에 실패했습니다.'));
       }

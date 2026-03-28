@@ -53,9 +53,13 @@ function clearDraftSync(boardId: number): void {
   }
 }
 
+export type DraftStatus = 'idle' | 'saving' | 'saved';
+
 export function useDraft(boardId: number, values: { title: string; content: string }) {
   const [hasDraft, setHasDraft] = useState<boolean>(false);
+  const [status, setStatus] = useState<DraftStatus>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadDraft = useCallback((): DraftData | null => {
     const draft = getDraftSync(boardId);
@@ -71,15 +75,20 @@ export function useDraft(boardId: number, values: { title: string; content: stri
   const saveDraft = useCallback(
     (data: { title: string; content: string }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      setStatus('saving');
+      if (statusResetRef.current) clearTimeout(statusResetRef.current);
       debounceRef.current = setTimeout(() => {
         debounceRef.current = null;
         const hasContent = data.title.trim() || data.content.trim();
         if (hasContent) {
           setDraftSync(boardId, data);
           setHasDraft(true);
+          setStatus('saved');
+          statusResetRef.current = setTimeout(() => setStatus('idle'), 3000);
         } else {
           clearDraftSync(boardId);
           setHasDraft(false);
+          setStatus('idle');
         }
       }, DEBOUNCE_MS);
     },
@@ -90,6 +99,7 @@ export function useDraft(boardId: number, values: { title: string; content: stri
     setHasDraft(!!getDraftSync(boardId));
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (statusResetRef.current) clearTimeout(statusResetRef.current);
     };
   }, [boardId]);
 
@@ -99,7 +109,7 @@ export function useDraft(boardId: number, values: { title: string; content: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.title, values.content, saveDraft]);
 
-  return { loadDraft, clearDraft, hasDraft };
+  return { loadDraft, clearDraft, hasDraft, status };
 }
 
 export { getDraftSync, clearDraftSync };

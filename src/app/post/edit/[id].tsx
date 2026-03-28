@@ -142,6 +142,12 @@ export default function EditPostScreen() {
               error={errors.title}
               maxLength={100}
             />
+            <Text
+              className={`text-xs text-right mt-0.5 mb-2 ${
+                title.length > 90 ? 'text-amber-500' : 'text-gray-400 dark:text-stone-500'
+              }`}>
+              {title.length}/100
+            </Text>
             <ContentEditor
               key={`edit-${postId}-${content ? 'loaded' : 'init'}`}
               label="내용"

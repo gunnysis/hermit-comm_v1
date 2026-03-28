@@ -50,7 +50,6 @@ export {
   DAILY_CONFIG,
   DAILY_INSIGHTS_CONFIG,
   DEFAULT_PUBLIC_BOARD_ID,
-  POETRY_BOARD_ID,
   PUBLIC_BOARDS,
 } from './constants.generated';
 export type { AllowedEmotion, ReactionColorKey } from './constants.generated';
